@@ -27,6 +27,10 @@ export function findCommonFreeSlots(
       start: parseISO(interval.start),
       end: parseISO(interval.end),
     }))
+    .filter(interval => 
+      // 検索期間と重複する予定を対象とする
+      (interval.start < searchEndDate && interval.end > searchStartDate)
+    )
     .sort((a, b) => compareAsc(a.start, b.start));
 
   const mergedBusy: DateInterval[] = [];
