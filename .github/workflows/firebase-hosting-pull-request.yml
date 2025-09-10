@@ -25,18 +25,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-      - name: Cache npm global packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm # npm のキャッシュディレクトリを指定
-          # キャッシュキー: OSとNode.jsのバージョン、そして'firebase-tools'という固定文字列でキーを作成
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-firebase-tools-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-firebase-tools-
       - name: Install dependencies
         run: pnpm install
       - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+        run: pnpm add -g firebase-tools
       - run: pnpm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
