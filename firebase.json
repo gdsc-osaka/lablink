@@ -9,5 +9,16 @@
     "frameworksBackend": {
       "region": "asia-east1"
     }
+  },
+  "apphosting": {
+    "backendId": "lablink",
+    "rootDir": "/",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ]
   }
 }
