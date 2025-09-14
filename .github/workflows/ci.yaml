@@ -45,7 +45,7 @@ jobs:
         env:
           cache-name: cache-node
         with:
-          path: ~/.pnpm-store
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-cache-node-
