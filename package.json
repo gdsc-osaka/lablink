@@ -10,7 +10,7 @@
     "fix": "prettier --write ./src ./*.config.* && next lint --fix"
   },
   "dependencies": {
-    "next": "15.3.5",
+    "next": "15.4.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
