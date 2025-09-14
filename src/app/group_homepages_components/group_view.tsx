@@ -1,89 +1,39 @@
-import React, { useState, useEffect } from 'react';
-//import { db } from '/firebase/config';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+"use client"
+
+import { Autour_One } from 'next/font/google';
+import React from 'react';
 
 // メンバーとグループのデータ型を定義
-interface Member {
+export interface Member {
   id: string;
   name: string;
+  iconUrl?: string;
 }
 
-interface Group {
+
+
+export interface Group     {
   name: string;
-  members: string[]; // membersフィールドを追加
+  members: Member[]; // membersフィールドを追加
 }
+
 
 // GroupViewコンポーネントのプロパティを定義
 interface GroupViewProps {
-  groupId: string;
+  group: Group;
 }
 
-const GroupView: React.FC<GroupViewProps> = ({ groupId }) => {
-  const [groupName, setGroupName] = useState<string>('');
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchGroupData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const groupRef = doc(db, 'groups', groupId);
-        const groupSnap = await getDoc(groupRef);
-
-        if (groupSnap.exists()) {
-          const groupData = groupSnap.data() as Group;
-          setGroupName(groupData.name);
-
-          const memberIds = groupData.members;
-
-          if (memberIds && memberIds.length > 0) {
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('__name__', 'in', memberIds));
-            const userDocs = await getDocs(q);
-            const memberList = userDocs.docs.map(doc => ({
-              id: doc.id,
-              name: doc.data().name,
-            }));
-            setMembers(memberList);
-          } else {
-            setMembers([]);
-          }
-        } else {
-          setGroupName('グループが見つかりません');
-          setMembers([]);
-        }
-      } catch (err) {
-        console.error("データの取得中にエラーが発生しました:", err);
-        setError("データの取得に失敗しました。");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (groupId) {
-      fetchGroupData();
-    }
-  }, [groupId]);
-
-  if (loading) {
-    return <div>読み込み中...</div>;
-  }
-
-  if (error) {
-    return <div>エラー: {error}</div>;
-  }
+const GroupView: React.FC<GroupViewProps> = ({ group }) => {
 
   const handleInviteClick = () => {
     alert('招待ボタンがクリックされました。');
   };
 
-  return (
-    <div style={{ padding: '20px', backgroundColor: '#f0f0f0', width: '300px' }}>
-      <h2>{groupName}</h2>
+  return (<div style={{display:'flex',height:'100%'}}>
+    <div style={{ padding: '20px', backgroundColor: '#f0f0f0', width: '200px' , height: '100%', display:'flex', flexDirection:'column'}}>
+      <h2 style={{fontWeight:'bold', fontSize:'100%' ,textAlign:'center'}}>{group.name}</h2>
       <div style={{ marginTop: '20px' }}>
-        {members.map(member => (
+        {group.members.map((member:Member) => (
           <div key={member.id} style={{ marginBottom: '10px' }}>
             <span>{member.name}</span>
           </div>
@@ -92,7 +42,7 @@ const GroupView: React.FC<GroupViewProps> = ({ groupId }) => {
       <button
         onClick={handleInviteClick}
         style={{
-          marginTop: '20px',
+          marginTop: 'auto',
           padding: '10px 20px',
           border: 'none',
           borderRadius: '5px',
@@ -103,6 +53,8 @@ const GroupView: React.FC<GroupViewProps> = ({ groupId }) => {
       >
         招待
       </button>
+    </div>
+    <div style ={{width:'100%',backgroundColor:'#ece5ad7a'}}></div>
     </div>
   );
 };
