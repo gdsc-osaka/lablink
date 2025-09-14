@@ -39,32 +39,7 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        id: cache-node
-        env:
-          cache-name: cache-node
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-cache-node-
-            ${{ runner.os }}-cache-
-            ${{ runner.os }}-
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-cache-node-modules-
-            ${{ runner.os }}-cache-
-            ${{ runner.os }}-
-
       - name: Install node modules
-        if: ${{ steps.cache-node.outputs.cache-hit != 'true' }}
         run: pnpm i
 
       - name: Lint
