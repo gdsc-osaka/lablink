@@ -1,12 +1,40 @@
-// components/test/NavigationTest.tsx
-// このファイルは、`pages`ディレクトリに配置して、ブラウザで確認するためのテスト用ページとして機能します。
+import GroupView, {
+    Member,
+    Group,
+} from "./group_homepages_components/group_view";
+const mockMemberList: Member[] = [
+    {
+        id: "abc",
+        name: "aaa",
+        iconUrl: "",
+    },
+    {
+        id: "def",
+        name: "bbb",
+    },
+    {
+        id: "ghi",
+        name: "ccc",
+    },
+];
 
-"use client";
+const mockGroupList: Group[] = [
+    {
+        name: "haraken",
+        members: mockMemberList,
+    },
+    {
+        name: "gggken",
+        members: mockMemberList,
+    },
+];
 
 export default function Home() {
     return (
-        <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-            <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start"></main>
+        <div style={{ height: "100%" }}>
+            <main style={{ height: "100%" }}>
+                <GroupView group={mockGroupList[0]}></GroupView>
+            </main>
         </div>
     );
 }
