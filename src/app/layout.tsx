@@ -22,16 +22,14 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-
-  return (
-    <html lang="en" style={{height:'100%'}}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{height:'100%'}}
-      >
-        {children}
-      </body>
-    </html>
-  );
-
+    return (
+        <html lang="en" style={{ height: "100%" }}>
+            <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+                style={{ height: "100%" }}
+            >
+                {children}
+            </body>
+        </html>
+    );
 }
