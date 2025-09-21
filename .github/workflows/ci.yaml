@@ -31,7 +31,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10 # Unifying to 10
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -40,7 +40,37 @@ jobs:
           cache: "pnpm"
 
       - name: Install node modules
-        run: pnpm i
+        run: pnpm install # using install for consistency
 
       - name: Lint
         run: pnpm run lint
+
+  build_and_preview:
+    name: Deploy to Firebase Hosting on PR
+    needs: run_lint
+    if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
+      - run: pnpm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LABLINK_F9171 }}
+          projectId: lablink-f9171
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
