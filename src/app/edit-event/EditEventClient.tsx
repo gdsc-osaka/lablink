@@ -3,50 +3,49 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-
-interface EventData {
-    id: number;
-    title: string;
-    duration: string;
-    timezone: string;
-    details: string;
-}
+import { Event } from "@/domain/event";
 
 const EditEventPage = () => {
     const searchParams = useSearchParams();
     const eventId = searchParams.get("id");
 
     // 既存のイベントデータを管理するstate
-    const [eventData, setEventData] = useState<EventData>({
-        id: 0,
+    const [eventData, setEventData] = useState<Event>({
+        id: "",
         title: "",
-        duration: "",
-        timezone: "",
-        details: "",
+        description: "",
+        begin_at: new Date() as any,
+        end_at: new Date() as any,
+        created_at: new Date(),
+        updated_at: new Date(),
     });
 
     // イベントデータを取得する関数（実際のAPIから取得する想定）
     useEffect(() => {
         if (eventId) {
             // サンプルデータ（実際のアプリではAPIから取得）
-            const sampleEvents: EventData[] = [
+            const sampleEvents: Event[] = [
                 {
-                    id: 101,
+                    id: "101",
                     title: "交流会",
-                    duration: "3時間",
-                    timezone: "昼 : 12:00 ~ 16:00",
-                    details: "",
+                    description: "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
+                    begin_at: new Date("2025-05-12T13:00:00Z") as any,
+                    end_at: new Date("2025-05-12T16:00:00Z") as any,
+                    created_at: new Date(),
+                    updated_at: new Date(),
                 },
                 {
-                    id: 102,
+                    id: "102",
                     title: "ミーティング",
-                    duration: "1時間",
-                    timezone: "昼 : 11:00 ~ 12:00",
-                    details: "",
+                    description: "外部進学した留学生のためにたこ焼きパーティーをする",
+                    begin_at: new Date("2025-05-23T11:00:00Z") as any,
+                    end_at: new Date("2025-05-23T12:00:00Z") as any,
+                    created_at: new Date(),
+                    updated_at: new Date(),
                 },
             ];
 
-            const event = sampleEvents.find((e) => e.id === parseInt(eventId));
+            const event = sampleEvents.find((e) => e.id === eventId);
             if (event) {
                 setEventData(event);
             }
@@ -60,7 +59,7 @@ const EditEventPage = () => {
         const { name, value } = e.target;
         setEventData((prevData) => ({
             ...prevData,
-            [name]: value,
+            [name]: name === 'begin_at' || name === 'end_at' ? new Date(value) as any : value,
         }));
     };
 
@@ -119,33 +118,16 @@ const EditEventPage = () => {
 
                     <div>
                         <label
-                            htmlFor="duration"
+                            htmlFor="begin_at"
                             className="block text-sm font-medium text-black mb-1"
                         >
-                            所要時間
+                            開始日時
                         </label>
                         <input
-                            type="text"
-                            id="duration"
-                            name="duration"
-                            value={eventData.duration}
-                            onChange={handleChange}
-                            className="mt-2 block w-full p-3 bg-white border border-blue-500 rounded-lg focus:outline-none focus:border-blue-500 text-black"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="timezone"
-                            className="block text-sm font-medium text-black mb-1"
-                        >
-                            時間帯
-                        </label>
-                        <input
-                            type="text"
-                            id="timezone"
-                            name="timezone"
-                            value={eventData.timezone}
+                            type="datetime-local"
+                            id="begin_at"
+                            name="begin_at"
+                            value={eventData.begin_at instanceof Date ? eventData.begin_at.toISOString().slice(0, 16) : new Date(eventData.begin_at.seconds * 1000).toISOString().slice(0, 16)}
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-blue-500 text-black"
                         />
@@ -153,16 +135,33 @@ const EditEventPage = () => {
 
                     <div>
                         <label
-                            htmlFor="details"
+                            htmlFor="end_at"
+                            className="block text-sm font-medium text-black mb-1"
+                        >
+                            終了日時
+                        </label>
+                        <input
+                            type="datetime-local"
+                            id="end_at"
+                            name="end_at"
+                            value={eventData.end_at instanceof Date ? eventData.end_at.toISOString().slice(0, 16) : new Date(eventData.end_at.seconds * 1000).toISOString().slice(0, 16)}
+                            onChange={handleChange}
+                            className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-blue-500 text-black"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="description"
                             className="block text-sm font-medium text-black mb-1"
                         >
                             詳細
                         </label>
-                        <input
-                            type="text"
-                            id="details"
-                            name="details"
-                            value={eventData.details}
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows={4}
+                            value={eventData.description}
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-blue-500 text-black"
                         />
