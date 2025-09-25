@@ -1,7 +1,7 @@
 // src/components/EventList.tsx
 import EventListCard from "./event-list-card";
 import Link from "next/link";
-import { Event } from "../types";
+import { Event } from "@/domain/event";
 
 interface EventListProps {
     events: Event[];
@@ -25,8 +25,8 @@ const EventList = ({ events }: EventListProps) => {
                             key={event.id}
                             id={event.id}
                             title={event.title}
-                            startTime={event.startTime}
-                            endTime={event.endTime}
+                            startTime={event.begin_at}
+                            endTime={event.end_at}
                         />
                     ))
                 ) : (

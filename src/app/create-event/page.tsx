@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-interface EventData {
-    title: string;
-    duration: string;
-    timezone: string;
-    details: string;
-}
+import { Event } from "@/domain/event";
 
 const CreateEventPage = () => {
     // useStateに型を指定し、分割代入で変数を受け取る
-    const [eventData, setEventData] = useState<EventData>({
+    const [eventData, setEventData] = useState<Event>({
+        id: "",
         title: "",
-        duration: "",
-        timezone: "",
-        details: "",
+        description: "",
+        begin_at: new Date() as any,
+        end_at: new Date() as any,
+        created_at: new Date(),
+        updated_at: new Date(),
     });
 
     // 入力値の変更をハンドルする関数
@@ -26,7 +23,7 @@ const CreateEventPage = () => {
         const { name, value } = e.target;
         setEventData((prevData) => ({
             ...prevData,
-            [name]: value,
+            [name]: name === 'begin_at' || name === 'end_at' ? new Date(value) as any : value,
         }));
     };
 
@@ -66,17 +63,16 @@ const CreateEventPage = () => {
 
                     <div>
                         <label
-                            htmlFor="duration"
+                            htmlFor="begin_at"
                             className="block text-sm font-medium text-black mb-1"
                         >
-                            イベントの所要時間を記入してください
+                            イベント開始日時を記入してください
                         </label>
                         <input
-                            type="text"
-                            id="duration"
-                            name="duration"
-                            value={eventData.duration}
-                            placeholder="30分、2時間"
+                            type="datetime-local"
+                            id="begin_at"
+                            name="begin_at"
+                            value={eventData.begin_at instanceof Date ? eventData.begin_at.toISOString().slice(0, 16) : new Date(eventData.begin_at.seconds * 1000).toISOString().slice(0, 16)}
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
                         />
@@ -84,17 +80,16 @@ const CreateEventPage = () => {
 
                     <div>
                         <label
-                            htmlFor="timezone"
+                            htmlFor="end_at"
                             className="block text-sm font-medium text-black mb-1"
                         >
-                            イベントの時間帯を記入してください
+                            イベント終了日時を記入してください
                         </label>
                         <input
-                            type="text"
-                            id="timezone"
-                            name="timezone"
-                            value={eventData.timezone}
-                            placeholder="朝、昼、夕、夜"
+                            type="datetime-local"
+                            id="end_at"
+                            name="end_at"
+                            value={eventData.end_at instanceof Date ? eventData.end_at.toISOString().slice(0, 16) : new Date(eventData.end_at.seconds * 1000).toISOString().slice(0, 16)}
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
                         />
@@ -102,16 +97,16 @@ const CreateEventPage = () => {
 
                     <div>
                         <label
-                            htmlFor="details"
+                            htmlFor="description"
                             className="block text-sm font-medium text-black mb-1"
                         >
                             イベントの詳細を記入してください
                         </label>
                         <textarea
-                            id="details"
-                            name="details"
+                            id="description"
+                            name="description"
                             rows={4}
-                            value={eventData.details}
+                            value={eventData.description}
                             placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"

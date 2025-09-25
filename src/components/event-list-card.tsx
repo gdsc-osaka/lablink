@@ -3,10 +3,10 @@ import { format } from "date-fns";
 import Link from "next/link";
 
 type EventListCardProps = {
-    id: number;
+    id: string;
     title: string;
-    startTime: string | Date;
-    endTime: string | Date;
+    startTime: any;
+    endTime: any;
 };
 
 const EventListCard = ({

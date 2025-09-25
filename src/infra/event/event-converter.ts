@@ -8,8 +8,8 @@ const eventConverter: FirestoreDataConverter<Event> = {
     toFirestore(event: Event): DocumentData {
         return {
             title: event.title,
-            descripton: event.description,
-            bigin_at: event.begin_at,
+            description: event.description,
+            begin_at: event.begin_at,
             end_at: event.end_at,
             created_at: Timestamp.fromDate(event.created_at),
             updated_at: Timestamp.fromDate(event.updated_at),
@@ -21,13 +21,13 @@ const eventConverter: FirestoreDataConverter<Event> = {
     ): Event {
         const data = snapshot.data(options);
         return {
-        id: data.id,
-        title: data.description,
-        description: data.description,
-        begin_at: data.bigin_at,
-        end_at: data.end_at,
-        created_at: data.created_at.toDate(),
-        updated_at: data.updated_at.toDate(),
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            begin_at: data.begin_at,
+            end_at: data.end_at,
+            created_at: data.created_at.toDate(),
+            updated_at: data.updated_at.toDate(),
         };
     }
 }
