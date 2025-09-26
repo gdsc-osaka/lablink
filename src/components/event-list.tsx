@@ -40,7 +40,7 @@ const EventList = ({ events }: EventListProps) => {
             <div className="w-full max-w-4xl px-8 mt-8 pb-8">
                 <div className="flex justify-end">
                     <Link href="/create-event">
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             イベント追加
                         </button>
                     </Link>
