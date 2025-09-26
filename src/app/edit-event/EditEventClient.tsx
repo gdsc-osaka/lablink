@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { Event, SuggestEventData } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
 
-
 const EditEventPage = () => {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("id");

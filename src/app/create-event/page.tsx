@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { SuggestEventData } from "@/domain/event";
 
-
 const CreateEventPage = () => {
   // useStateに型を指定し、分割代入で変数を受け取る
   const [eventData, setEventData] = useState<SuggestEventData>({
