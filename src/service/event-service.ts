@@ -35,7 +35,7 @@ export class EventService {
     if (!groupId || groupId.trim() === "") {
       throw new Error("グループIDが指定されていません");
     }
-    
+
     // バリデーション
     this.validateEventData(eventData);
     // イベントの重複チェック（同じタイトルで同じ時間帯のイベントがないか）
