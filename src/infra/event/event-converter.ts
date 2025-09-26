@@ -14,8 +14,14 @@ const eventConverter: FirestoreDataConverter<Event> = {
             description: event.description,
             begin_at: event.begin_at,
             end_at: event.end_at,
-            created_at: Timestamp.fromDate(event.created_at),
-            updated_at: Timestamp.fromDate(event.updated_at),
+            created_at:
+                event.created_at instanceof Timestamp
+                    ? event.created_at
+                    : Timestamp.fromDate(event.created_at),
+            updated_at:
+                event.updated_at instanceof Timestamp
+                    ? event.updated_at
+                    : Timestamp.fromDate(event.updated_at),
         };
     },
     fromFirestore(
@@ -24,7 +30,7 @@ const eventConverter: FirestoreDataConverter<Event> = {
     ): Event {
         const data = snapshot.data(options);
         return {
-            id: data.id,
+            id: snapshot.id,
             title: data.title,
             description: data.description,
             begin_at: data.begin_at,
