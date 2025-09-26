@@ -1,8 +1,11 @@
-import {FirestoreDataConverter, DocumentData, QueryDocumentSnapshot, SnapshotOptions} from "firebase/firestore";
+import {
+    FirestoreDataConverter,
+    DocumentData,
+    QueryDocumentSnapshot,
+    SnapshotOptions,
+} from "firebase/firestore";
 import { Timestamp } from "firebase/firestore";
-import { Event } from "@/domain/event"
-
-
+import { Event } from "@/domain/event";
 
 const eventConverter: FirestoreDataConverter<Event> = {
     toFirestore(event: Event): DocumentData {
@@ -17,7 +20,7 @@ const eventConverter: FirestoreDataConverter<Event> = {
     },
     fromFirestore(
         snapshot: QueryDocumentSnapshot,
-        options: SnapshotOptions
+        options: SnapshotOptions,
     ): Event {
         const data = snapshot.data(options);
         return {
@@ -29,7 +32,7 @@ const eventConverter: FirestoreDataConverter<Event> = {
             created_at: data.created_at.toDate(),
             updated_at: data.updated_at.toDate(),
         };
-    }
-}
+    },
+};
 
 export { eventConverter };

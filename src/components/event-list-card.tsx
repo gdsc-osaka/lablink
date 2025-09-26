@@ -1,12 +1,13 @@
 // src/components/event-list-card.tsx
 import { format } from "date-fns";
 import Link from "next/link";
+import { Timestamp } from "firebase/firestore";
 
 type EventListCardProps = {
     id: string;
     title: string;
-    startTime: any;
-    endTime: any;
+    startTime: Timestamp;
+    endTime: Timestamp;
 };
 
 const EventListCard = ({
@@ -15,9 +16,9 @@ const EventListCard = ({
     startTime,
     endTime,
 }: EventListCardProps) => {
-    // propsで受け取った日時文字列をDateオブジェクトに変換
-    const startDate = new Date(startTime);
-    const endDate = new Date(endTime);
+    // propsで受け取ったTimestampをDateオブジェクトに変換
+    const startDate = startTime.toDate();
+    const endDate = endTime.toDate();
 
     // 日付と時刻を指定の形式にフォーマット
     const formattedDate = format(startDate, "yyyy/MM/dd");

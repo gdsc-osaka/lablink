@@ -9,4 +9,3 @@ export interface Event {
     created_at: Date;
     updated_at: Date;
 }
-
