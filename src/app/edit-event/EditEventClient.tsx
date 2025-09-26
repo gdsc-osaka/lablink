@@ -24,8 +24,8 @@ const timeOfDayInputItems: {
 ];
 
 const EditEventPage = () => {
-    const searchParams = useSearchParams();
-    const eventId = searchParams.get("id");
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("id");
 
     // フォーム用のイベントデータを管理するstate
     const [eventData, setEventData] = useState<EventData>({
@@ -35,43 +35,34 @@ const EditEventPage = () => {
         description: "",
     });
 
-    // 元のEventデータを管理するstate
-    const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
+  // 元のEventデータを管理するstate
+  const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
 
-    // イベントデータを取得する関数
-    useEffect(() => {
-        if (eventId) {
-            // サンプルデータ（実際のアプリではAPIから取得）
-            const sampleEvents: Event[] = [
-                {
-                    id: "101",
-                    title: "交流会",
-                    description:
-                        "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
-                    begin_at: Timestamp.fromDate(
-                        new Date("2025-05-12T13:00:00Z"),
-                    ),
-                    end_at: Timestamp.fromDate(
-                        new Date("2025-05-12T16:00:00Z"),
-                    ),
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                },
-                {
-                    id: "102",
-                    title: "ミーティング",
-                    description:
-                        "外部進学した留学生のためにたこ焼きパーティーをする",
-                    begin_at: Timestamp.fromDate(
-                        new Date("2025-05-23T11:00:00Z"),
-                    ),
-                    end_at: Timestamp.fromDate(
-                        new Date("2025-05-23T12:00:00Z"),
-                    ),
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                },
-            ];
+  // イベントデータを取得する関数
+  useEffect(() => {
+    if (eventId) {
+      // サンプルデータ（実際のアプリではAPIから取得）
+      const sampleEvents: Event[] = [
+        {
+          id: "101",
+          title: "交流会",
+          description:
+            "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
+          begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
+          end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        {
+          id: "102",
+          title: "ミーティング",
+          description: "外部進学した留学生のためにたこ焼きパーティーをする",
+          begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
+          end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ];
 
             const event = sampleEvents.find((e) => e.id === eventId);
             if (event) {
@@ -87,16 +78,16 @@ const EditEventPage = () => {
         }
     }, [eventId]);
 
-    // 入力値の変更をハンドルする関数
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        const { name, value } = e.target;
-        setEventData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
+  // 入力値の変更をハンドルする関数
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setEventData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
     // チェックボックスの変更をハンドルする関数
     const handleCheckboxChange = (value: EventTimeOfDay) => {
@@ -108,23 +99,22 @@ const EditEventPage = () => {
         }));
     };
 
-    // フォーム送信をハンドルする関数
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log("Event Updated:", eventData);
-        // ここでAPIへの更新処理などを行う
-        // EventDataからEventに変換して送信
-    };
+  // フォーム送信をハンドルする関数
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("Event Updated:", eventData);
+    // ここでAPIへの更新処理などを行う
+  };
 
-    // イベント削除をハンドルする関数
-    const handleDelete = () => {
-        if (confirm("このイベントを削除しますか？")) {
-            console.log("Event Deleted:", originalEvent?.id);
-            // ここでAPIへの削除処理などを行う
-            // 削除後はグループページに戻る
-            window.location.href = "/group";
-        }
-    };
+  // イベント削除をハンドルする関数
+  const handleDelete = () => {
+    if (confirm("このイベントを削除しますか？")) {
+      console.log("Event Deleted:", originalEvent?.id);
+      // ここでAPIへの削除処理などを行う
+      // 削除後はグループページに戻る
+      window.location.href = "/group";
+    }
+  };
 
     return (
         <main className="min-h-screen bg-white">
@@ -244,8 +234,49 @@ const EditEventPage = () => {
                     </div>
                 </form>
             </div>
-        </main>
-    );
+          </div>
+
+          <div>
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-black mb-1"
+            >
+              イベントの詳細を記入してください
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={4}
+              value={eventData.description}
+              placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
+              onChange={handleChange}
+              className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+            />
+          </div>
+
+          {/* ボタンエリア */}
+          <div className="flex justify-between pt-6">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              イベントを削除
+            </button>
+
+            <Link href="/ai-suggest">
+              <button
+                type="button"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                AIのsuggestへ
+              </button>
+            </Link>
+          </div>
+        </form>
+      </div>
+    </main>
+  );
 };
 
 export default EditEventPage;

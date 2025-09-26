@@ -1,8 +1,8 @@
 import {
-    FirestoreDataConverter,
-    DocumentData,
-    QueryDocumentSnapshot,
-    SnapshotOptions,
+  FirestoreDataConverter,
+  DocumentData,
+  QueryDocumentSnapshot,
+  SnapshotOptions,
 } from "firebase/firestore";
 import { Timestamp } from "firebase/firestore";
 import { Event } from "@/domain/event";
