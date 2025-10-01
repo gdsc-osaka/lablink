@@ -12,8 +12,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       googleapis:
-        specifier: ^158.0.0
-        version: 158.0.0
+        specifier: ^160.0.0
+        version: 160.0.0
       next:
         specifier: 15.4.7
         version: 15.4.7(@babel/core@7.28.4)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1966,8 +1966,8 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  gaxios@7.1.1:
-    resolution: {integrity: sha512-Odju3uBUJyVCkW64nLD4wKLhbh93bh6vIg/ZIXkWiLPBrdgtc65+tls/qml+un3pr6JqYVFDZbbmLDQT68rTOQ==}
+  gaxios@7.1.2:
+    resolution: {integrity: sha512-/Szrn8nr+2TsQT1Gp8iIe/BEytJmbyfrbFh419DfGQSkEgNEhbPi7JRJuughjkTzPWgU9gBQf5AVu3DbHt0OXA==}
     engines: {node: '>=18'}
 
   gcp-metadata@7.0.1:
@@ -2041,8 +2041,8 @@ packages:
     resolution: {integrity: sha512-66if47It7y+Sab3HMkwEXx1kCq9qUC9px8ZXoj1CMrmLmUw81GpbnsNlXnlyZyGbGPGcj+tDD9XsZ23m7GLaJQ==}
     engines: {node: '>=18.0.0'}
 
-  googleapis@158.0.0:
-    resolution: {integrity: sha512-GT2U6LV+YlM6bQa3USnyGJx2Xer5yHDTLAClvueU6lCbn5oAuqOg6g5MxGVxcxBxZcfGdKTqcREET20lHlY7tw==}
+  googleapis@160.0.0:
+    resolution: {integrity: sha512-lAGFQVSeYvWKCxeCQKo20xWFFDgnWuJYbLn92IgLrT4UTYVOGdrZ9XTqgWJf316isE9KdfuDY5X8Tu4ZrXSFig==}
     engines: {node: '>=18'}
 
   gopd@1.2.0:
@@ -5487,7 +5487,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  gaxios@7.1.1:
+  gaxios@7.1.2:
     dependencies:
       extend: 3.0.2
       https-proxy-agent: 7.0.6
@@ -5497,7 +5497,7 @@ snapshots:
 
   gcp-metadata@7.0.1:
     dependencies:
-      gaxios: 7.1.1
+      gaxios: 7.1.2
       google-logging-utils: 1.1.1
       json-bigint: 1.0.0
     transitivePeerDependencies:
@@ -5576,7 +5576,7 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
-      gaxios: 7.1.1
+      gaxios: 7.1.2
       gcp-metadata: 7.0.1
       google-logging-utils: 1.1.1
       gtoken: 8.0.0
@@ -5589,14 +5589,14 @@ snapshots:
   googleapis-common@8.0.0:
     dependencies:
       extend: 3.0.2
-      gaxios: 7.1.1
+      gaxios: 7.1.2
       google-auth-library: 10.3.0
       qs: 6.14.0
       url-template: 2.0.8
     transitivePeerDependencies:
       - supports-color
 
-  googleapis@158.0.0:
+  googleapis@160.0.0:
     dependencies:
       google-auth-library: 10.3.0
       googleapis-common: 8.0.0
@@ -5611,7 +5611,7 @@ snapshots:
 
   gtoken@8.0.0:
     dependencies:
-      gaxios: 7.1.1
+      gaxios: 7.1.2
       jws: 4.0.0
     transitivePeerDependencies:
       - supports-color
