@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { EventTimeOfDay } from "@/domain/event";
 
 interface EventData {
     title: string;
@@ -10,17 +11,15 @@ interface EventData {
     description: string;
 }
 
-const eventTimeOfDays = ["morning", "noon", "evening", "night"] as const;
-type EventTimeOfDay = typeof eventTimeOfDays[number]
-
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
-    label: string
-}[] = [ {value: "morning", label: "朝（8:00~12:00ごろ）"},
-        {value: "noon", label: "昼（12:00~15:00ごろ）"},
-        {value: "evening", label: "夕（15:00~18:00ごろ）"},
-        {value: "night", label: "夜（18:00~22:00ごろ）"}
-]
+    label: string;
+}[] = [
+    { value: "morning", label: "朝（8:00~12:00ごろ）" },
+    { value: "noon", label: "昼（12:00~15:00ごろ）" },
+    { value: "evening", label: "夕（15:00~18:00ごろ）" },
+    { value: "night", label: "夜（18:00~22:00ごろ）" },
+];
 
 const CreateEventPage = () => {
     // useStateに型を指定し、分割代入で変数を受け取る
@@ -109,20 +108,30 @@ const CreateEventPage = () => {
                             時間帯
                         </label>
                         <div className="mt-2 space-y-2">
-                        {timeOfDayInputItems.map((item) => (
-                            <div key={item.value} className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id={item.value}
-                                    checked={eventData.timeOfDayCandidate.includes(item.value)}
-                                    onChange={() => handleCheckboxChange(item.value)}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor={item.value} className="text-black">
-                                    {item.label}
-                                </label>
-                            </div>
-                        ))}
+                            {timeOfDayInputItems.map((item) => (
+                                <div
+                                    key={item.value}
+                                    className="flex items-center"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id={item.value}
+                                        checked={eventData.timeOfDayCandidate.includes(
+                                            item.value,
+                                        )}
+                                        onChange={() =>
+                                            handleCheckboxChange(item.value)
+                                        }
+                                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label
+                                        htmlFor={item.value}
+                                        className="text-black"
+                                    >
+                                        {item.label}
+                                    </label>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
