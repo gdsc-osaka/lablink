@@ -9,9 +9,21 @@ import { Timestamp } from "firebase/firestore";
 interface EventData {
     title: string;
     duration: string;
-    timezone: string[];
+    timeOfDayCandidate: EventTimeOfDay[];
     description: string;
 }
+
+const eventTimeOfDays = ["morning", "noon", "evening", "night"] as const;
+type EventTimeOfDay = typeof eventTimeOfDays[number]
+
+const timeOfDayInputItems: {
+    value: EventTimeOfDay;
+    label: string
+}[] = [ {value: "morning", label: "朝（8:00~12:00ごろ）"},
+        {value: "noon", label: "昼（12:00~15:00ごろ）"},
+        {value: "evening", label: "夕（15:00~18:00ごろ）"},
+        {value: "night", label: "夜（18:00~22:00ごろ）"}
+]
 
 const EditEventPage = () => {
     const searchParams = useSearchParams();
@@ -21,7 +33,7 @@ const EditEventPage = () => {
     const [eventData, setEventData] = useState<EventData>({
         title: "",
         duration: "",
-        timezone: [],
+        timeOfDayCandidate: [],
         description: "",
     });
 
@@ -70,7 +82,7 @@ const EditEventPage = () => {
                 setEventData({
                     title: event.title,
                     duration: "3時間", // デフォルト値（実際のアプリでは計算または別フィールドから取得）
-                    timezone: ["昼", "夕"], // デフォルト値（実際のアプリでは別フィールドから取得）
+                    timeOfDayCandidate: ["noon", "evening"], // デフォルト値（実際のアプリでは別フィールドから取得）
                     description: event.description,
                 });
             }
@@ -89,12 +101,12 @@ const EditEventPage = () => {
     };
 
     // チェックボックスの変更をハンドルする関数
-    const handleCheckboxChange = (value: string) => {
+    const handleCheckboxChange = (value: EventTimeOfDay) => {
         setEventData((prevData) => ({
             ...prevData,
-            timezone: prevData.timezone.includes(value)
-                ? prevData.timezone.filter((item) => item !== value)
-                : [...prevData.timezone, value],
+            timeOfDayCandidate: prevData.timeOfDayCandidate.includes(value)
+                ? prevData.timeOfDayCandidate.filter((item) => item !== value)
+                : [...prevData.timeOfDayCandidate, value],
         }));
     };
 
@@ -132,14 +144,14 @@ const EditEventPage = () => {
                             htmlFor="title"
                             className="block text-sm font-medium text-black mb-1"
                         >
-                            イベントのタイトルを記入してください
+                            タイトル
                         </label>
                         <input
                             type="text"
                             id="title"
                             name="title"
                             value={eventData.title}
-                            placeholder="ミーティング"
+                            placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
                         />
@@ -150,14 +162,14 @@ const EditEventPage = () => {
                             htmlFor="duration"
                             className="block text-sm font-medium text-black mb-1"
                         >
-                            イベントの所要時間を記入してください
+                            所要時間
                         </label>
                         <input
                             type="text"
                             id="duration"
                             name="duration"
                             value={eventData.duration}
-                            placeholder="30分、2時間"
+                            placeholder="イベントの所要時間 (例: 30分、2時間)"
                             onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
                         />
@@ -165,69 +177,35 @@ const EditEventPage = () => {
 
                     <div>
                         <label className="block text-sm font-medium text-black mb-1">
-                            イベントの時間帯を記入してください
+                            時間帯
                         </label>
                         <div className="mt-2 space-y-2">
-                            <div className="flex items-center">
+                        {timeOfDayInputItems.map((item) => (
+                            <div key={item.value} className="flex items-center">
                                 <input
                                     type="checkbox"
-                                    id="morning"
-                                    checked={eventData.timezone.includes("朝")}
-                                    onChange={() => handleCheckboxChange("朝")}
+                                    id={item.value}
+                                    checked={eventData.timeOfDayCandidate.includes(item.value)}
+                                    onChange={() => handleCheckboxChange(item.value)}
                                     className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
-                                <label htmlFor="morning" className="text-black">
-                                    朝（8:00~12:00ごろ）
+                                <label htmlFor={item.value} className="text-black">
+                                    {item.label}
                                 </label>
                             </div>
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="day"
-                                    checked={eventData.timezone.includes("昼")}
-                                    onChange={() => handleCheckboxChange("昼")}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="day" className="text-black">
-                                    昼（12:00~15:00ごろ）
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="evening"
-                                    checked={eventData.timezone.includes("夕")}
-                                    onChange={() => handleCheckboxChange("夕")}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="evening" className="text-black">
-                                    夕（15:00~18:00ごろ）
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="night"
-                                    checked={eventData.timezone.includes("夜")}
-                                    onChange={() => handleCheckboxChange("夜")}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="night" className="text-black">
-                                    夜（18:00~22:00ごろ）
-                                </label>
-                            </div>
+                        ))}
                         </div>
                     </div>
 
                     <div>
                         <label
-                            htmlFor="description"
+                            htmlFor="details"
                             className="block text-sm font-medium text-black mb-1"
                         >
-                            イベントの詳細を記入してください
+                            イベントの詳細
                         </label>
                         <textarea
-                            id="description"
+                            id="details"
                             name="description"
                             rows={4}
                             value={eventData.description}
