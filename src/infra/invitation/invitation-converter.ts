@@ -3,10 +3,10 @@ import type {
     FirestoreDataConverter,
     QueryDocumentSnapshot,
     SnapshotOptions,
-    WithFieldValue
+    WithFieldValue,
 } from "firebase/firestore";
-import type {Invitation} from "@/domain/invitation";
-import {toTimestamp} from "@/lib/date";
+import type { Invitation } from "@/domain/invitation";
+import { toTimestamp } from "@/lib/date";
 
 export const invitationConverter: FirestoreDataConverter<Invitation> = {
     toFirestore(

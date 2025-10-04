@@ -13,7 +13,9 @@ import { invitationConverter } from "@/infra/invitation/invitation-converter";
 import { handleFirestoreError } from "@/infra/error";
 import { NotFoundError } from "@/domain/error";
 
-const invitationsRef = collection(db, "invitations").withConverter(invitationConverter);
+const invitationsRef = collection(db, "invitations").withConverter(
+    invitationConverter,
+);
 const invitationRef = (id: string) =>
     doc(db, "invitations", id).withConverter(invitationConverter);
 
