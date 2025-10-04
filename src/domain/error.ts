@@ -1,4 +1,4 @@
-import {errorBuilder, InferError} from "obj-err";
+import { errorBuilder, InferError } from "obj-err";
 
 export const NotFoundError = errorBuilder("NotFoundError");
 type NotFoundError = InferError<typeof NotFoundError>;
@@ -13,4 +13,8 @@ type UnauthenticatedError = InferError<typeof UnauthenticatedError>;
 export const UnknownError = errorBuilder("UnknownError");
 type UnknownError = InferError<typeof UnknownError>;
 
-export type DBError = NotFoundError | PermissionDeniedError | UnauthenticatedError | UnknownError;
+export type DBError =
+    | NotFoundError
+    | PermissionDeniedError
+    | UnauthenticatedError
+    | UnknownError;
