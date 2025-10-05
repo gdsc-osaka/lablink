@@ -3,8 +3,68 @@
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 
+import { useNavigate, useLocation } from "react-router-dom";
+import { signInWithPopup, GoogleAuthProvider, User, AuthError } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { ResultAsync } from "neverthrow";
+
+import { auth, db } from "@/lib/firebase"; // ← firebase初期化済みのauth, firestoreをimport
+
+// Googleサインイン処理
+const signInWithGoogle = (): ResultAsync<User, AuthError> => {
+    const provider = new GoogleAuthProvider();
+
+    return ResultAsync.fromPromise(
+        signInWithPopup(auth, provider).then((result) => result.user),
+        (e) => e as AuthError
+    );
+};
+
+// Firestoreにユーザーを登録（初回のみ）
+const createUserInFirestore = async (user: User) => {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+        await setDoc(userRef, {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        createdAt: new Date(),
+        });
+    }
+};
+
 export default function LoginPage() {
     const router = useRouter();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const handleSignIn = async () => {
+        const result = await signInWithGoogle();
+
+        result.match(
+            async (user) => {
+                // Firestoreに登録
+                await createUserInFirestore(user);
+
+                // redirectToが指定されていればそのページへ、なければグループ作成ページへ
+                const params = new URLSearchParams(location.search);
+                const redirectTo = params.get("redirectTo");
+
+                if (redirectTo) {
+                    navigate(`/groups/${redirectTo}`);
+                } else {
+                    navigate("/groups/create");
+                }
+            },
+            (error) => {
+                console.error("Google認証に失敗しました:", error.message);
+                alert("ログインに失敗しました。再度お試しください。");
+            }
+        );
+    };
 
     const handleLoginButtonClick = () => {
         router.push("/signin");
@@ -28,6 +88,11 @@ export default function LoginPage() {
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
                     >
                         ログイン
+                    </button>
+                    <button onClick={handleSignIn}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
+                    >
+                        Googleでログイン
                     </button>
                 </div>
             </div>
