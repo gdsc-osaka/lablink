@@ -3,15 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Event, type EventTimeOfDay } from "@/domain/event";
+import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
-
-interface EventData {
-    title: string;
-    duration: string;
-    timeOfDayCandidate: EventTimeOfDay[];
-    description: string;
-}
+import { convertEventToDraft } from "@/lib/event-to-draft";
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -28,7 +22,7 @@ const EditEventPage = () => {
   const eventId = searchParams.get("id");
 
     // フォーム用のイベントデータを管理するstate
-    const [eventData, setEventData] = useState<EventData>({
+    const [eventData, setEventData] = useState<EventDraft>({
         title: "",
         duration: "",
         timeOfDayCandidate: [],
@@ -67,13 +61,9 @@ const EditEventPage = () => {
             const event = sampleEvents.find((e) => e.id === eventId);
             if (event) {
                 setOriginalEvent(event);
-                // EventからEventDataに変換
-                setEventData({
-                    title: event.title,
-                    duration: "3時間", // デフォルト値（実際のアプリでは計算または別フィールドから取得）
-                    timeOfDayCandidate: ["noon", "evening"], // デフォルト値（実際のアプリでは別フィールドから取得）
-                    description: event.description,
-                });
+                // EventからEventDraftに変換（計算された値を使用）
+                const draft = convertEventToDraft(event);
+                setEventData(draft);
             }
         }
     }, [eventId]);
