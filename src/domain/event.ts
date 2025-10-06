@@ -25,7 +25,10 @@ export interface Event {
 }
 
 export interface EventRepository {
-  findById: (groupId: string, id: string) => Promise<Result<Event | null, DBError>>;
+  findById: (
+    groupId: string,
+    id: string,
+  ) => Promise<Result<Event | null, DBError>>;
   findAll: (groupId: string) => Promise<Result<Event[], DBError>>;
   create: (groupId: string, event: Event) => Promise<Result<Event, DBError>>;
   update: (groupId: string, event: Event) => Promise<Result<Event, DBError>>;
