@@ -9,15 +9,18 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import { Result, ok, err } from "neverthrow";
 import { db } from "@/firebase/client";
 import { eventConverter } from "./event-converter";
 import {
   Event,
   EventRepository,
 } from "@/domain/event";
+import { handleFirestoreError } from "@/infra/error";
+import { DBError } from "@/domain/error";
 
-export class FirestoreEventRepository implements EventRepository {
-  async findById(groupId: string, id: string): Promise<Event | null> {
+export const firestoreEventRepository: EventRepository = {
+  findById: async (groupId: string, id: string): Promise<Result<Event | null, DBError>> => {
     try {
       const eventDoc = doc(db, "groups", groupId, "events", id).withConverter(
         eventConverter,
@@ -25,17 +28,17 @@ export class FirestoreEventRepository implements EventRepository {
       const eventSnap = await getDoc(eventDoc);
 
       if (!eventSnap.exists()) {
-        return null;
+        return ok(null);
       }
 
-      return eventSnap.data();
+      return ok(eventSnap.data());
     } catch (error) {
       console.error("Error finding event by id:", error);
-      throw new Error("イベントの取得に失敗しました");
+      return err(handleFirestoreError(error));
     }
-  }
+  },
 
-  async findAll(groupId: string): Promise<Event[]> {
+  findAll: async (groupId: string): Promise<Result<Event[], DBError>> => {
     try {
       const eventsRef = collection(
         db,
@@ -46,14 +49,14 @@ export class FirestoreEventRepository implements EventRepository {
       const q = query(eventsRef, orderBy("created_at", "desc"));
       const querySnapshot = await getDocs(q);
 
-      return querySnapshot.docs.map((doc) => doc.data());
+      return ok(querySnapshot.docs.map((doc) => doc.data()));
     } catch (error) {
       console.error("Error finding all events:", error);
-      throw new Error("イベント一覧の取得に失敗しました");
+      return err(handleFirestoreError(error));
     }
-  }
+  },
 
-  async create(groupId: string, eventData: Event): Promise<Event> {
+  create: async (groupId: string, eventData: Event): Promise<Result<Event, DBError>> => {
     try {
       const now = new Date();
       const event: Omit<Event, "id"> = {
@@ -70,21 +73,21 @@ export class FirestoreEventRepository implements EventRepository {
       ).withConverter(eventConverter);
       const docRef = await addDoc(eventsRef, event);
 
-      return {
+      return ok({
         ...event,
         id: docRef.id,
-      } as Event;
+      } as Event);
     } catch (error) {
       console.error("Error creating event:", error);
-      throw new Error("イベントの作成に失敗しました");
+      return err(handleFirestoreError(error));
     }
-  }
+  },
 
-  async update(groupId: string, eventData: Event): Promise<Event> {
+  update: async (groupId: string, eventData: Event): Promise<Result<Event, DBError>> => {
     try {
       const { id, ...updateData } = eventData;
       if (!id) {
-        throw new Error("イベントIDが指定されていません");
+        return err(handleFirestoreError(new Error("イベントIDが指定されていません")));
       }
       const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
         eventConverter,
@@ -99,25 +102,31 @@ export class FirestoreEventRepository implements EventRepository {
       await updateDoc(eventRef, updatePayload);
 
       // 更新後のデータを取得して返す
-      const updatedEvent = await this.findById(groupId, id);
+      const updatedEventResult = await firestoreEventRepository.findById(groupId, id);
+      if (updatedEventResult.isErr()) {
+        return err(updatedEventResult.error);
+      }
+      
+      const updatedEvent = updatedEventResult.value;
       if (!updatedEvent) {
-        throw new Error("更新されたイベントが見つかりません");
+        return err(handleFirestoreError(new Error("更新されたイベントが見つかりません")));
       }
 
-      return updatedEvent;
+      return ok(updatedEvent);
     } catch (error) {
       console.error("Error updating event:", error);
-      throw new Error("イベントの更新に失敗しました");
+      return err(handleFirestoreError(error));
     }
-  }
+  },
 
-  async delete(groupId: string, id: string): Promise<void> {
+  delete: async (groupId: string, id: string): Promise<Result<void, DBError>> => {
     try {
       const eventRef = doc(db, "groups", groupId, "events", id);
       await deleteDoc(eventRef);
+      return ok(undefined);
     } catch (error) {
       console.error("Error deleting event:", error);
-      throw new Error("イベントの削除に失敗しました");
+      return err(handleFirestoreError(error));
     }
-  }
-}
+  },
+};
