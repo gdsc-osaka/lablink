@@ -1,8 +1,6 @@
 import {
   Event,
   EventRepository,
-  CreateEventRequest,
-  UpdateEventRequest,
 } from "@/domain/event";
 
 export class EventService {
@@ -30,7 +28,7 @@ export class EventService {
   /* 新しいイベントを作成 */
   async createEvent(
     groupId: string,
-    eventData: CreateEventRequest,
+    eventData: Event,
   ): Promise<Event> {
     if (!groupId || groupId.trim() === "") {
       throw new Error("グループIDが指定されていません");
@@ -47,7 +45,7 @@ export class EventService {
   /* イベントを更新 */
   async updateEvent(
     groupId: string,
-    eventData: UpdateEventRequest,
+    eventData: Event,
   ): Promise<Event> {
     if (!groupId || groupId.trim() === "") {
       throw new Error("グループIDが指定されていません");
@@ -99,7 +97,7 @@ export class EventService {
   }
 
   /* イベントデータのバリデーション */
-  private validateEventData(eventData: CreateEventRequest): void {
+  private validateEventData(eventData: Event): void {
     if (!eventData.title || eventData.title.trim() === "") {
       throw new Error("イベントタイトルは必須です");
     }
@@ -133,7 +131,7 @@ export class EventService {
   /* イベントの重複チェック */
   private async checkEventConflict(
     groupId: string,
-    eventData: CreateEventRequest,
+    eventData: Event,
     excludeId?: string,
   ): Promise<void> {
     const allEvents = await this.eventRepository.findAll(groupId);

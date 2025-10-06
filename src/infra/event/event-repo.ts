@@ -14,8 +14,6 @@ import { eventConverter } from "./event-converter";
 import {
   Event,
   EventRepository,
-  CreateEventRequest,
-  UpdateEventRequest,
 } from "@/domain/event";
 
 export class FirestoreEventRepository implements EventRepository {
@@ -55,7 +53,7 @@ export class FirestoreEventRepository implements EventRepository {
     }
   }
 
-  async create(groupId: string, eventData: CreateEventRequest): Promise<Event> {
+  async create(groupId: string, eventData: Event): Promise<Event> {
     try {
       const now = new Date();
       const event: Omit<Event, "id"> = {
@@ -82,9 +80,12 @@ export class FirestoreEventRepository implements EventRepository {
     }
   }
 
-  async update(groupId: string, eventData: UpdateEventRequest): Promise<Event> {
+  async update(groupId: string, eventData: Event): Promise<Event> {
     try {
       const { id, ...updateData } = eventData;
+      if (!id) {
+        throw new Error("イベントIDが指定されていません");
+      }
       const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
         eventConverter,
       );

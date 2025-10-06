@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { EventTimeOfDay } from "@/domain/event";
-
-interface EventData {
-    title: string;
-    duration: string;
-    timeOfDayCandidate: EventTimeOfDay[];
-    description: string;
-}
+import type { EventTimeOfDay, EventDraft } from "@/domain/event";
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -23,7 +16,7 @@ const timeOfDayInputItems: {
 
 const CreateEventPage = () => {
     // useStateに型を指定し、分割代入で変数を受け取る
-    const [eventData, setEventData] = useState<EventData>({
+    const [eventData, setEventData] = useState<EventDraft>({
         title: "",
         duration: "",
         timeOfDayCandidate: [],
