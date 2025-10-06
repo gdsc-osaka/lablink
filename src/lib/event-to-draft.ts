@@ -1,7 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { Event, EventDraft, EventTimeOfDay } from "@/domain/event";
 
-
 /**
  * EventからEventDraftへの変換（編集画面での初期値設定時）
  */
@@ -22,7 +21,7 @@ function calculateDuration(beginAt: Timestamp, endAt: Timestamp): string {
   const endDate = endAt.toDate();
   const diffMs = endDate.getTime() - beginDate.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  
+
   if (diffMinutes < 60) {
     return `${diffMinutes}分`;
   } else {
@@ -42,7 +41,7 @@ function calculateDuration(beginAt: Timestamp, endAt: Timestamp): string {
 function determineTimeOfDay(beginAt: Timestamp): EventTimeOfDay[] {
   const date = beginAt.toDate();
   const hour = date.getHours();
-  
+
   if (hour >= 8 && hour < 12) {
     return ["morning"];
   } else if (hour >= 12 && hour < 15) {
