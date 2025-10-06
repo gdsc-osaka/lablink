@@ -1,4 +1,6 @@
 import { Timestamp } from "firebase/firestore";
+import { Result } from "neverthrow";
+import { DBError } from "./error";
 
 export const eventTimeOfDays = ["morning", "noon", "evening", "night"] as const;
 export type EventTimeOfDay = (typeof eventTimeOfDays)[number];
@@ -23,9 +25,9 @@ export interface Event {
 }
 
 export interface EventRepository {
-  findById(groupId: string, id: string): Promise<Event | null>;
-  findAll(groupId: string): Promise<Event[]>;
-  create(groupId: string, event: Event): Promise<Event>;
-  update(groupId: string, event: Event): Promise<Event>;
-  delete(groupId: string, id: string): Promise<void>;
+  findById: (groupId: string, id: string) => Promise<Result<Event | null, DBError>>;
+  findAll: (groupId: string) => Promise<Result<Event[], DBError>>;
+  create: (groupId: string, event: Event) => Promise<Result<Event, DBError>>;
+  update: (groupId: string, event: Event) => Promise<Result<Event, DBError>>;
+  delete: (groupId: string, id: string) => Promise<Result<void, DBError>>;
 }
