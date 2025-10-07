@@ -14,7 +14,7 @@ export const UnknownError = errorBuilder("UnknownError");
 type UnknownError = InferError<typeof UnknownError>;
 
 export type DBError =
-  | NotFoundError
-  | PermissionDeniedError
-  | UnauthenticatedError
-  | UnknownError;
+    | NotFoundError
+    | PermissionDeniedError
+    | UnauthenticatedError
+    | UnknownError;
