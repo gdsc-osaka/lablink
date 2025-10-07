@@ -1,10 +1,10 @@
 import { FirestoreError } from "firebase/firestore";
 import {
-  DBError,
-  NotFoundError,
-  PermissionDeniedError,
-  UnauthenticatedError,
-  UnknownError,
+    DBError,
+    NotFoundError,
+    PermissionDeniedError,
+    UnauthenticatedError,
+    UnknownError,
 } from "@/domain/error";
 import { match } from "ts-pattern";
 
