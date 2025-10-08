@@ -1,14 +1,13 @@
 "use client";
 
 import Head from "next/head";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { useNavigate, useLocation } from "react-router-dom";
 import { signInWithPopup, GoogleAuthProvider, User, AuthError } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ResultAsync } from "neverthrow";
 
-import { auth, db } from "@/lib/firebase"; // ← firebase初期化済みのauth, firestoreをimport
+import { auth, db } from "@/firebase/client.ts";
 
 // Googleサインイン処理
 const signInWithGoogle = (): ResultAsync<User, AuthError> => {
@@ -38,8 +37,7 @@ const createUserInFirestore = async (user: User) => {
 
 export default function LoginPage() {
     const router = useRouter();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const searchParams = useSearchParams();
 
     const handleSignIn = async () => {
         const result = await signInWithGoogle();
@@ -50,13 +48,12 @@ export default function LoginPage() {
                 await createUserInFirestore(user);
 
                 // redirectToが指定されていればそのページへ、なければグループ作成ページへ
-                const params = new URLSearchParams(location.search);
-                const redirectTo = params.get("redirectTo");
+                const redirectTo = searchParams.get("redirectTo");
 
                 if (redirectTo) {
-                    navigate(`/groups/${redirectTo}`);
+                    router.push(`/groups/${redirectTo}`);
                 } else {
-                    navigate("/groups/create");
+                    router.push("/groups/create");
                 }
             },
             (error) => {
