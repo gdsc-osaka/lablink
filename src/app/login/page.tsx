@@ -3,7 +3,12 @@
 import Head from "next/head";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { signInWithPopup, GoogleAuthProvider, User, AuthError } from "firebase/auth";
+import {
+    signInWithPopup,
+    GoogleAuthProvider,
+    User,
+    AuthError,
+} from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ResultAsync } from "neverthrow";
 
@@ -15,7 +20,7 @@ const signInWithGoogle = (): ResultAsync<User, AuthError> => {
 
     return ResultAsync.fromPromise(
         signInWithPopup(auth, provider).then((result) => result.user),
-        (e) => e as AuthError
+        (e) => e as AuthError,
     );
 };
 
@@ -26,11 +31,11 @@ const createUserInFirestore = async (user: User) => {
 
     if (!userSnap.exists()) {
         await setDoc(userRef, {
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        createdAt: new Date(),
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            createdAt: new Date(),
         });
     }
 };
@@ -59,7 +64,7 @@ export default function LoginPage() {
             (error) => {
                 console.error("Google認証に失敗しました:", error.message);
                 alert("ログインに失敗しました。再度お試しください。");
-            }
+            },
         );
     };
 
@@ -86,7 +91,8 @@ export default function LoginPage() {
                     >
                         ログイン
                     </button>
-                    <button onClick={handleSignIn}
+                    <button
+                        onClick={handleSignIn}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
                     >
                         Googleでログイン
