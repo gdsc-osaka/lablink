@@ -31,11 +31,9 @@ const createUserInFirestore = async (user: User) => {
 
     if (!userSnap.exists()) {
         await setDoc(userRef, {
-            uid: user.uid,
-            displayName: user.displayName,
             email: user.email,
-            photoURL: user.photoURL,
-            createdAt: new Date(),
+            created_at: new Date(),
+            updated_at: new Date(),
         });
     }
 };
@@ -68,10 +66,6 @@ export default function LoginPage() {
         );
     };
 
-    const handleLoginButtonClick = () => {
-        router.push("/signin");
-    };
-
     return (
         <>
             <Head>
@@ -85,12 +79,6 @@ export default function LoginPage() {
                     <p className="mb-8 leading-relaxed">
                         スケジュール管理を始めるにはログインしてください。
                     </p>
-                    <button
-                        onClick={handleLoginButtonClick}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
-                    >
-                        ログイン
-                    </button>
                     <button
                         onClick={handleSignIn}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
