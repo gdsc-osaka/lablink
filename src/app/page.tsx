@@ -1,7 +1,7 @@
 import GroupView, {
     Member,
     Group,
-} from "./group_homepages_components/group_view";
+} from "./group/_components/group-list";
 const mockMemberList: Member[] = [
     {
         id: "abc",
