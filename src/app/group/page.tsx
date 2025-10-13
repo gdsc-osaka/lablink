@@ -1,5 +1,5 @@
 // src/app/group/page.tsx
-import EventList from "@/components/event-list";
+import EventList from "./_components/event-list";
 import { Event } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
 
