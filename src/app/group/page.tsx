@@ -1,6 +1,7 @@
 // src/app/group/page.tsx
 import EventList from "@/components/event-list";
 import { Event } from "@/domain/event";
+import { zonedCurrentDate } from "@/lib/date";
 import { Timestamp } from "firebase/firestore";
 
 const groupEvents: Event[] = [
@@ -11,8 +12,8 @@ const groupEvents: Event[] = [
             "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
         begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
         end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
-        created_at: new Date(),
-        updated_at: new Date(),
+        created_at: zonedCurrentDate(),
+        updated_at: zonedCurrentDate(),
     },
     {
         id: "102",
@@ -20,8 +21,8 @@ const groupEvents: Event[] = [
         description: "外部進学した留学生のためにたこ焼きパーティーをする",
         begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
         end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
-        created_at: new Date(),
-        updated_at: new Date(),
+        created_at: zonedCurrentDate(),
+        updated_at: zonedCurrentDate(),
     },
 ];
 

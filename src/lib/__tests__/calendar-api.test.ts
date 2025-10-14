@@ -1,5 +1,7 @@
 import { getCommonAvailability } from "../../app/actions";
 
+jest.mock("../date");
+
 // Google Calendar APIのモック
 const mockCalendarQuery = jest.fn();
 const mockCalendar = {
@@ -72,7 +74,7 @@ describe("Calendar API Integration", () => {
 
         expect(result.success).toBe(true);
         expect(result.data).toContain("利用可能な共通の空き時間帯リスト:");
-        expect(result.data).toContain("18:00 から 02:00 まで");
+        expect(result.data).toContain("9:0 から 17:0 まで");
     });
 
     it("カレンダーに予定がない場合、適切なメッセージを返す", async () => {
@@ -96,7 +98,7 @@ describe("Calendar API Integration", () => {
 
         expect(result.success).toBe(true);
         expect(result.data).toContain("利用可能な共通の空き時間帯リスト:");
-        expect(result.data).toContain("18:00 から 02:00 まで");
+        expect(result.data).toContain("9:0 から 17:0 まで");
     });
 
     it("APIエラーが発生した場合、適切にエラーハンドリングされる", async () => {
@@ -146,9 +148,9 @@ describe("Calendar API Integration", () => {
         );
 
         expect(result.success).toBe(true);
-        expect(result.data).toContain("18:00 から 19:00 まで");
-        expect(result.data).toContain("21:00 から 00:00 まで");
-        expect(result.data).toContain("01:00 から 02:00 まで");
+        expect(result.data).toContain("9:0 から 10:0 まで");
+        expect(result.data).toContain("12:0 から 15:0 まで");
+        expect(result.data).toContain("16:0 から 17:0 まで");
     });
 
     it("calendarsBusyInfoがnullの場合の処理", async () => {

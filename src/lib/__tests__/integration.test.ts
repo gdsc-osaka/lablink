@@ -1,6 +1,8 @@
 import { findCommonFreeSlots } from "../availability";
 import { formatFreeSlotsForAI } from "../ai-formatter";
 
+jest.mock("../date");
+
 describe("Integration Tests", () => {
     it("複数ユーザーのカレンダーから共通の空き時間を正しく計算できる", () => {
         // 複数ユーザーの予定データをシミュレート

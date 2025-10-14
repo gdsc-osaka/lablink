@@ -1,6 +1,8 @@
 import { findCommonFreeSlots } from "../availability";
 import { formatFreeSlotsForAI } from "../ai-formatter";
 
+jest.mock("../date");
+
 describe("Calendar Availability Functions", () => {
     describe("findCommonFreeSlots", () => {
         it("空のbusyIntervalsの場合、検索期間全体を返す", () => {
@@ -139,8 +141,8 @@ describe("Calendar Availability Functions", () => {
 
             expect(result).toContain("利用可能な共通の空き時間帯リスト:");
             expect(result).toContain("1月1日");
-            expect(result).toContain("18:00 から 19:00 まで");
-            expect(result).toContain("23:00 から 01:00 まで");
+            expect(result).toContain("9:0 から 10:0 まで");
+            expect(result).toContain("14:0 から 16:0 まで");
         });
     });
 });

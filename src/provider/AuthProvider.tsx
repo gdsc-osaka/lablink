@@ -4,6 +4,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import Cookies from "js-cookie";
 
 import { auth, db } from "@/firebase/client.ts";
+import { zonedCurrentDate } from "@/lib/date";
 
 type AuthContextType = {
     user: User | null;
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 displayName: user.displayName,
                 email: user.email,
                 photoURL: user.photoURL,
-                createdAt: new Date(),
+                createdAt: zonedCurrentDate(),
             });
         }
     };

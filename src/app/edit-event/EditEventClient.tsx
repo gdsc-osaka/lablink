@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Event, type EventTimeOfDay } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
+import { zonedCurrentDate } from "@/lib/date";
 
 interface EventData {
     title: string;
@@ -54,8 +55,8 @@ const EditEventPage = () => {
                     end_at: Timestamp.fromDate(
                         new Date("2025-05-12T16:00:00Z"),
                     ),
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: zonedCurrentDate(),
+                    updated_at: zonedCurrentDate(),
                 },
                 {
                     id: "102",
@@ -68,8 +69,8 @@ const EditEventPage = () => {
                     end_at: Timestamp.fromDate(
                         new Date("2025-05-23T12:00:00Z"),
                     ),
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: zonedCurrentDate(),
+                    updated_at: zonedCurrentDate(),
                 },
             ];
 
