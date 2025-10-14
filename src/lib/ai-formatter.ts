@@ -13,8 +13,8 @@ export function formatFreeSlotsForAI(freeSlots: DateInterval[]): string {
 
     const formattedStrings = freeSlots.map((slot) => {
         const startDate = formatToJST(slot.start, "M月d日(E) HH:mm", {
-      locale: ja,
-    });
+            locale: ja,
+        });
         const endDate = formatToJST(slot.end, "HH:mm", { locale: ja });
         return `- ${startDate} から ${endDate} まで`;
     });
