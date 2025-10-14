@@ -10,7 +10,7 @@ const TIME_ZONE = "Asia/Tokyo";
  * @param date Date, FieldValue, Timestamp, WithFieldValue<Date>
  */
 export const toTimestamp = (
-  date: Date | Timestamp | FieldValue | WithFieldValue<Date>,
+    date: Date | Timestamp | FieldValue | WithFieldValue<Date>,
 ) => (date instanceof Date ? Timestamp.fromDate(date) : date);
 
 /**
@@ -20,10 +20,10 @@ export const toTimestamp = (
  * @returns string
  */
 export const formatToJST = (
-  date: Date,
-  formatStr: string,
-  options?: { locale?: Locale },
+    date: Date,
+    formatStr: string,
+    options?: { locale?: Locale },
 ) => {
-  const tzDate = new TZDate(date, TIME_ZONE);
-  return format(tzDate, formatStr, options);
+    const tzDate = new TZDate(date, TIME_ZONE);
+    return format(tzDate, formatStr, options);
 };
