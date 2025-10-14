@@ -75,3 +75,6 @@ out
 
 # Testing
 /coverage
+
+# IDEs and editors
+.idea
