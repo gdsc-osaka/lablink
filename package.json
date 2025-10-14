@@ -16,11 +16,12 @@
         "date-fns": "^4.1.0",
         "firebase": "^12.4.0",
         "googleapis": "^162.0.0",
+        "js-cookie": "^3.0.5",
         "neverthrow": "^8.2.0",
         "next": "15.5.5",
         "obj-err": "^1.1.1",
         "react": "^19.2.0",
-        "react-dom": "^19.1.1",
+        "react-dom": "^19.2.0",
         "ts-pattern": "^5.8.0"
     },
     "devDependencies": {
@@ -28,6 +29,7 @@
         "@tailwindcss/postcss": "^4",
         "@testing-library/jest-dom": "^6.1.0",
         "@types/jest": "^30.0.0",
+        "@types/js-cookie": "^3.0.6",
         "@types/node": "^24",
         "@types/react": "^19",
         "@types/react-dom": "^19",
