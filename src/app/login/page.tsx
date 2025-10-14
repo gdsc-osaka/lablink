@@ -12,7 +12,7 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ResultAsync } from "neverthrow";
 
-import { auth, db } from "@/firebase/client.ts";
+import { auth, db } from "@/firebase/client";
 
 // Googleサインイン処理
 const signInWithGoogle = (): ResultAsync<User, AuthError> => {
@@ -56,7 +56,7 @@ export default function LoginPage() {
                 if (redirectTo) {
                     router.push(`/groups/${redirectTo}`);
                 } else {
-                    router.push("/groups/create");
+                    router.push("/create-groups");
                 }
             },
             (error) => {
