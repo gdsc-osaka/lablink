@@ -32,7 +32,7 @@ const GroupInvitationScreen: React.FC = () => {
                         marginBottom: "3rem",
                     }}
                 >
-                    "原研究室" に招待されています
+                    「原研究室」 に招待されています
                 </h2>
                 <div
                     style={{

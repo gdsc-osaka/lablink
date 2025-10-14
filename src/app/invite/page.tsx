@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 export default function InvitePage() {
     return (
         <main className="min-h-screen bg-white">
