@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import GroupInvitationScreen from "./approve_invitation/page"; // SignInFormをインポート
+import GroupInvitationScreen from "./invite/page"; // SignInFormをインポート
 
 export default function Home() {
     return (
