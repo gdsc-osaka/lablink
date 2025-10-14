@@ -1,8 +1,9 @@
+"use client";
 import React, { createContext, useEffect, useState } from "react";
 import { onAuthStateChanged, getIdToken, User } from "firebase/auth";
 import Cookies from "js-cookie";
 
-import { auth } from "@/firebase/client.ts";
+import { auth } from "@/firebase/client";
 
 type AuthContextType = {
     user: User | null;
