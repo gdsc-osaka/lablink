@@ -2,6 +2,7 @@
 import { format } from "date-fns";
 import Link from "next/link";
 import { Timestamp } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
 
 type EventListCardProps = {
     id: string;
@@ -35,9 +36,9 @@ const EventListCard = ({
                 <p className="text-base text-black">{displayDateTime}</p>
             </div>
             <Link href={`/edit-event?id=${id}`}>
-                <button className="bg-gray-100 hover:bg-gray-200 text-black text-sm font-medium py-2 px-4 border border-gray-300 rounded-md transition-colors ml-4">
+                <Button className="bg-gray-100 hover:bg-gray-200 text-black text-sm font-medium py-2 px-4 border border-gray-300 rounded-md transition-colors ml-4">
                     編集
-                </button>
+                </Button>
             </Link>
         </div>
     );
