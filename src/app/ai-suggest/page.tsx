@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface SuggestedDate {
     id: string;
@@ -63,12 +64,12 @@ export default function AISuggestPage() {
                         <p className="text-gray-600 mb-8">
                             手動で日程を設定してください。
                         </p>
-                        <button
+                        <Button
                             onClick={() => router.push("/")}
                             className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
                         >
                             ホームに戻る
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -118,13 +119,13 @@ export default function AISuggestPage() {
 
                     {/* アクションボタン */}
                     <div className="flex justify-between space-x-6 mt-15">
-                        <button
+                        <Button
                             onClick={handleViewOtherDates}
                             className="bg-blue-500 text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-blue-600 transition-colors"
                         >
                             他の日程を見る
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={handleConfirm}
                             disabled={!selectedDateId}
                             className={`px-8 py-3 rounded-lg text-lg font-bold transition-colors ${
@@ -134,7 +135,7 @@ export default function AISuggestPage() {
                             }`}
                         >
                             決定
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

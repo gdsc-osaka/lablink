@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const CreateGroupPage = () => {
     const [groupName, setGroupName] = useState("");
@@ -13,13 +15,13 @@ const CreateGroupPage = () => {
         <div>
             <h2>グループを作成する</h2>
             <p>グループ名を入力してください</p>
-            <input
+            <Input
                 type="text"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
                 placeholder="グループ名"
             />
-            <button onClick={handleCreateGroup}>作成</button>
+            <Button onClick={handleCreateGroup}>作成</Button>
         </div>
     );
 };
