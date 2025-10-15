@@ -17,6 +17,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
 
 interface EventData {
     title: string;
@@ -175,7 +176,7 @@ const EditEventPage = () => {
                             >
                                 タイトル
                             </Label>
-                            <input
+                            <Input
                                 type="text"
                                 id="title"
                                 name="title"
@@ -193,7 +194,7 @@ const EditEventPage = () => {
                             >
                                 所要時間
                             </Label>
-                            <input
+                            <Input
                                 type="text"
                                 id="duration"
                                 name="duration"
@@ -214,7 +215,7 @@ const EditEventPage = () => {
                                         key={item.value}
                                         className="flex items-center"
                                     >
-                                        <input
+                                        <Input
                                             type="checkbox"
                                             id={item.value}
                                             checked={eventData.timeOfDayCandidate.includes(
