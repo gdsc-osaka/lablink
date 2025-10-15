@@ -21,10 +21,15 @@ export const handleFirestoreError = (error: unknown): DBError =>
               .with("unauthenticated", () => UnauthenticatedError)
               .otherwise(() => UnknownError)(error.message, {
               // match() が関数を返し, () で call する
-              cause: error,
-              stack: error.stack,
+              extra: {
+                  cause: error,
+                  stack: error.stack,
+              },
           })
         : UnknownError(
               error instanceof Error ? error.message : "Unknown error",
-              { cause: error instanceof Error ? error : undefined },
+              {
+                  extra: {},
+                  cause: error instanceof Error ? error : undefined,
+              },
           );
