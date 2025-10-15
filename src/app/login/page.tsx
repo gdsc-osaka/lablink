@@ -2,6 +2,7 @@
 
 import Head from "next/head";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -23,12 +24,12 @@ export default function LoginPage() {
                     <p className="mb-8 leading-relaxed">
                         スケジュール管理を始めるにはログインしてください。
                     </p>
-                    <button
+                    <Button
                         onClick={handleLoginButtonClick}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
                     >
                         ログイン
-                    </button>
+                    </Button>
                 </div>
             </div>
         </>

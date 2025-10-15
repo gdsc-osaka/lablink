@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function EventCompletePage() {
     const router = useRouter();
@@ -45,12 +46,12 @@ export default function EventCompletePage() {
                         </p>
                     </div>
 
-                    <button
+                    <Button
                         onClick={handleBackToHome}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     >
                         ホームに戻る
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

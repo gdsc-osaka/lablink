@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 // メンバーとグループのデータ型を定義
 export interface Member {
@@ -52,7 +53,7 @@ const GroupView: React.FC<GroupViewProps> = ({ group }) => {
                         </div>
                     ))}
                 </div>
-                <button
+                <Button
                     onClick={handleInviteClick}
                     style={{
                         marginTop: "auto",
@@ -65,7 +66,7 @@ const GroupView: React.FC<GroupViewProps> = ({ group }) => {
                     }}
                 >
                     招待
-                </button>
+                </Button>
             </div>
             <div style={{ width: "100%", backgroundColor: "#ece5ad7a" }}></div>
         </div>
