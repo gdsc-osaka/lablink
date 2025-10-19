@@ -19,7 +19,6 @@ jobs:
 
           # --- embed の内容をここで定義 ---
           embed-title: "#${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}"
-          embed-description: "${{ github.event.pull_request.body }}"
           embed-url: "${{ github.event.pull_request.html_url }}"
           embed-author-name: "${{ github.event.pull_request.user.login }}"
           embed-author-url: "${{ github.event.pull_request.user.html_url }}"
