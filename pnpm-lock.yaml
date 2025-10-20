@@ -15,8 +15,8 @@ importers:
         specifier: ^12.4.0
         version: 12.4.0
       googleapis:
-        specifier: ^162.0.0
-        version: 162.0.0
+        specifier: ^164.0.0
+        version: 164.0.0
       neverthrow:
         specifier: ^8.2.0
         version: 8.2.0
@@ -2126,8 +2126,8 @@ packages:
     resolution: {integrity: sha512-/Szrn8nr+2TsQT1Gp8iIe/BEytJmbyfrbFh419DfGQSkEgNEhbPi7JRJuughjkTzPWgU9gBQf5AVu3DbHt0OXA==}
     engines: {node: '>=18'}
 
-  gcp-metadata@7.0.1:
-    resolution: {integrity: sha512-UcO3kefx6dCcZkgcTGgVOTFb7b1LlQ02hY1omMjjrrBzkajRMCFgYOjs7J71WqnuG1k2b+9ppGL7FsOfhZMQKQ==}
+  gcp-metadata@8.1.1:
+    resolution: {integrity: sha512-dTCcAe9fRQf06ELwel6lWWFrEbstwjUBYEhr5VRGoC+iPDZQucHppCowaIp8b8v92tU1G4X4H3b/Y6zXZxkMsQ==}
     engines: {node: '>=18'}
 
   gensync@1.0.0-beta.2:
@@ -2185,8 +2185,8 @@ packages:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
 
-  google-auth-library@10.4.0:
-    resolution: {integrity: sha512-CmIrSy1bqMQUsPmA9+hcSbAXL80cFhu40cGMUjCaLpNKVzzvi+0uAHq8GNZxkoGYIsTX4ZQ7e4aInAqWxgn4fg==}
+  google-auth-library@10.4.1:
+    resolution: {integrity: sha512-VlvZ+QDWng3aPh++0BSQlSJyjn4qgLLTmqylAR3as0dr6YwPkZpHcZAngAFr68TDVCUSQVRTkV73K/D3m7vEIg==}
     engines: {node: '>=18'}
 
   google-logging-utils@1.1.1:
@@ -2197,8 +2197,8 @@ packages:
     resolution: {integrity: sha512-66if47It7y+Sab3HMkwEXx1kCq9qUC9px8ZXoj1CMrmLmUw81GpbnsNlXnlyZyGbGPGcj+tDD9XsZ23m7GLaJQ==}
     engines: {node: '>=18.0.0'}
 
-  googleapis@162.0.0:
-    resolution: {integrity: sha512-dxHgGExRjbRLHxHZuPyiFB2692H9hP4Qg9OI6nhzw5OOFlxl6ufG5GMqraKv6HAFvHltz7Ytx/C1ndcM85USxA==}
+  googleapis@164.0.0:
+    resolution: {integrity: sha512-aR2larBEvu6+HVC4Puu87T41/OA3WjVw2tQRYAMKit2kC95daFacIoDF70DeC4p9M/H5eZSalBJV1FOypR808A==}
     engines: {node: '>=18'}
 
   gopd@1.2.0:
@@ -5981,7 +5981,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  gcp-metadata@7.0.1:
+  gcp-metadata@8.1.1:
     dependencies:
       gaxios: 7.1.2
       google-logging-utils: 1.1.1
@@ -6058,12 +6058,12 @@ snapshots:
       define-properties: 1.2.1
       gopd: 1.2.0
 
-  google-auth-library@10.4.0:
+  google-auth-library@10.4.1:
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
       gaxios: 7.1.2
-      gcp-metadata: 7.0.1
+      gcp-metadata: 8.1.1
       google-logging-utils: 1.1.1
       gtoken: 8.0.0
       jws: 4.0.0
@@ -6076,15 +6076,15 @@ snapshots:
     dependencies:
       extend: 3.0.2
       gaxios: 7.1.2
-      google-auth-library: 10.4.0
+      google-auth-library: 10.4.1
       qs: 6.14.0
       url-template: 2.0.8
     transitivePeerDependencies:
       - supports-color
 
-  googleapis@162.0.0:
+  googleapis@164.0.0:
     dependencies:
-      google-auth-library: 10.4.0
+      google-auth-library: 10.4.1
       googleapis-common: 8.0.0
     transitivePeerDependencies:
       - supports-color
