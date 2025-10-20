@@ -13,6 +13,7 @@
         "test:coverage": "jest --coverage"
     },
     "dependencies": {
+        "@types/js-cookie": "^3.0.6",
         "date-fns": "^4.1.0",
         "firebase": "^12.3.0",
         "googleapis": "^160.0.0",
