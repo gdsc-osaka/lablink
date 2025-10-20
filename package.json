@@ -15,11 +15,14 @@
     "dependencies": {
         "@types/js-cookie": "^3.0.6",
         "date-fns": "^4.1.0",
-        "firebase": "^12.3.0",
-        "googleapis": "^160.0.0",
-        "next": "15.4.7",
-        "react": "^19.1.1",
-        "react-dom": "^19.1.1"
+        "firebase": "^12.4.0",
+        "googleapis": "^162.0.0",
+        "neverthrow": "^8.2.0",
+        "next": "15.5.5",
+        "obj-err": "^1.1.1",
+        "react": "^19.2.0",
+        "react-dom": "^19.1.1",
+        "ts-pattern": "^5.8.0"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
