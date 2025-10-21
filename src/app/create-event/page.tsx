@@ -23,7 +23,7 @@ const timeOfDayInputItems: {
 
 export default function CreateEventPage() {
     const router = useRouter();
-    
+
     // useFormフックをコンポーネント内で呼び出す
     const {
         register,
@@ -41,11 +41,10 @@ export default function CreateEventPage() {
     // フォーム送信時の処理
     const onSubmit: SubmitHandler<EventData> = (data) => {
         console.log(data);
-        
+
         // フォーム送信成功後、AI suggestページへ遷移
         router.push("/ai-suggest");
     };
-
 
     return (
         <main className="min-h-screen bg-white">
@@ -55,12 +54,12 @@ export default function CreateEventPage() {
                         新規イベントを作成
                     </h1>
                 </div>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 px-15 mt-9">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-6 px-15 mt-9"
+                >
                     <div>
-                        <label
-                            htmlFor="title"
-                            className="event-form-label"
-                        >
+                        <label htmlFor="title" className="event-form-label">
                             タイトル
                         </label>
                         <input
@@ -80,10 +79,7 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label
-                            htmlFor="duration"
-                            className="event-form-label"
-                        >
+                        <label htmlFor="duration" className="event-form-label">
                             所要時間
                         </label>
                         <input
@@ -103,9 +99,7 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label className="event-form-label">
-                            時間帯
-                        </label>
+                        <label className="event-form-label">時間帯</label>
                         <div className="mt-2 space-y-2">
                             {timeOfDayInputItems.map((item) => (
                                 <div
@@ -117,7 +111,8 @@ export default function CreateEventPage() {
                                         id={item.value}
                                         value={item.value}
                                         {...register("timeOfDayCandidate", {
-                                            required: "時間帯を少なくとも1つ選択してください",
+                                            required:
+                                                "時間帯を少なくとも1つ選択してください",
                                         })}
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
@@ -138,10 +133,7 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label
-                            htmlFor="details"
-                            className="event-form-label"
-                        >
+                        <label htmlFor="details" className="event-form-label">
                             イベントの詳細
                         </label>
                         <textarea
@@ -172,4 +164,4 @@ export default function CreateEventPage() {
             </div>
         </main>
     );
-};
+}

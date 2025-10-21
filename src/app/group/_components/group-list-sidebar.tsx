@@ -25,9 +25,9 @@ const GroupListSidebar: React.FC<GroupListSidebarProps> = ({
                             ? "bg-blue-500 text-white font-bold shadow-lg"
                             : "bg-gray-200 text-black hover:text-blue-700"
                     }`}
-                    style={{ 
-                        writingMode: "vertical-rl", 
-                        textOrientation: "mixed"
+                    style={{
+                        writingMode: "vertical-rl",
+                        textOrientation: "mixed",
                     }}
                 >
                     {group.name}

@@ -11,8 +11,7 @@ import { Timestamp } from "firebase/firestore";
 const mockGroups: Group[] = [
     {
         name: "原研",
-        members: [
-        ],
+        members: [],
     },
     {
         name: "GDGoC osaka",
@@ -32,7 +31,8 @@ const mockEvents: Event[] = [
     {
         id: "101",
         title: "交流会",
-        description: "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
+        description:
+            "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
         begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
         end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
         created_at: new Date(),
@@ -50,8 +50,12 @@ const mockEvents: Event[] = [
 ];
 
 const GroupPage = () => {
-    const [selectedGroupId, setSelectedGroupId] = useState<string>(mockGroups[0].name);
-    const selectedGroup = mockGroups.find(group => group.name === selectedGroupId) || mockGroups[0];
+    const [selectedGroupId, setSelectedGroupId] = useState<string>(
+        mockGroups[0].name,
+    );
+    const selectedGroup =
+        mockGroups.find((group) => group.name === selectedGroupId) ||
+        mockGroups[0];
 
     return (
         <main className="flex min-h-screen bg-white">

@@ -2,7 +2,6 @@
 
 import React from "react";
 
-
 //このあたりの型定義はdomain/user.ts実装後変更予定
 // メンバーとグループのデータ型を定義
 export interface Member {
@@ -21,7 +20,6 @@ interface GroupViewProps {
     group: Group;
 }
 
-
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     const handleInviteClick = () => {
         alert("招待ボタンがクリックされました。");
@@ -35,11 +33,18 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
             <div className="flex-1 overflow-y-auto space-y-3">
                 {group.members.length > 0 ? (
                     group.members.map((member: Member) => (
-                        <div key={member.id} className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm">
+                        <div
+                            key={member.id}
+                            className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm"
+                        >
                             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                                <span className="text-gray-600 text-sm">👤</span>
+                                <span className="text-gray-600 text-sm">
+                                    👤
+                                </span>
                             </div>
-                            <span className="text-black font-medium">{member.name}</span>
+                            <span className="text-black font-medium">
+                                {member.name}
+                            </span>
                         </div>
                     ))
                 ) : (
