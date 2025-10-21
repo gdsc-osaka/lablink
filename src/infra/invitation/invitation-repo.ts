@@ -33,7 +33,7 @@ export const invitationRepo: InvitationRepository = {
             .map((snapshot) => snapshot.docs.map((doc) => doc.data()).at(0))
             .andThen((data) =>
                 data === undefined
-                    ? errAsync(NotFoundError("Invitation not found"))
+                    ? errAsync(NotFoundError.handle(new Error("Invitation not found")))
                     : okAsync(data),
             ),
 };
