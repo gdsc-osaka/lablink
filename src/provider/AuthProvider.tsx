@@ -3,7 +3,7 @@ import { onAuthStateChanged, getIdToken, User } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Cookies from "js-cookie";
 
-import { auth, db } from "@/firebase/client.ts";
+import { auth, db } from "@/firebase/client";
 
 type AuthContextType = {
     user: User | null;
