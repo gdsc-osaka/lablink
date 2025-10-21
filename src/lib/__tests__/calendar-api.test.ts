@@ -73,8 +73,16 @@ describe("Calendar API Integration", () => {
             mockTimeMax,
         );
 
-        const expectedStartTime = formatInTimeZone(new Date(mockTimeMin), JST, 'HH:mm'); // "18:00"
-        const expectedEndTime = formatInTimeZone(new Date(mockTimeMax), JST, 'HH:mm');   // "02:00"
+        const expectedStartTime = formatInTimeZone(
+            new Date(mockTimeMin),
+            JST,
+            "HH:mm",
+        ); // "18:00"
+        const expectedEndTime = formatInTimeZone(
+            new Date(mockTimeMax),
+            JST,
+            "HH:mm",
+        ); // "02:00"
         const expectedFreeSlot = `${expectedStartTime} から ${expectedEndTime} まで`;
 
         expect(result.success).toBe(true);
@@ -101,8 +109,16 @@ describe("Calendar API Integration", () => {
             mockTimeMax,
         );
 
-        const expectedStartTime = formatInTimeZone(new Date(mockTimeMin), JST, 'HH:mm'); // "18:00"
-        const expectedEndTime = formatInTimeZone(new Date(mockTimeMax), JST, 'HH:mm');   // "02:00"
+        const expectedStartTime = formatInTimeZone(
+            new Date(mockTimeMin),
+            JST,
+            "HH:mm",
+        ); // "18:00"
+        const expectedEndTime = formatInTimeZone(
+            new Date(mockTimeMax),
+            JST,
+            "HH:mm",
+        ); // "02:00"
         const expectedFreeSlot = `${expectedStartTime} から ${expectedEndTime} まで`;
 
         expect(result.success).toBe(true);
@@ -133,13 +149,13 @@ describe("Calendar API Integration", () => {
                         busy: [
                             {
                                 start: "2024-01-01T10:00:00Z", // JST 19:00
-                                end: "2024-01-01T12:00:00Z",   // JST 21:00
+                                end: "2024-01-01T12:00:00Z", // JST 21:00
                             },
                             { start: null, end: "2024-01-01T13:00:00Z" }, // 無効なデータ
                             { start: "2024-01-01T14:00:00Z", end: null }, // 無効なデータ
                             {
                                 start: "2024-01-01T15:00:00Z", // JST 00:00
-                                end: "2024-01-01T16:00:00Z",   // JST 01:00
+                                end: "2024-01-01T16:00:00Z", // JST 01:00
                             },
                         ],
                     },
@@ -157,16 +173,36 @@ describe("Calendar API Integration", () => {
         );
 
         // 複雑なケースでも、UTCの入力値から期待されるJSTの空き時間文字列を正確に生成します
-        const rangeStart = formatInTimeZone(new Date(mockTimeMin), JST, 'HH:mm'); // 18:00
-        const busy1Start = formatInTimeZone(new Date("2024-01-01T10:00:00Z"), JST, 'HH:mm'); // 19:00
-        const busy1End = formatInTimeZone(new Date("2024-01-01T12:00:00Z"), JST, 'HH:mm');   // 21:00
-        const busy2Start = formatInTimeZone(new Date("2024-01-01T15:00:00Z"), JST, 'HH:mm'); // 00:00
-        const busy2End = formatInTimeZone(new Date("2024-01-01T16:00:00Z"), JST, 'HH:mm');   // 01:00
-        const rangeEnd = formatInTimeZone(new Date(mockTimeMax), JST, 'HH:mm');     // 02:00
+        const rangeStart = formatInTimeZone(
+            new Date(mockTimeMin),
+            JST,
+            "HH:mm",
+        ); // 18:00
+        const busy1Start = formatInTimeZone(
+            new Date("2024-01-01T10:00:00Z"),
+            JST,
+            "HH:mm",
+        ); // 19:00
+        const busy1End = formatInTimeZone(
+            new Date("2024-01-01T12:00:00Z"),
+            JST,
+            "HH:mm",
+        ); // 21:00
+        const busy2Start = formatInTimeZone(
+            new Date("2024-01-01T15:00:00Z"),
+            JST,
+            "HH:mm",
+        ); // 00:00
+        const busy2End = formatInTimeZone(
+            new Date("2024-01-01T16:00:00Z"),
+            JST,
+            "HH:mm",
+        ); // 01:00
+        const rangeEnd = formatInTimeZone(new Date(mockTimeMax), JST, "HH:mm"); // 02:00
 
         const expectedSlot1 = `${rangeStart} から ${busy1Start} まで`; // 18:00 -> 19:00
-        const expectedSlot2 = `${busy1End} から ${busy2Start} まで`;   // 21:00 -> 00:00
-        const expectedSlot3 = `${busy2End} から ${rangeEnd} まで`;     // 01:00 -> 02:00
+        const expectedSlot2 = `${busy1End} から ${busy2Start} まで`; // 21:00 -> 00:00
+        const expectedSlot3 = `${busy2End} から ${rangeEnd} まで`; // 01:00 -> 02:00
 
         expect(result.success).toBe(true);
         expect(result.data).toContain(expectedSlot1);
