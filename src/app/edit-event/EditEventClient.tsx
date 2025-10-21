@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -233,90 +233,8 @@ const EditEventPage = () => {
                     </div>
                 </form>
             </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="details"
-              className="block text-sm font-medium text-black mb-1"
-            >
-              イベントの詳細
-            </label>
-            <textarea
-              id="details"
-              name="description"
-              rows={4}
-              value={eventData.description}
-              placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-              onChange={handleChange}
-              className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-            />
-          </div>
-
-                    {/* ボタンエリア */}
-                    <div className="flex justify-between pt-6">
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            イベントを削除
-                        </button>
-
-                        <Link href="/ai-suggest">
-                            <button
-                                type="button"
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                            >
-                                AIのsuggestへ
-                            </button>
-                        </Link>
-                    </div>
-                </form>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-black mb-1"
-            >
-              イベントの詳細を記入してください
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
-              value={eventData.description}
-              placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-              onChange={handleChange}
-              className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-            />
-          </div>
-
-          {/* ボタンエリア */}
-          <div className="flex justify-between pt-6">
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            >
-              イベントを削除
-            </button>
-
-            <Link href="/ai-suggest">
-              <button
-                type="button"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                AIのsuggestへ
-              </button>
-            </Link>
-          </div>
-        </form>
-      </div>
-    </main>
-  );
+        </main>
+    );
 };
 
 export default EditEventPage;
