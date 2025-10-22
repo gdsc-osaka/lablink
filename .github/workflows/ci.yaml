@@ -40,4 +40,8 @@ jobs:
         run: pnpm i
 
       - name: Lint
-        run: pnpm run lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
+      - name: Build
+        run: pnpm build
