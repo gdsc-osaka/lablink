@@ -24,3 +24,16 @@ body {
     color: var(--foreground);
     font-family: Arial, Helvetica, sans-serif;
 }
+
+/* イベントフォーム共通スタイル (create-event, edit-event) */
+.event-form-label {
+    @apply block text-sm font-medium text-black mb-1;
+}
+
+.event-form-input {
+    @apply mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black;
+}
+
+.event-form-error {
+    @apply mt-1 text-sm text-red-600;
+}
