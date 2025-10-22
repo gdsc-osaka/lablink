@@ -1,10 +1,13 @@
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner"
+
 const CreateGroupPage = () => {
     const [groupName, setGroupName] = useState("");
 
     const handleCreateGroup = () => {
-        console.log("グループ作成ボタンが押されました。");
+        <Toaster />
     };
 
     return (
