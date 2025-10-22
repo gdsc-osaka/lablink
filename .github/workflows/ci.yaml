@@ -24,28 +24,42 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 8
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "pnpm"
-
       - name: Install node modules
         run: pnpm i
-
       - name: Lint
         run: pnpm lint
+
+  run_test:
+    name: Test
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install node modules
+        run: pnpm i
       - name: Test
         run: pnpm test
-      - name: Build
-        run: pnpm build
 
   run_deploy:
-    needs: [run_lint]
+    needs: [run_lint, run_test]
     uses: ./.github/workflows/firebase-hosting-pull-request.yml
