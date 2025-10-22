@@ -3,10 +3,8 @@
 
 name: Deploy to Firebase Hosting on PR
 on:
-  workflow_run:
-    workflows: [CI Workflow]
-    types:
-      - completed
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   checks: write
@@ -15,11 +13,14 @@ permissions:
 
 jobs:
   build_and_preview:
-    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.actor.login != 'dependabot[bot]' }}
+    if: ${{ github.event.workflow_run.actor.login != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [20]
+    environment:
+      name: pr-${{ github.event.number }}-preview-frontend
+      url: ${{ steps.deploy.outputs.details_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,7 +37,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - run: pnpm run build
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - id: deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LABLINK_F9171 }}
