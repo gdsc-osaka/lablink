@@ -44,14 +44,14 @@ export default function AISuggestPage() {
     };
 
     const handleViewOtherDates = () => {
-        // 他の日程を見る機能（今後実装）
+        // TODO: 他の日程を見る機能を実装
         console.log("他の日程を見る");
     };
 
     // AI提案日程が無い場合の表示
     if (suggestedDates.length === 0) {
-        return (
-            <div className="min-h-screen bg-white">
+        return ( 
+        <div className="min-h-screen bg-white">
                 <div className="flex flex-col items-center justify-center min-h-screen">
                     <h1 className="text-2xl font-bold text-black mb-8">
                         新規イベントを作成
