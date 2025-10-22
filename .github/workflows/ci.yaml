@@ -61,5 +61,7 @@ jobs:
         run: pnpm test
 
   run_deploy:
+    name: Preview Frontend
     needs: [run_lint, run_test]
     uses: ./.github/workflows/firebase-hosting-pull-request.yml
+    secrets: inherit
