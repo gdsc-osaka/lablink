@@ -76,6 +76,9 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --btn-primary-bg: #3b82f6;
+    --btn-primary-bg-hover: #2563eb;
+    --btn-primary-text: #ffffff;
 }
 
 .dark {
@@ -110,6 +113,9 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --btn-primary-bg: #2563eb;
+    --btn-primary-bg-hover: #1d4ed8;
+    --btn-primary-text: #ffffff;
 }
 
 @layer base {
@@ -118,5 +124,16 @@
     }
   body {
     @apply bg-background text-foreground;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply w-full text-base font-medium transition-colors duration-150 ease-in-out;
+        background-color: var(--btn-primary-bg) !important;
+        color: var(--btn-primary-text) !important;
+    }
+    .btn-primary:hover {
+        background-color: var(--btn-primary-bg-hover) !important;
     }
 }
