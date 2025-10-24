@@ -21,7 +21,7 @@ const CreateGroupPage = () => {
                 className="w-full max-w-sm rounded-md border-2 bg-slate-200 px-10 py-12 text-center shadow-lg"
             >
                 <h1 className="mb-2 text-xl font-semibold text-slate-900">
-                    {"\u30b0\u30eb\u30fc\u30d7\u3092\u4f5c\u6210\u3059\u308b"}
+                    {"グループを作成する"}
                 </h1>
                 <p className="mb-3 text-sm text-slate-600">
                     {"グループ名"}
@@ -35,7 +35,7 @@ const CreateGroupPage = () => {
                 />
                 <Button
                     type="submit"
-                    className="w-full bg-blue-500 text-base font-medium text-white hover:bg-blue-600"
+                    className="btn-primary"
                     onClick= {() => {handleSubmit}}
                 >
                 作成
