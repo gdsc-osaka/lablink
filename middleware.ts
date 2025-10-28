@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authAdmin } from './src/firebase/client';
+import { authAdmin } from './src/firebase/admin';
 
 export async function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
