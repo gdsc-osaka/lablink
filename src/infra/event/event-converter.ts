@@ -17,11 +17,11 @@ export const eventConverter: FirestoreDataConverter<Event> = {
             created_at:
                 event.created_at instanceof Timestamp
                     ? event.created_at
-                    : Timestamp.fromDate(event.created_at as Date),
+                    : Timestamp.fromDate(event.created_at ?? new Date()),
             updated_at:
                 event.updated_at instanceof Timestamp
                     ? event.updated_at
-                    : Timestamp.fromDate(event.updated_at as Date),
+                    : Timestamp.fromDate(event.updated_at ?? new Date()),
         };
     },
     fromFirestore(

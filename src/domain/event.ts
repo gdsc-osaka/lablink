@@ -24,11 +24,20 @@ export interface Event {
     updated_at?: Date;
 }
 
+export interface NewEvent {
+    title: string;
+    description: string;
+    begin_at: Timestamp;
+    end_at: Timestamp;
+    created_at?: Date;
+    updated_at?: Date;
+}
+
 export interface EventRepository {
     findById: (
         groupId: string,
         id: string,
-    ) => ResultAsync<Event | null, DBError>;
+    ) => ResultAsync<Event, DBError>;
     findAll: (groupId: string) => ResultAsync<Event[], DBError>;
     create: (groupId: string, event: Event) => ResultAsync<Event, DBError>;
     update: (groupId: string, event: Event) => ResultAsync<Event, DBError>;
