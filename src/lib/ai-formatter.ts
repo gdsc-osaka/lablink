@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatToJST } from "@/lib/date";
 import { ja } from "date-fns/locale";
 
 interface DateInterval {
@@ -12,8 +12,10 @@ export function formatFreeSlotsForAI(freeSlots: DateInterval[]): string {
     }
 
     const formattedStrings = freeSlots.map((slot) => {
-        const startDate = format(slot.start, "M月d日(E) HH:mm", { locale: ja });
-        const endDate = format(slot.end, "HH:mm", { locale: ja });
+        const startDate = formatToJST(slot.start, "M月d日(E) HH:mm", {
+            locale: ja,
+        });
+        const endDate = formatToJST(slot.end, "HH:mm", { locale: ja });
         return `- ${startDate} から ${endDate} まで`;
     });
 
