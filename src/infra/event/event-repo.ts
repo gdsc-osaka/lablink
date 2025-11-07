@@ -19,17 +19,10 @@ import { handleFirestoreError } from "@/infra/error";
 import { DBError, NotFoundError } from "@/domain/error";
 
 export const firestoreEventRepository: EventRepository = {
-    findById: (
-        groupId: string,
-        id: string,
-    ): ResultAsync<Event, DBError> => {
-        const eventDoc = doc(
-            db,
-            "groups",
-            groupId,
-            "events",
-            id,
-        ).withConverter(eventConverter);
+    findById: (groupId: string, id: string): ResultAsync<Event, DBError> => {
+        const eventDoc = doc(db, "groups", groupId, "events", id).withConverter(
+            eventConverter,
+        );
 
         return ResultAsync.fromPromise(
             getDoc(eventDoc),
@@ -109,13 +102,9 @@ export const firestoreEventRepository: EventRepository = {
             );
         }
 
-        const eventRef = doc(
-            db,
-            "groups",
-            groupId,
-            "events",
-            id,
-        ).withConverter(eventConverter);
+        const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
+            eventConverter,
+        );
 
         const updatePayload: WithFieldValue<Partial<Event>> = {
             ...updateData,
@@ -128,10 +117,7 @@ export const firestoreEventRepository: EventRepository = {
         ).andThen(() => firestoreEventRepository.findById(groupId, id));
     },
 
-    delete: (
-        groupId: string,
-        id: string,
-    ): ResultAsync<void, DBError> => {
+    delete: (groupId: string, id: string): ResultAsync<void, DBError> => {
         const eventRef = doc(db, "groups", groupId, "events", id);
 
         return ResultAsync.fromPromise(

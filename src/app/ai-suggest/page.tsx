@@ -51,8 +51,8 @@ export default function AISuggestPage() {
 
     // AI提案日程が無い場合の表示
     if (suggestedDates.length === 0) {
-        return ( 
-        <div className="min-h-screen bg-white">
+        return (
+            <div className="min-h-screen bg-white">
                 <div className="flex flex-col items-center justify-center min-h-screen">
                     <h1 className="text-2xl font-bold text-black mb-8">
                         新規イベントを作成
@@ -67,7 +67,9 @@ export default function AISuggestPage() {
                         <Button
                             onClick={() => router.push("/")}
                             className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-                        >ホームに戻る</Button>
+                        >
+                            ホームに戻る
+                        </Button>
                     </div>
                 </div>
             </div>

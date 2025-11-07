@@ -34,10 +34,7 @@ export interface NewEvent {
 }
 
 export interface EventRepository {
-    findById: (
-        groupId: string,
-        id: string,
-    ) => ResultAsync<Event, DBError>;
+    findById: (groupId: string, id: string) => ResultAsync<Event, DBError>;
     findAll: (groupId: string) => ResultAsync<Event[], DBError>;
     create: (groupId: string, event: Event) => ResultAsync<Event, DBError>;
     update: (groupId: string, event: Event) => ResultAsync<Event, DBError>;

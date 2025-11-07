@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import  { Icon } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
 
 export default function EventCompletePage() {
     const router = useRouter();

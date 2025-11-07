@@ -26,7 +26,10 @@ export const createEventService = (
     eventRepository: EventRepository,
 ): EventService => ({
     /* イベントをIDで取得 */
-    getEventById: (groupId: string, eventId: string): ResultAsync<Event, DBError> => {
+    getEventById: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<Event, DBError> => {
         return eventRepository.findById(groupId, eventId);
     },
 
@@ -36,17 +39,26 @@ export const createEventService = (
     },
 
     /* 新しいイベントを作成 */
-    createEvent: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
+    createEvent: (
+        groupId: string,
+        eventData: Event,
+    ): ResultAsync<Event, DBError> => {
         return eventRepository.create(groupId, eventData);
     },
 
     /* イベントを更新 */
-    updateEvent: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
+    updateEvent: (
+        groupId: string,
+        eventData: Event,
+    ): ResultAsync<Event, DBError> => {
         return eventRepository.update(groupId, eventData);
     },
 
     /* イベントを削除 */
-    deleteEvent: (groupId: string, eventId: string): ResultAsync<void, DBError> => {
+    deleteEvent: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<void, DBError> => {
         return eventRepository.delete(groupId, eventId);
     },
 });
