@@ -16,8 +16,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  run_lint:
-    name: Lint
+  ci-web:
+    name: CI(web)
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
@@ -35,9 +35,18 @@ jobs:
         with:
           node-version: 20
           cache: "pnpm"
+      
+      - name: Create .env.local file for ${{ matrix.app }}
+        shell: bash
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_LABLINK_F9171}}" > .env.local
 
       - name: Install node modules
         run: pnpm i
 
       - name: Lint
-        run: pnpm run lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
+      - name: Build
+        run: pnpm build
