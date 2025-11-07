@@ -42,7 +42,7 @@ export default function CreateEventPage() {
     const onSubmit: SubmitHandler<EventData> = (data) => {
         console.log(data);
 
-        // フォーム送信成功後、AI suggestページへ遷移
+        //TODO: create-event のAPIへの送信処理を追加
         router.push("/ai-suggest");
     };
 
