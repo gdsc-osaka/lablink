@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import { Result, ResultAsync } from "neverthrow";
+import { ResultAsync } from "neverthrow";
 import { DBError } from "./error";
 
 export const eventTimeOfDays = ["morning", "noon", "evening", "night"] as const;
