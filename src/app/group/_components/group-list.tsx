@@ -23,6 +23,7 @@ interface GroupViewProps {
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     const handleInviteClick = () => {
         alert("招待ボタンがクリックされました。");
+        // TODO: Implement invitation feature
     };
 
     return (
@@ -63,7 +64,5 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     );
 };
 
-// 後方互換性のため
-const GroupView = GroupMembersView;
+export default GroupMembersView;
 
-export default GroupView;
