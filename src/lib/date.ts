@@ -1,5 +1,5 @@
-import { format, Locale } from "date-fns";
-import { TZDate } from "@date-fns/tz";
+import { Locale } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import type { FieldValue, WithFieldValue } from "firebase/firestore";
 import { Timestamp } from "firebase/firestore";
 
@@ -24,6 +24,5 @@ export const formatToJST = (
     formatStr: string,
     options?: { locale?: Locale },
 ) => {
-    const tzDate = new TZDate(date, TIME_ZONE);
-    return format(tzDate, formatStr, options);
+    return formatInTimeZone(date, TIME_ZONE, formatStr, options);
 };
