@@ -15,7 +15,7 @@ export interface EventDraft {
 
 // AI提案後の確定データ（Firestore保存用）
 export interface Event {
-    id?: string;
+    id: string;
     title: string;
     description: string;
     begin_at: Timestamp;
