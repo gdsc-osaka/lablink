@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   ci-web:
-    name: CI(web)
+    name: CI
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
@@ -36,7 +36,7 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
-      - name: Create .env.local file for ${{ matrix.app }}
+      - name: Create .env.local file
         shell: bash
         run: |
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_LABLINK_F9171}}" > .env.local
