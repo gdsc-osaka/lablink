@@ -65,4 +65,3 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
 };
 
 export default GroupMembersView;
-
