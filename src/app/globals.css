@@ -43,10 +43,21 @@
     --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* イベントフォーム共通スタイル (create-event, edit-event) */
+.event-form-label {
+    @apply block text-sm font-medium text-black mb-1;
+}
+
+.event-form-input {
+    @apply mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black;
+}
+
+.event-form-error {
+    @apply mt-1 text-sm text-red-600;
+}
+
 :root {
     --radius: 0.625rem;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
@@ -76,6 +87,8 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
     --btn-primary-bg: #3b82f6;
     --btn-primary-bg-hover: #2563eb;
     --btn-primary-text: #ffffff;
