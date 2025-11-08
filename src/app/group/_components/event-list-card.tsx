@@ -1,4 +1,3 @@
-// src/components/event-list-card.tsx
 import Link from "next/link";
 import { Timestamp } from "firebase/firestore";
 import { formatToJST } from "@/lib/date";
