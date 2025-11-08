@@ -1,22 +1,22 @@
 import { getCommonAvailability } from "../../app/actions";
 
 // Google Calendar APIのモック
-const mockCalendarQuery = jest.fn();
+const mockCalendarQuery = vi.fn();
 const mockCalendar = {
     freebusy: {
         query: mockCalendarQuery,
     },
 };
 const mockOAuth2 = {
-    setCredentials: jest.fn(),
+    setCredentials: vi.fn(),
 };
 
-jest.mock("googleapis", () => ({
+vi.mock("googleapis", () => ({
     google: {
         auth: {
-            OAuth2: jest.fn(() => mockOAuth2),
+            OAuth2: vi.fn(() => mockOAuth2),
         },
-        calendar: jest.fn(() => mockCalendar),
+        calendar: vi.fn(() => mockCalendar),
     },
 }));
 
@@ -27,7 +27,7 @@ describe("Calendar API Integration", () => {
     const mockTimeMax = "2024-01-01T17:00:00Z";
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         mockCalendarQuery.mockReset();
     });
 
