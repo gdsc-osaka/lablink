@@ -7,7 +7,6 @@ import {
 import { toFirestoreTimestamp } from "@/infra/utils";
 import { User } from "@/domain/user";
 
-
 const userConverter: FirestoreDataConverter<User> = {
     toFirestore(user: User): DocumentData {
         return {
