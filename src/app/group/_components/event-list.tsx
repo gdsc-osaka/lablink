@@ -1,4 +1,3 @@
-// src/components/EventList.tsx
 import EventListCard from "./event-list-card";
 import Link from "next/link";
 import { Event } from "@/domain/event";

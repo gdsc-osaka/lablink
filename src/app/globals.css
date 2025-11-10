@@ -89,6 +89,9 @@
     --sidebar-ring: oklch(0.708 0 0);
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
+    --btn-primary-bg: #3b82f6;
+    --btn-primary-bg-hover: #2563eb;
+    --btn-primary-text: #ffffff;
 }
 
 .dark {
@@ -123,6 +126,9 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --btn-primary-bg: #2563eb;
+    --btn-primary-bg-hover: #1d4ed8;
+    --btn-primary-text: #ffffff;
 }
 
 @layer base {
@@ -132,4 +138,34 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+@layer components {
+    .btn-primary {
+        @apply w-full text-base font-medium transition-colors duration-150 ease-in-out;
+        background-color: var(--btn-primary-bg) !important;
+        color: var(--btn-primary-text) !important;
+    }
+    .btn-primary:hover {
+        background-color: var(--btn-primary-bg-hover) !important;
+    }
+}
+
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* イベントフォーム共通スタイル (create-event, edit-event) */
+.event-form-label {
+    @apply block text-sm font-medium text-black mb-1;
+}
+
+.event-form-input {
+    @apply mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black;
+}
+
+.event-form-error {
+    @apply mt-1 text-sm text-red-600;
 }
