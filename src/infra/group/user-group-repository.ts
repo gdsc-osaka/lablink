@@ -1,21 +1,15 @@
 import {
     doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    deleteDoc,
     collection,
     getDocs,
     writeBatch,
     serverTimestamp,
-    FieldValue,
     Timestamp,
-    QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "@/firebase/client";
 import { groupConverter } from "./group-converter";
 import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
-import { GroupForDb, UserGroupIndexData } from "./group-repo";
+import { UserGroupIndexData } from "./group-repo";
 
 export class FirestoreUserGroupRepository implements UserGroupRepository {
     // users/:userId/groups/:groupId ドキュメント参照
