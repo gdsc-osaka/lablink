@@ -14,7 +14,10 @@ const mockOAuth2 = {
 vi.mock("googleapis", () => ({
     google: {
         auth: {
-            OAuth2: vi.fn(() => mockOAuth2),
+            // OAuth2 is a constructor
+            OAuth2: vi.fn(function () {
+                return mockOAuth2;
+            }),
         },
         calendar: vi.fn(() => mockCalendar),
     },
