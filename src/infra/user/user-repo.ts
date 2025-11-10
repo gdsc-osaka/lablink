@@ -23,7 +23,7 @@ export const userRepo: UserRepository = {
         ).andThen((snapshot) =>
             snapshot.exists()
                 ? okAsync(snapshot.data()!)
-                : errAsync(NotFoundError.handle(new Error("User not found"))),
+                : errAsync(NotFoundError("User not found")),
         ),
     update: (user) =>
         ResultAsync.fromPromise(
