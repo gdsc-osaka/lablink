@@ -4,12 +4,9 @@ import {
     QueryDocumentSnapshot,
     SnapshotOptions,
 } from "firebase/firestore";
-import { Timestamp } from "firebase/firestore";
-
+import { toFirestoreTimestamp } from "@/infra/utils";
 import { User } from "@/domain/user";
 
-const toFirestoreTimestamp = (value: Date | Timestamp): Timestamp =>
-    value instanceof Timestamp ? value : Timestamp.fromDate(value);
 
 const userConverter: FirestoreDataConverter<User> = {
     toFirestore(user: User): DocumentData {
