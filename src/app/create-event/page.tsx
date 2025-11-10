@@ -1,15 +1,8 @@
 ﻿"use client";
 
 import { useRouter } from "next/navigation";
-import type { EventTimeOfDay } from "@/domain/event";
+import type { EventTimeOfDay, EventDraft } from "@/domain/event";
 import { useForm, SubmitHandler } from "react-hook-form";
-
-interface EventData {
-    title: string;
-    duration: string;
-    timeOfDayCandidate: EventTimeOfDay[];
-    description: string;
-}
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -29,7 +22,7 @@ export default function CreateEventPage() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<EventData>({
+    } = useForm<EventDraft>({
         defaultValues: {
             title: "",
             duration: "",
@@ -39,7 +32,7 @@ export default function CreateEventPage() {
     });
 
     // フォーム送信時の処理
-    const onSubmit: SubmitHandler<EventData> = (data) => {
+    const onSubmit: SubmitHandler<EventDraft> = (data) => {
         console.log(data);
 
         //TODO: create-event のAPIへの送信処理を追加
