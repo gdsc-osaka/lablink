@@ -70,7 +70,7 @@ jobs:
       - name: Install node modules
         run: pnpm i
 
-      - name: Lint
+      - name: Test
         run: pnpm test
 
   run_build:
@@ -96,5 +96,5 @@ jobs:
       - name: Install node modules
         run: pnpm i
 
-      - name: Lint
+      - name: Build
         run: pnpm build
