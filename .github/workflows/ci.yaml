@@ -16,8 +16,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  ci-web:
-    name: CI
+  run_lint:
+    name: Lint
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
