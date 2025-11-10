@@ -1,8 +1,7 @@
-// src/components/event-list-card.tsx
-import { format } from "date-fns";
 import Link from "next/link";
 import { Timestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
+import { formatToJST } from "@/lib/date";
 
 type EventListCardProps = {
     id: string;
@@ -22,9 +21,9 @@ const EventListCard = ({
     const endDate = endTime.toDate();
 
     // 日付と時刻を指定の形式にフォーマット
-    const formattedDate = format(startDate, "yyyy/MM/dd");
-    const formattedStartTime = format(startDate, "HH:mm");
-    const formattedEndTime = format(endDate, "HH:mm");
+    const formattedDate = formatToJST(startDate, "yyyy/MM/dd");
+    const formattedStartTime = formatToJST(startDate, "HH:mm");
+    const formattedEndTime = formatToJST(endDate, "HH:mm");
 
     // 表示用の文字列を組み立てる
     const displayDateTime = `${formattedDate} ${formattedStartTime}～${formattedEndTime}`;

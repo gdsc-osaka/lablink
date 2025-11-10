@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 
 export default function EventCompletePage() {
     const router = useRouter();
@@ -24,19 +25,7 @@ export default function EventCompletePage() {
                 <div className="text-center">
                     <div className="mb-6">
                         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg
-                                className="w-8 h-8 text-green-500"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                />
-                            </svg>
+                            <Icon></Icon>
                         </div>
                         <h2 className="text-2xl font-bold text-black mb-2">
                             イベントが正常に作成されました

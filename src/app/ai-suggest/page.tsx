@@ -45,7 +45,7 @@ export default function AISuggestPage() {
     };
 
     const handleViewOtherDates = () => {
-        // 他の日程を見る機能（今後実装）
+        // TODO: 他の日程を見る機能を実装
         console.log("他の日程を見る");
     };
 

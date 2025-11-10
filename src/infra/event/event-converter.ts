@@ -7,7 +7,7 @@ import {
 import { Timestamp } from "firebase/firestore";
 import { Event } from "@/domain/event";
 
-const eventConverter: FirestoreDataConverter<Event> = {
+export const eventConverter: FirestoreDataConverter<Event> = {
     toFirestore(event: Event): DocumentData {
         return {
             title: event.title,
@@ -17,11 +17,11 @@ const eventConverter: FirestoreDataConverter<Event> = {
             created_at:
                 event.created_at instanceof Timestamp
                     ? event.created_at
-                    : Timestamp.fromDate(event.created_at),
+                    : Timestamp.fromDate(event.created_at ?? new Date()),
             updated_at:
                 event.updated_at instanceof Timestamp
                     ? event.updated_at
-                    : Timestamp.fromDate(event.updated_at),
+                    : Timestamp.fromDate(event.updated_at ?? new Date()),
         };
     },
     fromFirestore(
@@ -40,5 +40,3 @@ const eventConverter: FirestoreDataConverter<Event> = {
         };
     },
 };
-
-export { eventConverter };
