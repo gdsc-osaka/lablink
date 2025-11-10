@@ -36,11 +36,6 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
-      - name: Create .env.local file
-        shell: bash
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_LABLINK_F9171}}" > .env.local
-
       - name: Install node modules
         run: pnpm i
 
@@ -95,6 +90,11 @@ jobs:
 
       - name: Install node modules
         run: pnpm i
+
+      - name: Create .env.local file
+        shell: bash
+        run: |
+          echo "${{ secrets.ENV_LOCAL}}" > .env.local
 
       - name: Build
         run: pnpm build
