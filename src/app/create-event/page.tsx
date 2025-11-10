@@ -1,28 +1,12 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import type { EventTimeOfDay } from "@/domain/event";
+import { useRouter } from "next/navigation";
+import type { EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Form,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormControl,
-    FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-
-interface EventData {
-    title: string;
-    duration: string;
-    timeOfDayCandidate: EventTimeOfDay[];
-    description: string;
-}
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -34,57 +18,30 @@ const timeOfDayInputItems: {
     { value: "night", label: "夜（18:00~22:00ごろ）" },
 ];
 
-const CreateEventPage = () => {
-    // useStateに型を指定し、分割代入で変数を受け取る
-    const [eventData, setEventData] = useState<EventData>({
-        title: "",
-        duration: "",
-        timeOfDayCandidate: [],
-        description: "",
-    });
+export default function CreateEventPage() {
+    const router = useRouter();
 
-    // 入力値の変更をハンドルする関数
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        const { name, value } = e.target;
-        setEventData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
-
-    // チェックボックスの変更をハンドルする関数
-    const handleCheckboxChange = (value: EventTimeOfDay) => {
-        setEventData((prevData) => ({
-            ...prevData,
-            timeOfDayCandidate: prevData.timeOfDayCandidate.includes(value)
-                ? prevData.timeOfDayCandidate.filter((item) => item !== value)
-                : [...prevData.timeOfDayCandidate, value],
-        }));
-    };
-
-    // フォーム送信をハンドルする関数
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log("Form Submitted:", eventData);
-        // ここでAPIへの送信処理などを行う
-    };
-
-    // React Hook Form の useForm フックを初期化
-    // - フォームの型を { title, duration, description } に指定
-    // - defaultValues で初期値を設定
-    const form = useForm<{
-        title: string;
-        duration: string;
-        description: string;
-    }>({
+    // useFormフックをコンポーネント内で呼び出す
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<EventDraft>({
         defaultValues: {
             title: "",
             duration: "",
+            timeOfDayCandidate: [],
             description: "",
         },
     });
+
+    // フォーム送信時の処理
+    const onSubmit: SubmitHandler<EventDraft> = (data) => {
+        console.log(data);
+
+        //TODO: create-event のAPIへの送信処理を追加
+        router.push("/ai-suggest");
+    };
 
     return (
         <main className="min-h-screen bg-white">
@@ -94,112 +51,114 @@ const CreateEventPage = () => {
                         新規イベントを作成
                     </h1>
                 </div>
-                <Form {...form}>
-                    <form
-                        onSubmit={handleSubmit}
-                        className="space-y-6 px-15 mt-9"
-                    >
-                        <div>
-                            <Label
-                                htmlFor="title"
-                                className="block text-sm font-medium text-black mb-1"
-                            >
-                                タイトル
-                            </Label>
-                            <Input
-                                type="text"
-                                id="title"
-                                name="title"
-                                value={eventData.title}
-                                placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
-                                onChange={handleChange}
-                                className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-                            />
-                        </div>
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-6 px-15 mt-9"
+                >
+                    <div>
+                        <Label htmlFor="title" className="event-form-label">
+                            タイトル
+                        </Label>
+                        <Input
+                            type="text"
+                            id="title"
+                            {...register("title", {
+                                required: "タイトルは必須です",
+                            })}
+                            placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
+                            className="event-form-input"
+                        />
+                        {errors.title && (
+                            <p className="event-form-error">
+                                {errors.title.message}
+                            </p>
+                        )}
+                    </div>
 
-                        <div>
-                            <Label
-                                htmlFor="duration"
-                                className="block text-sm font-medium text-black mb-1"
-                            >
-                                所要時間
-                            </Label>
-                            <Input
-                                type="text"
-                                id="duration"
-                                name="duration"
-                                value={eventData.duration}
-                                placeholder="イベントの所要時間 (例: 30分、2時間)"
-                                onChange={handleChange}
-                                className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-                            />
-                        </div>
+                    <div>
+                        <Label htmlFor="duration" className="event-form-label">
+                            所要時間
+                        </Label>
+                        <Input
+                            type="text"
+                            id="duration"
+                            {...register("duration", {
+                                required: "所要時間は必須です",
+                            })}
+                            placeholder="イベントの所要時間 (例: 30分、2時間)"
+                            className="event-form-input"
+                        />
+                        {errors.duration && (
+                            <p className="event-form-error">
+                                {errors.duration.message}
+                            </p>
+                        )}
+                    </div>
 
-                        <div>
-                            <Label className="block text-sm font-medium text-black mb-1">
-                                時間帯
-                            </Label>
-                            <div className="mt-2 space-y-2">
-                                {timeOfDayInputItems.map((item) => (
-                                    <div
-                                        key={item.value}
-                                        className="flex items-center"
-                                    >
-                                        <Input
-                                            type="checkbox"
-                                            id={item.value}
-                                            checked={eventData.timeOfDayCandidate.includes(
-                                                item.value,
-                                            )}
-                                            onChange={() =>
-                                                handleCheckboxChange(item.value)
-                                            }
-                                            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <Label
-                                            htmlFor={item.value}
-                                            className="text-black"
-                                        >
-                                            {item.label}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <Label
-                                htmlFor="details"
-                                className="block text-sm font-medium text-black mb-1"
-                            >
-                                イベントの詳細
-                            </Label>
-                            <Textarea
-                                id="details"
-                                name="description"
-                                rows={4}
-                                value={eventData.description}
-                                placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-                                onChange={handleChange}
-                                className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-                            ></Textarea>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <Link href="/ai-suggest">
-                                <Button
-                                    type="button"
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    <div>
+                        <Label className="event-form-label">時間帯</Label>
+                        <div className="mt-2 space-y-2">
+                            {timeOfDayInputItems.map((item) => (
+                                <div
+                                    key={item.value}
+                                    className="flex items-center"
                                 >
-                                    AIのsuggestへ
-                                </Button>
-                            </Link>
+                                    <Input
+                                        type="checkbox"
+                                        id={item.value}
+                                        value={item.value}
+                                        {...register("timeOfDayCandidate", {
+                                            required:
+                                                "時間帯を少なくとも1つ選択してください",
+                                        })}
+                                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <Label
+                                        htmlFor={item.value}
+                                        className="text-black"
+                                    >
+                                        {item.label}
+                                    </Label>
+                                </div>
+                            ))}
                         </div>
-                    </form>
-                </Form>
+                        {errors.timeOfDayCandidate && (
+                            <p className="event-form-error">
+                                {errors.timeOfDayCandidate.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <Label htmlFor="details" className="event-form-label">
+                            イベントの詳細
+                        </Label>
+                        <Textarea
+                            id="details"
+                            rows={4}
+                            {...register("description", {
+                                required: "イベントの詳細は必須です",
+                            })}
+                            placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
+                            className="event-form-input"
+                        ></Textarea>
+                        {errors.description && (
+                            <p className="event-form-error">
+                                {errors.description.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end">
+                        <Button
+                            type="submit"
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                            AIのsuggestへ
+                        </Button>
+                    </div>
+                </form>
             </div>
         </main>
     );
-};
-
-export default CreateEventPage;
+}

@@ -1,30 +1,16 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Event, type EventTimeOfDay } from "@/domain/event";
+import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Form,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormControl,
-    FormMessage,
-} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-
-interface EventData {
-    title: string;
-    duration: string;
-    timeOfDayCandidate: EventTimeOfDay[];
-    description: string;
-}
+import { convertEventToDraft } from "@/lib/event-to-draft";
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -41,7 +27,7 @@ const EditEventPage = () => {
     const eventId = searchParams.get("id");
 
     // フォーム用のイベントデータを管理するstate
-    const [eventData, setEventData] = useState<EventData>({
+    const [eventData, setEventData] = useState<EventDraft>({
         title: "",
         duration: "",
         timeOfDayCandidate: [],
@@ -89,13 +75,9 @@ const EditEventPage = () => {
             const event = sampleEvents.find((e) => e.id === eventId);
             if (event) {
                 setOriginalEvent(event);
-                // EventからEventDataに変換
-                setEventData({
-                    title: event.title,
-                    duration: "3時間", // デフォルト値（実際のアプリでは計算または別フィールドから取得）
-                    timeOfDayCandidate: ["noon", "evening"], // デフォルト値（実際のアプリでは別フィールドから取得）
-                    description: event.description,
-                });
+                // EventからEventDraftに変換（計算された値を使用）
+                const draft = convertEventToDraft(event);
+                setEventData(draft);
             }
         }
     }, [eventId]);
@@ -126,7 +108,6 @@ const EditEventPage = () => {
         e.preventDefault();
         console.log("Event Updated:", eventData);
         // ここでAPIへの更新処理などを行う
-        // EventDataからEventに変換して送信
     };
 
     // イベント削除をハンドルする関数
@@ -164,118 +145,113 @@ const EditEventPage = () => {
                     </h1>
                 </div>
                 {/* フォーム */}
-                <Form {...form}>
-                    <form
-                        onSubmit={handleSubmit}
-                        className="space-y-6 px-15 mt-9"
-                    >
-                        <div>
-                            <Label
-                                htmlFor="title"
-                                className="block text-sm font-medium text-black mb-1"
-                            >
-                                タイトル
-                            </Label>
-                            <Input
-                                type="text"
-                                id="title"
-                                name="title"
-                                value={eventData.title}
-                                placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
-                                onChange={handleChange}
-                                className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} className="space-y-6 px-15 mt-9">
+                    <div>
+                        <Label
+                            htmlFor="title"
+                            className="block text-sm font-medium text-black mb-1"
+                        >
+                            タイトル
+                        </Label>
+                        <Input
+                            type="text"
+                            id="title"
+                            name="title"
+                            value={eventData.title}
+                            placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
+                            onChange={handleChange}
+                            className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                        />
+                    </div>
 
-                        <div>
-                            <Label
-                                htmlFor="duration"
-                                className="block text-sm font-medium text-black mb-1"
-                            >
-                                所要時間
-                            </Label>
-                            <Input
-                                type="text"
-                                id="duration"
-                                name="duration"
-                                value={eventData.duration}
-                                placeholder="イベントの所要時間 (例: 30分、2時間)"
-                                onChange={handleChange}
-                                className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-                            />
-                        </div>
+                    <div>
+                        <Label
+                            htmlFor="duration"
+                            className="block text-sm font-medium text-black mb-1"
+                        >
+                            所要時間
+                        </Label>
+                        <Input
+                            type="text"
+                            id="duration"
+                            name="duration"
+                            value={eventData.duration}
+                            placeholder="イベントの所要時間 (例: 30分、2時間)"
+                            onChange={handleChange}
+                            className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                        />
+                    </div>
 
-                        <div>
-                            <Label className="block text-sm font-medium text-black mb-1">
-                                時間帯
-                            </Label>
-                            <div className="mt-2 space-y-2">
-                                {timeOfDayInputItems.map((item) => (
-                                    <div
-                                        key={item.value}
-                                        className="flex items-center"
+                    <div>
+                        <Label className="block text-sm font-medium text-black mb-1">
+                            時間帯
+                        </Label>
+                        <div className="mt-2 space-y-2">
+                            {timeOfDayInputItems.map((item) => (
+                                <div
+                                    key={item.value}
+                                    className="flex items-center"
+                                >
+                                    <Input
+                                        type="checkbox"
+                                        id={item.value}
+                                        checked={eventData.timeOfDayCandidate.includes(
+                                            item.value,
+                                        )}
+                                        onChange={() =>
+                                            handleCheckboxChange(item.value)
+                                        }
+                                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <Label
+                                        htmlFor={item.value}
+                                        className="text-black"
                                     >
-                                        <Input
-                                            type="checkbox"
-                                            id={item.value}
-                                            checked={eventData.timeOfDayCandidate.includes(
-                                                item.value,
-                                            )}
-                                            onChange={() =>
-                                                handleCheckboxChange(item.value)
-                                            }
-                                            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <Label
-                                            htmlFor={item.value}
-                                            className="text-black"
-                                        >
-                                            {item.label}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
+                                        {item.label}
+                                    </Label>
+                                </div>
+                            ))}
                         </div>
+                    </div>
 
-                        <div>
-                            <Label
-                                htmlFor="details"
-                                className="block text-sm font-medium text-black mb-1"
-                            >
-                                イベントの詳細
-                            </Label>
-                            <Textarea
-                                id="details"
-                                name="description"
-                                rows={4}
-                                value={eventData.description}
-                                placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-                                onChange={handleChange}
-                                className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
-                            />
-                        </div>
+                    <div>
+                        <Label
+                            htmlFor="details"
+                            className="block text-sm font-medium text-black mb-1"
+                        >
+                            イベントの詳細
+                        </Label>
+                        <Textarea
+                            id="details"
+                            name="description"
+                            rows={4}
+                            value={eventData.description}
+                            placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
+                            onChange={handleChange}
+                            className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                        />
+                    </div>
 
-                        {/* ボタンエリア */}
-                        <div className="flex justify-between pt-6">
+                    {/* ボタンエリア */}
+                    <div className="flex justify-between pt-6">
+                        <Button
+                            type="button"
+                            onClick={handleDelete}
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                            イベントを削除
+                        </Button>
+
+                        <Link href="/ai-suggest">
                             <Button
                                 type="button"
-                                onClick={handleDelete}
-                                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                             >
-                                イベントを削除
+                                AIのsuggestへ
                             </Button>
-
-                            <Link href="/ai-suggest">
-                                <Button
-                                    type="button"
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                >
-                                    AIのsuggestへ
-                                </Button>
-                            </Link>
-                        </div>
-                    </form>
-                </Form>
+                        </Link>
+                    </div>
+                </form>
             </div>
         </main>
     );
