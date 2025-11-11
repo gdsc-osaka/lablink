@@ -27,12 +27,13 @@ export default function CreateEventPage() {
             title: "",
             duration: "",
             timeOfDayCandidate: [],
+            priorityParticipants: "",
             description: "",
         },
     });
 
     // フォーム送信時の処理
-    const onSubmit: SubmitHandler<EventDraft> = (data) => {
+    const onSubmit: SubmitHandler<EventDraft> = (data: EventDraft) => {
         console.log(data);
 
         //TODO: create-event のAPIへの送信処理を追加
@@ -123,6 +124,25 @@ export default function CreateEventPage() {
                                 {errors.timeOfDayCandidate.message}
                             </p>
                         )}
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="priorityParticipants"
+                            className="event-form-label"
+                        >
+                            優先参加者（カンマ区切り）
+                        </label>
+                        <input
+                            type="text"
+                            id="priorityParticipants"
+                            {...register("priorityParticipants")}
+                            placeholder="例: alice@example.com,bob@example.com"
+                            className="event-form-input"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                            優先的に参加してほしいユーザーのメールアドレスをカンマ区切りで入力してください（任意）。
+                        </p>
                     </div>
 
                     <div>
