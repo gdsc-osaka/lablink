@@ -110,21 +110,6 @@ const EditEventPage = () => {
         }
     };
 
-    // React Hook Form の useForm フックを初期化
-    // - フォームの型を { title, duration, description } に指定
-    // - defaultValues で初期値を設定
-    const form = useForm<{
-        title: string;
-        duration: string;
-        description: string;
-    }>({
-        defaultValues: {
-            title: "",
-            duration: "",
-            description: "",
-        },
-    });
-
     return (
         <main className="min-h-screen bg-white">
             <div className="w-full mx-auto">
