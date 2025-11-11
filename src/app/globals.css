@@ -169,3 +169,33 @@ body {
 .event-form-error {
     @apply mt-1 text-sm text-red-600;
 }
+
+/* ランディングページ共通スタイル (.) */
+@layer components {
+    .carousel-slide {
+        @apply flex items-center justify-center rounded-lg shadow-lg;
+        height: 20rem; /* h-80 equivalent */
+    }
+
+    .carousel-slide-primary {
+        @apply flex items-center justify-center rounded-lg shadow-lg bg-gray-400;
+        height: 20rem;
+    }
+
+    .carousel-slide-secondary {
+        @apply flex items-center justify-center rounded-lg shadow-lg bg-gray-300;
+        height: 20rem;
+    }
+
+    .carousel-slide-text {
+        @apply text-2xl font-semibold text-center px-4;
+    }
+
+    .carousel-slide-text-light {
+        @apply text-2xl font-semibold text-center px-4 text-white;
+    }
+
+    .carousel-slide-text-dark {
+        @apply text-2xl font-semibold text-center px-4 text-gray-700;
+    }
+}
