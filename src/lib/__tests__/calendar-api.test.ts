@@ -170,7 +170,8 @@ describe("Calendar API Integration", () => {
             mockTimeMax,
         );
 
-        expect(result.data).toBe(
+        expect(result.success).toBe(true);
+        expect(result.data).toContain(
             "利用可能な共通の空き時間帯はありませんでした。",
         );
     });
