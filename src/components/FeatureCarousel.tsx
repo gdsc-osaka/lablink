@@ -46,36 +46,36 @@ export default function FeatureCarousel() {
             >
                 <CarouselContent className="-ml-4">
                     <CarouselItem className="pl-4 md:basis-1/3">
-                        <div className="flex items-center justify-center h-80 bg-gray-400 rounded-lg shadow-lg">
-                            <p className="text-white text-2xl font-semibold text-center px-4">
+                        <div className="carousel-slide-primary">
+                            <p className="carousel-slide-text-light">
                                 Lablinkについて知ろう
                             </p>
                         </div>
                     </CarouselItem>
                     <CarouselItem className="pl-4 md:basis-1/3">
-                        <div className="flex items-center justify-center h-80 bg-gray-300 rounded-lg shadow-lg">
-                            <p className="text-gray-700 text-2xl font-semibold text-center px-4">
+                        <div className="carousel-slide-secondary">
+                            <p className="carousel-slide-text-dark">
                                 スライド 2
                             </p>
                         </div>
                     </CarouselItem>
                     <CarouselItem className="pl-4 md:basis-1/3">
-                        <div className="flex items-center justify-center h-80 bg-gray-300 rounded-lg shadow-lg">
-                            <p className="text-gray-700 text-2xl font-semibold text-center px-4">
+                        <div className="carousel-slide-secondary">
+                            <p className="carousel-slide-text-dark">
                                 スライド 3
                             </p>
                         </div>
                     </CarouselItem>
                     <CarouselItem className="pl-4 md:basis-1/3">
-                        <div className="flex items-center justify-center h-80 bg-gray-300 rounded-lg shadow-lg">
-                            <p className="text-gray-700 text-2xl font-semibold text-center px-4">
+                        <div className="carousel-slide-secondary">
+                            <p className="carousel-slide-text-dark">
                                 スライド 4
                             </p>
                         </div>
                     </CarouselItem>
                     <CarouselItem className="pl-4 md:basis-1/3">
-                        <div className="flex items-center justify-center h-80 bg-gray-300 rounded-lg shadow-lg">
-                            <p className="text-gray-700 text-2xl font-semibold text-center px-4">
+                        <div className="carousel-slide-secondary">
+                            <p className="carousel-slide-text-dark">
                                 スライド 5
                             </p>
                         </div>
