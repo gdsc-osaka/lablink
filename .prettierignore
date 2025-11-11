@@ -1,1 +1,7 @@
+# Build outputs
+.next
+out
+build
+
+# Lockfile
 pnpm-lock.yaml
