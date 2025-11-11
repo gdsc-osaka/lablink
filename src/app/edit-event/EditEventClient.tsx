@@ -33,49 +33,39 @@ const EditEventPage = () => {
     const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
 
     // イベントデータを取得する関数
-    useEffect(() => {
-        if (eventId) {
-            // サンプルデータ（実際のアプリではAPIから取得）
-            const sampleEvents: Event[] = [
-                {
-                    id: "101",
-                    title: "交流会",
-                    description:
-                        "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
-                    begin_at: Timestamp.fromDate(
-                        new Date("2025-05-12T13:00:00Z"),
-                    ),
-                    end_at: Timestamp.fromDate(
-                        new Date("2025-05-12T16:00:00Z"),
-                    ),
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                },
-                {
-                    id: "102",
-                    title: "ミーティング",
-                    description:
-                        "外部進学した留学生のためにたこ焼きパーティーをする",
-                    begin_at: Timestamp.fromDate(
-                        new Date("2025-05-23T11:00:00Z"),
-                    ),
-                    end_at: Timestamp.fromDate(
-                        new Date("2025-05-23T12:00:00Z"),
-                    ),
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                },
-            ];
+    if (eventId) {
+        // サンプルデータ（実際のアプリではAPIから取得）
+        const sampleEvents: Event[] = [
+            {
+                id: "101",
+                title: "交流会",
+                description:
+                    "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
+                begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
+                end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
+                created_at: new Date(),
+                updated_at: new Date(),
+            },
+            {
+                id: "102",
+                title: "ミーティング",
+                description:
+                    "外部進学した留学生のためにたこ焼きパーティーをする",
+                begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
+                end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
+                created_at: new Date(),
+                updated_at: new Date(),
+            },
+        ];
 
-            const event = sampleEvents.find((e) => e.id === eventId);
-            if (event) {
-                setOriginalEvent(event);
-                // EventからEventDraftに変換（計算された値を使用）
-                const draft = convertEventToDraft(event);
-                setEventData(draft);
-            }
+        const event = sampleEvents.find((e) => e.id === eventId);
+        if (event) {
+            setOriginalEvent(event);
+            // EventからEventDraftに変換（計算された値を使用）
+            const draft = convertEventToDraft(event);
+            setEventData(draft);
         }
-    }, [eventId]);
+    }
 
     // 入力値の変更をハンドルする関数
     const handleChange = (
