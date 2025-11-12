@@ -5,8 +5,6 @@ import {
     updateDoc,
     deleteDoc,
     collection,
-    getDocs,
-    writeBatch,
     serverTimestamp,
     FieldValue,
     Timestamp,
@@ -98,6 +96,7 @@ export class FirestoreGroupRepository implements GroupRepository {
             }
             return updatedGroup;
         } catch (error) {
+            console.error(`Error updating group ID ${group.id}:`, error);
             throw new Error(
                 `Failed to update group with ID ${group.id} in Firestore.`,
             );
