@@ -15,6 +15,7 @@ export default function FeatureCarousel() {
     const [api, setApi] = useState<CarouselApi>();
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(true);
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
     useEffect(() => {
         if (!api) {
@@ -34,6 +35,18 @@ export default function FeatureCarousel() {
         };
     }, [api]);
 
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setLightboxSrc(null);
+            }
+        };
+        if (lightboxSrc) {
+            window.addEventListener("keydown", onKey);
+        }
+        return () => window.removeEventListener("keydown", onKey);
+    }, [lightboxSrc]);
+
     return (
         <div className="w-full mt-8 mb-8">
             <Carousel
@@ -51,7 +64,16 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-light font-bold mt-4">
                                 Lablinkとは？
                             </h3>
-                            <div className="px-[10px]">
+                            <div
+                                className="px-[10px] cursor-pointer"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                    setLightboxSrc(
+                                        "/screenshots/screenshot1.png",
+                                    )
+                                }
+                            >
                                 <Image
                                     src="/screenshots/screenshot1.png"
                                     alt="Lablink overview"
@@ -70,7 +92,16 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 2
                             </h3>
-                            <div className="px-[10px]">
+                            <div
+                                className="px-[10px] cursor-pointer"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                    setLightboxSrc(
+                                        "/screenshots/screenshot2.png",
+                                    )
+                                }
+                            >
                                 <Image
                                     src="/screenshots/screenshot2.png"
                                     alt="Slide 2"
@@ -89,7 +120,16 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 3
                             </h3>
-                            <div className="px-[10px]">
+                            <div
+                                className="px-[10px] cursor-pointer"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                    setLightboxSrc(
+                                        "/screenshots/screenshot3.png",
+                                    )
+                                }
+                            >
                                 <Image
                                     src="/screenshots/screenshot3.png"
                                     alt="Slide 3"
@@ -108,7 +148,16 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 4
                             </h3>
-                            <div className="px-[10px]">
+                            <div
+                                className="px-[10px] cursor-pointer"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                    setLightboxSrc(
+                                        "/screenshots/screenshot4.png",
+                                    )
+                                }
+                            >
                                 <Image
                                     src="/screenshots/screenshot4.png"
                                     alt="Slide 4"
@@ -127,7 +176,16 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 5
                             </h3>
-                            <div className="px-[10px]">
+                            <div
+                                className="px-[10px] cursor-pointer"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                    setLightboxSrc(
+                                        "/screenshots/screenshot5.png",
+                                    )
+                                }
+                            >
                                 <Image
                                     src="/screenshots/screenshot5.png"
                                     alt="Slide 5"
@@ -145,6 +203,32 @@ export default function FeatureCarousel() {
                 {canScrollPrev && <CarouselPrevious />}
                 {canScrollNext && <CarouselNext />}
             </Carousel>
+            {lightboxSrc && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+                    onClick={() => setLightboxSrc(null)}
+                >
+                    <div
+                        className="relative max-w-[90vw] max-h-[90vh]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Image
+                            src={lightboxSrc}
+                            alt="Preview"
+                            width={1200}
+                            height={800}
+                            className="object-contain max-w-[90vw] max-h-[90vh]"
+                        />
+                        <button
+                            className="absolute -top-2 -right-2 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center"
+                            onClick={() => setLightboxSrc(null)}
+                            aria-label="Close preview"
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
