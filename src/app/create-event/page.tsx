@@ -35,8 +35,9 @@ export default function CreateEventPage() {
         },
     });
 
-
-    const [users, setUsers] = useState<Array<{ id: string; username: string; email: string }>>([]);
+    const [users, setUsers] = useState<
+        Array<{ id: string; username: string; email: string }>
+    >([]);
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<typeof users>([]);
     const [selected, setSelected] = useState<typeof users>([]);
@@ -50,7 +51,7 @@ export default function CreateEventPage() {
 
     useEffect(() => {
         // フェッチ: テスト用のユーザー一覧を取得
-        fetch('/api/users')
+        fetch("/api/users")
             .then((r) => r.json())
             .then((data) => setUsers(data))
             .catch(() => setUsers([]));
@@ -61,14 +62,16 @@ export default function CreateEventPage() {
             setResults([]);
             return;
         }
-        const res = fuse.search(query).map((r: Fuse.FuseResult<typeof users[number]>) => r.item);
+        const res = fuse
+            .search(query)
+            .map((r: Fuse.FuseResult<(typeof users)[number]>) => r.item);
         setResults(res);
     }, [query, fuse]);
 
     // 選択の変化をフォームの値に反映（カンマ区切り）
     useEffect(() => {
-        const csv = selected.map((s) => s.email).join(',');
-        setValue('priorityParticipants', csv);
+        const csv = selected.map((s) => s.email).join(",");
+        setValue("priorityParticipants", csv);
     }, [selected, setValue]);
 
     // フォーム送信時の処理
@@ -166,7 +169,10 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="userSearch" className="event-form-label">
+                        <label
+                            htmlFor="userSearch"
+                            className="event-form-label"
+                        >
                             優先参加者を検索して追加
                         </label>
                         <input
@@ -187,8 +193,12 @@ export default function CreateEventPage() {
                                         className="flex items-center justify-between py-1"
                                     >
                                         <div>
-                                            <div className="text-sm font-medium">{u.username}</div>
-                                            <div className="text-xs text-gray-500">{u.email}</div>
+                                            <div className="text-sm font-medium">
+                                                {u.username}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {u.email}
+                                            </div>
                                         </div>
                                         <div>
                                             <button
@@ -197,7 +207,14 @@ export default function CreateEventPage() {
                                                 onClick={() => {
                                                     // 重複を避けて追加
                                                     setSelected((prev) => {
-                                                        if (prev.find((p) => p.id === u.id)) return prev;
+                                                        if (
+                                                            prev.find(
+                                                                (p) =>
+                                                                    p.id ===
+                                                                    u.id,
+                                                            )
+                                                        )
+                                                            return prev;
                                                         return [...prev, u];
                                                     });
                                                     setQuery("");
@@ -219,10 +236,18 @@ export default function CreateEventPage() {
                                         key={s.id}
                                         className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm"
                                     >
-                                        <span className="mr-2">{s.username}</span>
+                                        <span className="mr-2">
+                                            {s.username}
+                                        </span>
                                         <button
                                             type="button"
-                                            onClick={() => setSelected((prev) => prev.filter((p) => p.id !== s.id))}
+                                            onClick={() =>
+                                                setSelected((prev) =>
+                                                    prev.filter(
+                                                        (p) => p.id !== s.id,
+                                                    ),
+                                                )
+                                            }
                                             className="text-xs text-gray-600 hover:text-gray-800"
                                         >
                                             ×
@@ -233,7 +258,10 @@ export default function CreateEventPage() {
                         )}
 
                         {/* 隠し input: react-hook-form と同期させる */}
-                        <input type="hidden" {...register('priorityParticipants')} />
+                        <input
+                            type="hidden"
+                            {...register("priorityParticipants")}
+                        />
                         <p className="text-sm text-gray-500 mt-1">
                             検索してユーザーを一人ずつ追加してください（任意）。
                         </p>
