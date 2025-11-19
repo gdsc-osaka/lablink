@@ -10,10 +10,12 @@ import { Timestamp } from "firebase/firestore";
 // TODO: 実際のデータ取得に置き換える
 const mockGroups: Group[] = [
     {
+        id: "1",
         name: "原研",
         members: [],
     },
     {
+        id: "2",
         name: "GDGoC osaka",
         members: [
             { id: "1", name: "tanigaki kei" },
