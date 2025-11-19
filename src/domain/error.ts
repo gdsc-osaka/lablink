@@ -19,10 +19,7 @@ export type DBError =
     | UnauthenticatedError
     | UnknownError;
 
-    
-export const ServiceLogicError = errorBuilder(
-    "ServiceLogicError",
-);
+export const ServiceLogicError = errorBuilder("ServiceLogicError");
 type ServiceLogicError = InferError<typeof ServiceLogicError>;
 
 export type ServiceError = DBError | ServiceLogicError;
