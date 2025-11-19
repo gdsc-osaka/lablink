@@ -51,13 +51,15 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-light font-bold mt-4">
                                 Lablinkとは？
                             </h3>
-                            <Image
-                                src="/screenshots/screenshot1.png"
-                                alt="Lablink overview"
-                                width={400}
-                                height={160}
-                                className="mx-auto my-4 max-h-40 object-contain"
-                            />
+                            <div className="px-[10px]">
+                                <Image
+                                    src="/screenshots/screenshot1.png"
+                                    alt="Lablink overview"
+                                    width={400}
+                                    height={160}
+                                    className="mx-auto my-4 max-h-40 object-contain"
+                                />
+                            </div>
                             <p className="text-lg text-white flex-1 flex items-center justify-center px-4">
                                 Lablinkは研究室と学生をつなげるプラットフォーム。
                             </p>
@@ -68,13 +70,15 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 2
                             </h3>
-                            <Image
-                                src="/screenshots/screenshot2.png"
-                                alt="Slide 2"
-                                width={400}
-                                height={160}
-                                className="mx-auto my-4 max-h-40 object-contain"
-                            />
+                            <div className="px-[10px]">
+                                <Image
+                                    src="/screenshots/screenshot2.png"
+                                    alt="Slide 2"
+                                    width={400}
+                                    height={160}
+                                    className="mx-auto my-4 max-h-40 object-contain"
+                                />
+                            </div>
                             <p className="text-lg text-gray-700 flex-1 flex items-center justify-center px-4">
                                 こちらはスライド2の説明文です。
                             </p>
@@ -85,13 +89,15 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 3
                             </h3>
-                            <Image
-                                src="/screenshots/screenshot3.png"
-                                alt="Slide 3"
-                                width={400}
-                                height={160}
-                                className="mx-auto my-4 max-h-40 object-contain"
-                            />
+                            <div className="px-[10px]">
+                                <Image
+                                    src="/screenshots/screenshot3.png"
+                                    alt="Slide 3"
+                                    width={400}
+                                    height={160}
+                                    className="mx-auto my-4 max-h-40 object-contain"
+                                />
+                            </div>
                             <p className="text-lg text-gray-700 flex-1 flex items-center justify-center px-4">
                                 こちらはスライド3の説明文です。
                             </p>
@@ -102,13 +108,15 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 4
                             </h3>
-                            <Image
-                                src="/screenshots/screenshot4.png"
-                                alt="Slide 4"
-                                width={400}
-                                height={160}
-                                className="mx-auto my-4 max-h-40 object-contain"
-                            />
+                            <div className="px-[10px]">
+                                <Image
+                                    src="/screenshots/screenshot4.png"
+                                    alt="Slide 4"
+                                    width={400}
+                                    height={160}
+                                    className="mx-auto my-4 max-h-40 object-contain"
+                                />
+                            </div>
                             <p className="text-lg text-gray-700 flex-1 flex items-center justify-center px-4">
                                 こちらはスライド4の説明文です。
                             </p>
@@ -119,13 +127,15 @@ export default function FeatureCarousel() {
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 5
                             </h3>
-                            <Image
-                                src="/screenshots/screenshot5.png"
-                                alt="Slide 5"
-                                width={400}
-                                height={160}
-                                className="mx-auto my-4 max-h-40 object-contain"
-                            />
+                            <div className="px-[10px]">
+                                <Image
+                                    src="/screenshots/screenshot5.png"
+                                    alt="Slide 5"
+                                    width={400}
+                                    height={160}
+                                    className="mx-auto my-4 max-h-40 object-contain"
+                                />
+                            </div>
                             <p className="text-lg text-gray-700 flex-1 flex items-center justify-center px-4">
                                 こちらはスライド5の説明文です。
                             </p>
