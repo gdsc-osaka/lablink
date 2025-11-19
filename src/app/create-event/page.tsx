@@ -39,7 +39,6 @@ export default function CreateEventPage() {
         Array<{ id: string; username: string; email: string }>
     >([]);
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<typeof users>([]);
     const [selected, setSelected] = useState<typeof users>([]);
 
     const fuse = useMemo(() => {
@@ -49,6 +48,11 @@ export default function CreateEventPage() {
         });
     }, [users]);
 
+    const results = useMemo(() => {
+        if (!query) return [] as typeof users;
+        return fuse.search(query).map((r: any) => r.item);
+    }, [query, fuse]);
+
     useEffect(() => {
         // フェッチ: テスト用のユーザー一覧を取得
         fetch("/api/users")
@@ -56,17 +60,6 @@ export default function CreateEventPage() {
             .then((data) => setUsers(data))
             .catch(() => setUsers([]));
     }, []);
-
-    useEffect(() => {
-        if (!query) {
-            setResults([]);
-            return;
-        }
-        const res = fuse
-            .search(query)
-            .map((r: Fuse.FuseResult<(typeof users)[number]>) => r.item);
-        setResults(res);
-    }, [query, fuse]);
 
     // 選択の変化をフォームの値に反映（カンマ区切り）
     useEffect(() => {
