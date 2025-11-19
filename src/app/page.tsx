@@ -31,7 +31,10 @@ export default function Home() {
                     </div>
 
                     {/* ボタン */}
-                    <Button onClick={handleButtonClick} className="btn-primary mt-4">
+                    <Button
+                        onClick={handleButtonClick}
+                        className="btn-primary mt-4"
+                    >
                         lablinkを始める
                     </Button>
                 </div>
