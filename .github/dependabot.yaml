@@ -5,12 +5,12 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "deps"
-    ignore:
-      - dependency-name: "pnpm"
-        versions: ["<8.0.0"]
+    - package-ecosystem: "npm" # See documentation for possible values
+      directory: "/" # Location of package manifests
+      schedule:
+          interval: "weekly"
+      commit-message:
+          prefix: "deps"
+      ignore:
+          - dependency-name: "pnpm"
+            versions: ["<8.0.0"]
