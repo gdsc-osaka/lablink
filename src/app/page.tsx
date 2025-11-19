@@ -12,27 +12,30 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-            <main className="flex flex-col items-center gap-8 px-8 max-w-6xl w-full">
-                {/* タイトル */}
-                <h1 className="text-6xl font-bold text-center">Lablink</h1>
+        <main className="flex min-h-screen items-center justify-center bg-slate-100">
+            <div className="w-full max-w-4xl rounded-md border-2 bg-white px-8 py-12 shadow-lg">
+                <div className="flex flex-col items-center gap-6">
+                    {/* タイトル */}
+                    <h1 className="text-4xl md:text-5xl font-bold text-center">
+                        Lablink
+                    </h1>
 
-                {/* サブタイトル（日本語テキスト） */}
-                <p className="text-2xl text-center text-gray-700">
-                    スケジュール調整を半自動化
-                </p>
+                    {/* サブタイトル（日本語テキスト） */}
+                    <p className="text-lg md:text-xl text-center text-slate-600">
+                        スケジュール調整を半自動化
+                    </p>
 
-                {/* カルーセル */}
-                <FeatureCarousel />
+                    {/* カルーセル */}
+                    <div className="w-full">
+                        <FeatureCarousel />
+                    </div>
 
-                {/* ボタン */}
-                <Button
-                    onClick={handleButtonClick}
-                    className="bg-blue-500 hover:bg-blue-600 text-white text-2xl font-medium px-32 py-6 rounded-lg transition-colors duration-200"
-                >
-                    lablinkを始める
-                </Button>
-            </main>
-        </div>
+                    {/* ボタン */}
+                    <Button onClick={handleButtonClick} className="btn-primary mt-4">
+                        lablinkを始める
+                    </Button>
+                </div>
+            </div>
+        </main>
     );
 }
