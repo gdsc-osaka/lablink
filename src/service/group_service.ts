@@ -1,3 +1,4 @@
+import { ResultAsync, ok, err, errAsync } from "neverthrow";
 import {
     Group,
     GroupRepository,
@@ -5,249 +6,174 @@ import {
     UserGroup,
     UserGroupRepository,
 } from "@/domain/group";
-import {
-    Result,
-    ServiceError,
-    ServiceLogicError,
-    NotFoundError,
-    DBError,
-} from "@/domain/error";
+import { ServiceError, ServiceLogicError, DBError } from "@/domain/error";
+
+// 依存関係をまとめた型
+interface GroupServiceDeps {
+    groupRepo: GroupRepository;
+    userGroupRepo: UserGroupRepository;
+}
+
+export interface GroupService {
+    createGroupAndAddOwner: (
+        userId: string,
+        dto: CreateGroupDto,
+    ) => ResultAsync<Group, ServiceError>;
+
+    addGroupMember: (
+        userId: string,
+        groupId: string,
+    ) => ResultAsync<void, ServiceError>;
+
+    getGroupById: (groupId: string) => ResultAsync<Group, ServiceError>;
+
+    updateGroupInfo: (
+        groupId: string,
+        data: Partial<Omit<Group, "id" | "createdAt" | "updatedAt">>,
+    ) => ResultAsync<Group, ServiceError>;
+
+    getGroupsByUserId: (userId: string) => ResultAsync<Group[], ServiceError>;
+
+    getMemberIdsByGroupId: (
+        groupId: string,
+    ) => ResultAsync<string[], ServiceError>;
+
+    deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
+}
 
 const generateId = (): string => crypto.randomUUID();
 
-export class GroupService {
-    private groupRepo: GroupRepository;
-    private userGroupRepo: UserGroupRepository;
-
-    constructor(
-        groupRepo: GroupRepository,
-        userGroupRepo: UserGroupRepository,
-    ) {
-        this.groupRepo = groupRepo;
-        this.userGroupRepo = userGroupRepo;
-    }
-
-    async createGroupAndAddOwner(
+export const createGroupService = ({
+    groupRepo,
+    userGroupRepo,
+}: GroupServiceDeps): GroupService => ({
+    createGroupAndAddOwner: (
         userId: string,
         dto: CreateGroupDto,
-    ): Promise<Result<Group>> {
+    ): ResultAsync<Group, ServiceError> => {
         if (!userId) {
-            return {
-                success: false,
-                error: ServiceLogicError("ユーザーIDは必須です。", {
-                    code: "MISSING_USER_ID",
+            return errAsync(
+                ServiceLogicError("ユーザーIDは必須です。", {
+                    extra: { code: "MISSING_USER_ID" },
                 }),
-            };
+            );
         }
         if (!dto.name || dto.name.trim() === "") {
-            return {
-                success: false,
-                error: ServiceLogicError("グループ名は必須です。", {
-                    code: "INVALID_GROUP_NAME",
+            return errAsync(
+                ServiceLogicError("グループ名は必須です。", {
+                    extra: { code: "INVALID_GROUP_NAME" },
                 }),
-            };
+            );
         }
 
-        try {
-            const newGroupId = generateId();
-            const now = new Date();
+        const newGroupId = generateId();
+        const now = new Date();
 
-            const newGroup: Group = {
-                id: newGroupId,
-                name: dto.name,
-                createdAt: now,
-                updatedAt: now,
-            };
+        const newGroup: Group = {
+            id: newGroupId,
+            name: dto.name,
+            createdAt: now,
+            updatedAt: now,
+        };
 
-            const savedGroup = await this.groupRepo.save(newGroup, userId);
-
+        // グループ作成 -> メンバー追加 をチェーン
+        return groupRepo.save(newGroup, userId).andThen((savedGroup) => {
             const membership: UserGroup = {
                 groupId: savedGroup.id,
                 userId: userId,
                 role: "owner",
                 joinedAt: now,
             };
-            await this.userGroupRepo.addMember(membership, savedGroup);
+            return userGroupRepo
+                .addMember(membership, savedGroup)
+                .map(() => savedGroup);
+        });
+    },
 
-            return { success: true, value: savedGroup };
-        } catch (error) {
-            console.error("Error creating group:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-
-    async addGroupMember(
+    addGroupMember: (
         userId: string,
         groupId: string,
-    ): Promise<Result<void>> {
+    ): ResultAsync<void, ServiceError> => {
         if (!userId || !groupId) {
-            return {
-                success: false,
-                error: ServiceLogicError("ユーザーIDとグループIDは必須です。", {
-                    code: "MISSING_IDS",
+            return errAsync(
+                ServiceLogicError("ユーザーIDとグループIDは必須です。", {
+                    extra: { code: "MISSING_IDS" },
                 }),
-            };
+            );
         }
 
-        try {
-            const group = await this.groupRepo.findById(groupId);
-            if (!group) {
-                return {
-                    success: false,
-                    error: NotFoundError(
-                        `グループID ${groupId} が見つかりません。`,
-                        { extra: {} },
-                    ),
-                };
-            }
-
+        // グループ存在確認 -> メンバー追加
+        return groupRepo.findById(groupId).andThen((group) => {
             const membership: UserGroup = {
-                groupId: groupId,
+                groupId: group.id,
                 userId: userId,
                 role: "member",
                 joinedAt: new Date(),
             };
-            await this.userGroupRepo.addMember(membership, group);
+            return userGroupRepo.addMember(membership, group);
+        });
+    },
 
-            return { success: true, value: undefined };
-        } catch (error) {
-            console.error("Error adding member:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-
-    async getGroupById(groupId: string): Promise<Result<Group>> {
+    getGroupById: (groupId: string): ResultAsync<Group, ServiceError> => {
         if (!groupId) {
-            return {
-                success: false,
-                error: ServiceLogicError("グループIDは必須です。", {
-                    code: "MISSING_GROUP_ID",
+            return errAsync(
+                ServiceLogicError("グループIDは必須です。", {
+                    extra: { code: "MISSING_GROUP_ID" },
                 }),
-            };
+            );
         }
+        return groupRepo.findById(groupId);
+    },
 
-        try {
-            const group = await this.groupRepo.findById(groupId);
-            if (!group) {
-                return {
-                    success: false,
-                    error: NotFoundError(
-                        `グループID ${groupId} が見つかりません。`,
-                        { extra: {} },
-                    ),
-                };
-            }
-            return { success: true, value: group };
-        } catch (error) {
-            console.error("Error fetching group by ID:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-
-    async updateGroupInfo(
+    updateGroupInfo: (
         groupId: string,
         data: Partial<Omit<Group, "id" | "createdAt" | "updatedAt">>,
-    ): Promise<Result<Group>> {
+    ): ResultAsync<Group, ServiceError> => {
         if (!groupId) {
-            return {
-                success: false,
-                error: ServiceLogicError("グループIDは必須です。", {
-                    code: "MISSING_GROUP_ID",
+            return errAsync(
+                ServiceLogicError("グループIDは必須です。", {
+                    extra: { code: "MISSING_GROUP_ID" },
                 }),
-            };
+            );
         }
+        return groupRepo.update({ id: groupId, ...data });
+    },
 
-        try {
-            const updatedGroup = await this.groupRepo.update({
-                id: groupId,
-                ...data,
-            });
-            return { success: true, value: updatedGroup };
-        } catch (error) {
-            console.error("Error updating group:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-
-    async getGroupsByUserId(userId: string): Promise<Result<Group[]>> {
+    getGroupsByUserId: (userId: string): ResultAsync<Group[], ServiceError> => {
         if (!userId) {
-            return {
-                success: false,
-                error: ServiceLogicError("ユーザーIDは必須です。", {
-                    code: "MISSING_USER_ID",
+            return errAsync(
+                ServiceLogicError("ユーザーIDは必須です。", {
+                    extra: { code: "MISSING_USER_ID" },
                 }),
-            };
+            );
         }
+        return userGroupRepo.findAllByUserId(userId);
+    },
 
-        try {
-            const groups = await this.userGroupRepo.findAllByUserId(userId);
-            return { success: true, value: groups };
-        } catch (error) {
-            console.error("Error fetching groups by user ID:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-
-    async getMemberIdsByGroupId(groupId: string): Promise<Result<string[]>> {
+    getMemberIdsByGroupId: (
+        groupId: string,
+    ): ResultAsync<string[], ServiceError> => {
         if (!groupId) {
-            return {
-                success: false,
-                error: ServiceLogicError("グループIDは必須です。", {
-                    code: "MISSING_GROUP_ID",
+            return errAsync(
+                ServiceLogicError("グループIDは必須です。", {
+                    extra: { code: "MISSING_GROUP_ID" },
                 }),
-            };
+            );
         }
+        return userGroupRepo.findUserIdsByGroupId(groupId);
+    },
 
-        try {
-            const userIds =
-                await this.userGroupRepo.findUserIdsByGroupId(groupId);
-            return { success: true, value: userIds };
-        } catch (error) {
-            console.error("Error fetching member IDs by group ID:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-
-    async deleteGroup(groupId: string): Promise<Result<void>> {
+    deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
         if (!groupId) {
-            return {
-                success: false,
-                error: ServiceLogicError("グループIDは必須です。", {
-                    code: "MISSING_GROUP_ID",
+            return errAsync(
+                ServiceLogicError("グループIDは必須です。", {
+                    extra: { code: "MISSING_GROUP_ID" },
                 }),
-            };
+            );
         }
-
-        // 削除前の権限チェック？？？
-        // Cloud Functionsで連鎖削除を予定
-
-        try {
-            await this.groupRepo.delete(groupId);
-            return { success: true, value: undefined };
-        } catch (error) {
-            console.error("Error deleting group:", error);
-            return {
-                success: false,
-                error: error as ServiceError,
-            };
-        }
-    }
-}
+        return groupRepo
+            .delete(groupId)
+            .map(() => undefined)
+            .mapErr((error) => error as ServiceError);
+    },
+});
