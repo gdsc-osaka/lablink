@@ -18,3 +18,8 @@ export type DBError =
     | PermissionDeniedError
     | UnauthenticatedError
     | UnknownError;
+
+export const ServiceLogicError = errorBuilder("ServiceLogicError");
+type ServiceLogicError = InferError<typeof ServiceLogicError>;
+
+export type ServiceError = DBError | ServiceLogicError;
