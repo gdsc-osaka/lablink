@@ -9,7 +9,7 @@ import {
     FieldValue,
     Timestamp,
     WithFieldValue,
-    DocumentReference
+    DocumentReference,
 } from "firebase/firestore";
 import { db } from "@/firebase/client";
 import { groupConverter } from "./group-converter";
@@ -37,10 +37,12 @@ export const firestoreGroupRepository: GroupRepository = {
 
         return ResultAsync.fromPromise(
             getDoc(docRef),
-            handleFirestoreError
+            handleFirestoreError,
         ).andThen((docSnap) => {
             if (!docSnap.exists()) {
-                return err(NotFoundError(`Group not found: ${groupId}`,{extra: {}}));
+                return err(
+                    NotFoundError(`Group not found: ${groupId}`, { extra: {} }),
+                );
             }
             return ok(docSnap.data());
         });
@@ -53,22 +55,30 @@ export const firestoreGroupRepository: GroupRepository = {
             updatedAt: serverTimestamp(),
         };
 
-        const groupRef = doc(db, "groups", group.id) as DocumentReference<GroupForDb>;
+        const groupRef = doc(
+            db,
+            "groups",
+            group.id,
+        ) as DocumentReference<GroupForDb>;
 
         return ResultAsync.fromPromise(
             setDoc(groupRef, groupDataToSave),
-            handleFirestoreError
+            handleFirestoreError,
         ).map(() => group);
     },
 
     update: (group: Partial<Group>): ResultAsync<Group, DBError> => {
         if (!group.id) {
             return errAsync(
-                UnknownError("Group ID is required for update operation.",{extra: {}})
+                UnknownError("Group ID is required for update operation.", {
+                    extra: {},
+                }),
             );
         }
 
-        const docRef = doc(db, "groups", group.id).withConverter(groupConverter);
+        const docRef = doc(db, "groups", group.id).withConverter(
+            groupConverter,
+        );
         const updateData: WithFieldValue<GroupUpdateData> = {
             ...group,
             updatedAt: serverTimestamp(),
@@ -76,7 +86,7 @@ export const firestoreGroupRepository: GroupRepository = {
 
         return ResultAsync.fromPromise(
             updateDoc(docRef, updateData),
-            handleFirestoreError
+            handleFirestoreError,
         ).andThen(() => firestoreGroupRepository.findById(group.id!));
     },
 
@@ -84,7 +94,7 @@ export const firestoreGroupRepository: GroupRepository = {
         const docRef = doc(db, "groups", groupId);
         return ResultAsync.fromPromise(
             deleteDoc(docRef),
-            handleFirestoreError
+            handleFirestoreError,
         ).map(() => undefined);
-    }
+    },
 };
