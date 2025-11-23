@@ -21,7 +21,7 @@ interface GroupRepository {
     findById(groupId: string): ResultAsync<Group, DBError>;
     save(group: Group, userId: string): ResultAsync<Group, DBError>;
     update(group: Partial<Group>): ResultAsync<Group, DBError>;
-    delete(groupId: string): ResultAsync<Group, DBError>;
+    delete(groupId: string): ResultAsync<void, DBError>;
 }
 
 interface UserGroupRepository {
