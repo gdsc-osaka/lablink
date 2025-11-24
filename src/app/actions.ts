@@ -3,7 +3,11 @@
 import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
+import { encryptToken, decryptToken } from "@/lib/encryption";
 // import { callGeminiAPI } from '@/lib/gemini'; // 将来的にGemini APIを呼び出す関数
+
+// Note: Server ActionsではFirestore Client SDKではなく、
+// クライアント側でFirestoreにアクセスする必要があります
 
 // APIからの戻り値の型
 interface TimeSlot {
@@ -85,5 +89,47 @@ export async function getCommonAvailability(
         throw new Error(
             "An error occurred while processing calendar availability.",
         );
+    }
+}
+
+/**
+ * トークンを暗号化（クライアント側で使用）
+ *
+ * @param plainToken 平文トークン
+ * @returns 暗号化されたトークン
+ */
+export async function encryptTokenForStorage(
+    plainToken: string,
+): Promise<string> {
+    if (!plainToken) {
+        throw new Error("plainToken is required");
+    }
+
+    try {
+        return encryptToken(plainToken);
+    } catch (error) {
+        console.error("Error encrypting token:", error);
+        throw new Error("Failed to encrypt token");
+    }
+}
+
+/**
+ * トークンを復号化（クライアント側で使用）
+ *
+ * @param encryptedToken 暗号化されたトークン
+ * @returns 復号化されたトークン
+ */
+export async function decryptTokenFromStorage(
+    encryptedToken: string,
+): Promise<string> {
+    if (!encryptedToken) {
+        throw new Error("encryptedToken is required");
+    }
+
+    try {
+        return decryptToken(encryptedToken);
+    } catch (error) {
+        console.error("Error decrypting token:", error);
+        throw new Error("Failed to decrypt token");
     }
 }
