@@ -7,6 +7,9 @@ export interface User {
     email: string;
     created_at: Timestamp;
     updated_at: Timestamp;
+    // Google OAuth トークン管理
+    google_refresh_token_encrypted?: string;
+    google_token_expires_at?: Timestamp;
 }
 
 export interface UserRepository {
