@@ -199,7 +199,7 @@ Return ONLY the JSON format above. No other explanations are needed.`;
 /**
  * Gemini のレスポンステキストから JSON をパース
  */
-function parseGeminiResponse(text: string): ScheduleSuggestion[] {
+export function parseGeminiResponse(text: string): ScheduleSuggestion[] {
     try {
         // マークダウンのコードブロックを除去
         const jsonText = text
