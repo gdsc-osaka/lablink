@@ -3,7 +3,11 @@
  */
 
 import { describe, it, expect, beforeAll } from "vitest";
-import { encryptToken, decryptToken, validateEncryptionKey } from "../encryption";
+import {
+    encryptToken,
+    decryptToken,
+    validateEncryptionKey,
+} from "../encryption";
 
 describe("Encryption Library", () => {
     beforeAll(() => {

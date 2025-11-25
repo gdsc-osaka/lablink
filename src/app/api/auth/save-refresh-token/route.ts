@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return NextResponse.json(
                 { error: "Unauthorized" },
-                { status: 401 }
+                { status: 401 },
             );
         }
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         if (!refresh_token) {
             return NextResponse.json(
                 { error: "Refresh token is required" },
-                { status: 400 }
+                { status: 400 },
             );
         }
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         console.error("Token save error:", error);
         return NextResponse.json(
             { error: "Internal server error" },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }

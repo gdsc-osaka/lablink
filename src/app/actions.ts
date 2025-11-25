@@ -8,13 +8,13 @@ import { adminDb } from "@/firebase/server";
 import {
     SuggestScheduleRequest,
     SuggestScheduleResponse,
-    MemberInfo
+    MemberInfo,
 } from "@/domain/ai-suggest";
 import {
     splitInto30MinSlots,
     calculateSlotAvailability,
     generateCandidates,
-    filterByTimeOfDay
+    filterByTimeOfDay,
 } from "@/lib/scoring";
 import { suggestScheduleWithGemini } from "@/lib/gemini";
 
@@ -160,20 +160,34 @@ export async function getAccessTokenFromRefreshToken(
         throw new Error("Refresh token is required");
     }
 
+    // 環境変数のバリデーション
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        console.error("Google OAuth credentials are not configured");
+        throw new Error(
+            "Server configuration error: Google OAuth credentials are missing",
+        );
+    }
+
     try {
         // リフレッシュトークンからアクセストークンを生成
-        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
+        const tokenResponse = await fetch(
+            "https://oauth2.googleapis.com/token",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    client_id: clientId,
+                    client_secret: clientSecret,
+                    refresh_token: refreshToken,
+                    grant_type: "refresh_token",
+                }),
             },
-            body: new URLSearchParams({
-                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
-                client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-                refresh_token: refreshToken,
-                grant_type: "refresh_token",
-            }),
-        });
+        );
 
         if (!tokenResponse.ok) {
             const errorText = await tokenResponse.text();
@@ -197,7 +211,7 @@ export async function getAccessTokenFromRefreshToken(
  * @returns SuggestScheduleResponse
  */
 export async function suggestSchedule(
-    request: SuggestScheduleRequest
+    request: SuggestScheduleRequest,
 ): Promise<SuggestScheduleResponse> {
     try {
         // 1. グループメンバーの取得
@@ -207,26 +221,32 @@ export async function suggestSchedule(
             return {
                 success: false,
                 message: "グループにメンバーが存在しません",
-                suggestions: []
+                suggestions: [],
             };
         }
 
         // 2. メンバー情報の構築
         const members: MemberInfo[] = await Promise.all(
             memberIds.map(async (userId) => {
-                const userDoc = await adminDb.collection("users").doc(userId).get();
+                const userDoc = await adminDb
+                    .collection("users")
+                    .doc(userId)
+                    .get();
                 const userData = userDoc.data();
 
                 return {
                     userId,
                     email: userData?.email || "",
-                    isRequired: request.requiredMemberIds.includes(userId)
+                    isRequired: request.requiredMemberIds.includes(userId),
                 };
-            })
+            }),
         );
 
         // 3. 各メンバーのリフレッシュトークンを取得して復号化
-        const memberAvailability = new Map<string, { start: string; end: string }[]>();
+        const memberAvailability = new Map<
+            string,
+            { start: string; end: string }[]
+        >();
 
         for (const member of members) {
             try {
@@ -238,7 +258,8 @@ export async function suggestSchedule(
                     .doc("tokens")
                     .get();
 
-                const encryptedToken = tokenDoc.data()?.google_refresh_token_encrypted;
+                const encryptedToken =
+                    tokenDoc.data()?.google_refresh_token_encrypted;
 
                 if (!encryptedToken) {
                     console.warn(`No refresh token for user ${member.userId}`);
@@ -249,19 +270,23 @@ export async function suggestSchedule(
                 const refreshToken = decryptToken(encryptedToken);
 
                 // アクセストークン生成
-                const accessToken = await getAccessTokenFromRefreshToken(refreshToken);
+                const accessToken =
+                    await getAccessTokenFromRefreshToken(refreshToken);
 
                 // Calendar API で空き時間取得
                 const freeSlots = await fetchUserFreeSlots(
                     accessToken,
                     member.email,
                     request.dateRange.start,
-                    request.dateRange.end
+                    request.dateRange.end,
                 );
 
                 memberAvailability.set(member.userId, freeSlots);
             } catch (error) {
-                console.error(`Failed to fetch availability for user ${member.userId}:`, error);
+                console.error(
+                    `Failed to fetch availability for user ${member.userId}:`,
+                    error,
+                );
                 // このメンバーはスキップ
             }
         }
@@ -276,54 +301,79 @@ export async function suggestSchedule(
         const slots = splitInto30MinSlots(allFreeSlots);
 
         // 6. 各スロットで参加可能なメンバーを集計
-        const timeSlots = calculateSlotAvailability(slots, memberAvailability, members);
+        const timeSlots = calculateSlotAvailability(
+            slots,
+            memberAvailability,
+            members,
+        );
 
         // 7. 連続スロットを結合して候補を生成
-        let candidates = generateCandidates(timeSlots, request.durationMinutes, members);
+        let candidates = generateCandidates(
+            timeSlots,
+            request.durationMinutes,
+            members,
+        );
 
-        console.log(`Generated ${candidates.length} candidates before filtering`);
-        console.log("Sample candidates (first 3):", candidates.slice(0, 3).map(c => ({
-            start: c.start,
-            end: c.end,
-            jstStart: new Date(c.start).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
-        })));
+        console.log(
+            `Generated ${candidates.length} candidates before filtering`,
+        );
+        console.log(
+            "Sample candidates (first 3):",
+            candidates.slice(0, 3).map((c) => ({
+                start: c.start,
+                end: c.end,
+                jstStart: new Date(c.start).toLocaleString("ja-JP", {
+                    timeZone: "Asia/Tokyo",
+                }),
+            })),
+        );
 
         // 8. 時間帯フィルタリング
         candidates = filterByTimeOfDay(candidates, request.timeSlot);
 
-        console.log(`Filtered to ${candidates.length} candidates for timeSlot: ${request.timeSlot}`);
-        console.log("Sample filtered candidates (first 3):", candidates.slice(0, 3).map(c => ({
-            start: c.start,
-            end: c.end,
-            jstStart: new Date(c.start).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
-        })));
+        console.log(
+            `Filtered to ${candidates.length} candidates for timeSlot: ${request.timeSlot}`,
+        );
+        console.log(
+            "Sample filtered candidates (first 3):",
+            candidates.slice(0, 3).map((c) => ({
+                start: c.start,
+                end: c.end,
+                jstStart: new Date(c.start).toLocaleString("ja-JP", {
+                    timeZone: "Asia/Tokyo",
+                }),
+            })),
+        );
 
         if (candidates.length === 0) {
             return {
                 success: false,
                 message: "条件に合う日程が見つかりませんでした",
-                suggestions: []
+                suggestions: [],
             };
         }
 
         // 9. Gemini API で最適な候補を選択
-        const requiredMemberCount = members.filter(m => m.isRequired).length;
+        const requiredMemberCount = members.filter((m) => m.isRequired).length;
         const suggestions = await suggestScheduleWithGemini(
             candidates,
             request.description,
-            requiredMemberCount
+            requiredMemberCount,
         );
 
         return {
             success: true,
-            suggestions
+            suggestions,
         };
     } catch (error) {
         console.error("Error in suggestSchedule:", error);
         return {
             success: false,
-            message: error instanceof Error ? error.message : "不明なエラーが発生しました",
-            suggestions: []
+            message:
+                error instanceof Error
+                    ? error.message
+                    : "不明なエラーが発生しました",
+            suggestions: [],
         };
     }
 }
@@ -338,7 +388,7 @@ async function fetchGroupMemberIds(groupId: string): Promise<string[]> {
         .collection("users")
         .get();
 
-    return snapshot.docs.map(doc => doc.id);
+    return snapshot.docs.map((doc) => doc.id);
 }
 
 /**
@@ -348,7 +398,7 @@ async function fetchUserFreeSlots(
     accessToken: string,
     email: string,
     timeMin: string,
-    timeMax: string
+    timeMax: string,
 ): Promise<{ start: string; end: string }[]> {
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({ access_token: accessToken });
@@ -368,12 +418,12 @@ async function fetchUserFreeSlots(
 
     // busy → free に変換
     return findCommonFreeSlots(
-        busySlots.map(slot => ({
+        busySlots.map((slot) => ({
             start: slot.start || "",
-            end: slot.end || ""
+            end: slot.end || "",
         })),
         timeMin,
-        timeMax
+        timeMax,
     );
 }
 
@@ -383,7 +433,7 @@ async function fetchUserFreeSlots(
 export async function createTestGroupWithMembers(
     groupName: string,
     ownerUserId: string,
-    memberUserIds: string[]
+    memberUserIds: string[],
 ): Promise<{ success: boolean; groupId?: string; message?: string }> {
     try {
         // グループIDを生成
@@ -391,15 +441,12 @@ export async function createTestGroupWithMembers(
         const now = new Date();
 
         // Admin SDK でグループを作成
-        await adminDb
-            .collection("groups")
-            .doc(groupId)
-            .set({
-                id: groupId,
-                name: groupName,
-                createdAt: now,
-                updatedAt: now,
-            });
+        await adminDb.collection("groups").doc(groupId).set({
+            id: groupId,
+            name: groupName,
+            createdAt: now,
+            updatedAt: now,
+        });
 
         // オーナーをグループに追加: groups/{groupId}/users/{userId}
         await adminDb
@@ -463,7 +510,10 @@ export async function createTestGroupWithMembers(
         console.error("Error creating test group:", error);
         return {
             success: false,
-            message: error instanceof Error ? error.message : "グループ作成に失敗しました",
+            message:
+                error instanceof Error
+                    ? error.message
+                    : "グループ作成に失敗しました",
         };
     }
 }

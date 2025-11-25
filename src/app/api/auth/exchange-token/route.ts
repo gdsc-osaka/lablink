@@ -11,7 +11,21 @@ export async function POST(request: NextRequest) {
         if (!code) {
             return NextResponse.json(
                 { error: "Authorization code is required" },
-                { status: 400 }
+                { status: 400 },
+            );
+        }
+
+        // 環境変数のバリデーション
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+        if (!clientId || !clientSecret) {
+            console.error("Google OAuth credentials are not configured");
+            return NextResponse.json(
+                {
+                    error: "Server configuration error: Google OAuth credentials are missing",
+                },
+                { status: 500 },
             );
         }
 
@@ -25,8 +39,8 @@ export async function POST(request: NextRequest) {
                 },
                 body: new URLSearchParams({
                     code,
-                    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
-                    client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
+                    client_id: clientId,
+                    client_secret: clientSecret,
                     redirect_uri: `${request.nextUrl.origin}/auth/callback`,
                     grant_type: "authorization_code",
                 }),
@@ -37,8 +51,11 @@ export async function POST(request: NextRequest) {
             const errorText = await tokenResponse.text();
             console.error("Token exchange failed:", errorText);
             return NextResponse.json(
-                { error: "Failed to exchange authorization code", details: errorText },
-                { status: 500 }
+                {
+                    error: "Failed to exchange authorization code",
+                    details: errorText,
+                },
+                { status: 500 },
             );
         }
 
@@ -55,7 +72,7 @@ export async function POST(request: NextRequest) {
         console.error("Token exchange error:", error);
         return NextResponse.json(
             { error: "Internal server error" },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }
