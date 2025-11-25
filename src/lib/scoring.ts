@@ -4,6 +4,7 @@
 
 import { TimeSlot, ScoredCandidate, MemberInfo } from "@/domain/ai-suggest";
 import { EventTimeOfDay } from "@/domain/event";
+import { toZonedTime } from "@date-fns/tz";
 
 /**
  * 空き時間を30分スロットに分割（きりの良い時間に調整）
@@ -189,9 +190,9 @@ export function filterByTimeOfDay(
 ): ScoredCandidate[] {
     return candidates.filter((candidate) => {
         const startDate = new Date(candidate.start);
-        // JST で時刻を取得（UTC+9）
-        const jstHour = startDate.getUTCHours() + 9;
-        const hour = jstHour >= 24 ? jstHour - 24 : jstHour;
+        // JST で時刻を取得（タイムゾーンライブラリを使用）
+        const jstDate = toZonedTime(startDate, "Asia/Tokyo");
+        const hour = jstDate.getHours();
 
         switch (timeSlot) {
             case "morning":
