@@ -1,9 +1,7 @@
 {
-  "permissions": {
-    "allow": [
-      "mcp__ide__getDiagnostics"
-    ],
-    "deny": [],
-    "ask": []
-  }
+    "permissions": {
+        "allow": ["mcp__ide__getDiagnostics"],
+        "deny": [],
+        "ask": []
+    }
 }
