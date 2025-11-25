@@ -133,3 +133,47 @@ export async function decryptTokenFromStorage(
         throw new Error("Failed to decrypt token");
     }
 }
+
+/**
+ * リフレッシュトークンから新しいアクセストークンを生成
+ * Server Action内でのみ使用（クライアントには公開しない）
+ *
+ * @param refreshToken リフレッシュトークン
+ * @returns アクセストークン
+ */
+export async function getAccessTokenFromRefreshToken(
+    refreshToken: string,
+): Promise<string> {
+    if (!refreshToken) {
+        throw new Error("Refresh token is required");
+    }
+
+    try {
+        // リフレッシュトークンからアクセストークンを生成
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+                client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
+                refresh_token: refreshToken,
+                grant_type: "refresh_token",
+            }),
+        });
+
+        if (!tokenResponse.ok) {
+            const errorText = await tokenResponse.text();
+            console.error("Token refresh failed:", errorText);
+            throw new Error(`Failed to refresh access token: ${errorText}`);
+        }
+
+        const tokens = await tokenResponse.json();
+
+        return tokens.access_token;
+    } catch (error) {
+        console.error("Error refreshing access token:", error);
+        throw new Error("Failed to refresh access token");
+    }
+}

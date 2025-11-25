@@ -16,14 +16,13 @@ export default function SignInPage() {
 
         // Google OAuth 2.0 認証URLを構築
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-        const redirectUri = `${window.location.origin}/api/auth/callback`;
+        const redirectUri = `${window.location.origin}/auth/callback`;
 
         const scope = [
             "openid",
             "email",
             "profile",
             "https://www.googleapis.com/auth/calendar.readonly",
-            "https://www.googleapis.com/auth/calendar.events.readonly",
         ].join(" ");
 
         const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
