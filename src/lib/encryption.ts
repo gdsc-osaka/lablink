@@ -17,7 +17,7 @@ function getEncryptionKey(): Buffer {
     if (!key) {
         throw new Error(
             "TOKEN_ENCRYPTION_KEY is not set in environment variables. " +
-                'Please generate a key using: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+                "Please generate a key using: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
         );
     }
 

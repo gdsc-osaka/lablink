@@ -11,7 +11,9 @@ import { EventTimeOfDay } from "@/domain/event";
  * @param freeSlots 空き時間の配列 { start, end }
  * @returns 30分単位のスロット配列
  */
-export function splitInto30MinSlots(freeSlots: { start: string; end: string }[]): string[] {
+export function splitInto30MinSlots(
+    freeSlots: { start: string; end: string }[],
+): string[] {
     const slots: string[] = [];
     const SLOT_DURATION_MS = 30 * 60 * 1000; // 30分
 
@@ -57,11 +59,11 @@ export function splitInto30MinSlots(freeSlots: { start: string; end: string }[])
 export function calculateSlotAvailability(
     slots: string[],
     memberAvailability: Map<string, { start: string; end: string }[]>,
-    members: MemberInfo[]
+    members: MemberInfo[],
 ): TimeSlot[] {
     const SLOT_DURATION_MS = 30 * 60 * 1000;
 
-    return slots.map(slotStart => {
+    return slots.map((slotStart) => {
         const slotStartTime = new Date(slotStart).getTime();
         const slotEndTime = slotStartTime + SLOT_DURATION_MS;
         const slotEnd = new Date(slotEndTime).toISOString();
@@ -74,7 +76,7 @@ export function calculateSlotAvailability(
             const userFreeSlots = memberAvailability.get(member.userId) || [];
 
             // このメンバーがこのスロットで空いているかチェック
-            const isAvailable = userFreeSlots.some(freeSlot => {
+            const isAvailable = userFreeSlots.some((freeSlot) => {
                 const freeStart = new Date(freeSlot.start).getTime();
                 const freeEnd = new Date(freeSlot.end).getTime();
 
@@ -93,7 +95,7 @@ export function calculateSlotAvailability(
             start: slotStart,
             end: slotEnd,
             availableMembers,
-            score
+            score,
         };
     });
 }
@@ -109,11 +111,11 @@ export function calculateSlotAvailability(
 export function generateCandidates(
     slots: TimeSlot[],
     durationMinutes: number,
-    members: MemberInfo[]
+    members: MemberInfo[],
 ): ScoredCandidate[] {
     const requiredMemberIds = members
-        .filter(m => m.isRequired)
-        .map(m => m.userId);
+        .filter((m) => m.isRequired)
+        .map((m) => m.userId);
 
     const requiredSlotCount = Math.ceil(durationMinutes / 30);
     const candidates: ScoredCandidate[] = [];
@@ -134,8 +136,8 @@ export function generateCandidates(
         if (!isConsecutive) continue;
 
         // 全スロットで共通して参加可能なメンバーを抽出
-        const commonMembers = window[0].availableMembers.filter(memberId =>
-            window.every(slot => slot.availableMembers.includes(memberId))
+        const commonMembers = window[0].availableMembers.filter((memberId) =>
+            window.every((slot) => slot.availableMembers.includes(memberId)),
         );
 
         // スコア計算
@@ -159,7 +161,7 @@ export function generateCandidates(
             end: window[window.length - 1].end,
             totalScore,
             requiredMemberCount: requiredCount,
-            optionalMemberCount: optionalCount
+            optionalMemberCount: optionalCount,
         });
     }
 
@@ -183,9 +185,9 @@ export function generateCandidates(
  */
 export function filterByTimeOfDay(
     candidates: ScoredCandidate[],
-    timeSlot: EventTimeOfDay
+    timeSlot: EventTimeOfDay,
 ): ScoredCandidate[] {
-    return candidates.filter(candidate => {
+    return candidates.filter((candidate) => {
         const startDate = new Date(candidate.start);
         // JST で時刻を取得（UTC+9）
         const jstHour = startDate.getUTCHours() + 9;

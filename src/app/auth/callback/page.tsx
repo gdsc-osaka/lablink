@@ -52,8 +52,14 @@ export default function AuthCallbackPage() {
                 setStatus("Firebase にログイン中...");
 
                 // 2. Firebase Auth にログイン（ID Token を使用）
-                const credential = GoogleAuthProvider.credential(id_token, access_token);
-                const userCredential = await signInWithCredential(auth, credential);
+                const credential = GoogleAuthProvider.credential(
+                    id_token,
+                    access_token,
+                );
+                const userCredential = await signInWithCredential(
+                    auth,
+                    credential,
+                );
                 const user = userCredential.user;
 
                 // 3. ユーザー基本情報を保存（トークン以外）
@@ -76,24 +82,31 @@ export default function AuthCallbackPage() {
                     const idToken = await user.getIdToken();
 
                     // サーバー側で暗号化 & 保存
-                    const saveResponse = await fetch("/api/auth/save-refresh-token", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${idToken}`,
+                    const saveResponse = await fetch(
+                        "/api/auth/save-refresh-token",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${idToken}`,
+                            },
+                            body: JSON.stringify({ refresh_token }),
                         },
-                        body: JSON.stringify({ refresh_token }),
-                    });
+                    );
 
                     if (!saveResponse.ok) {
                         console.error("Failed to save refresh token");
                         const errorData = await saveResponse.json();
                         console.error("Error details:", errorData);
                     } else {
-                        console.log(`Refresh token saved for user: ${user.uid} (${user.email})`);
+                        console.log(
+                            `Refresh token saved for user: ${user.uid} (${user.email})`,
+                        );
                     }
                 } else {
-                    console.warn("No refresh token received. User may have already authorized.");
+                    console.warn(
+                        "No refresh token received. User may have already authorized.",
+                    );
                 }
 
                 setStatus("ログイン成功！リダイレクト中...");
@@ -104,7 +117,9 @@ export default function AuthCallbackPage() {
                 }, 1000);
             } catch (err) {
                 console.error("OAuth callback error:", err);
-                setStatus(`エラー: ${err instanceof Error ? err.message : "不明なエラー"}`);
+                setStatus(
+                    `エラー: ${err instanceof Error ? err.message : "不明なエラー"}`,
+                );
                 setTimeout(() => {
                     router.push("/signin?error=authentication_failed");
                 }, 2000);
@@ -118,9 +133,25 @@ export default function AuthCallbackPage() {
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
             <div className="bg-white p-10 rounded-xl shadow-lg text-center max-w-md">
                 <div className="mb-4">
-                    <svg className="animate-spin h-10 w-10 mx-auto text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                        className="animate-spin h-10 w-10 mx-auto text-blue-600"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        ></circle>
+                        <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                     </svg>
                 </div>
                 <p className="text-lg text-gray-700">{status}</p>

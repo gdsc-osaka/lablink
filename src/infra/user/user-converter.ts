@@ -17,10 +17,13 @@ const userConverter: FirestoreDataConverter<User> = {
 
         // Google OAuth トークン管理フィールド
         if (user.google_refresh_token_encrypted !== undefined) {
-            result.google_refresh_token_encrypted = user.google_refresh_token_encrypted;
+            result.google_refresh_token_encrypted =
+                user.google_refresh_token_encrypted;
         }
         if (user.google_token_expires_at !== undefined) {
-            result.google_token_expires_at = toFirestoreTimestamp(user.google_token_expires_at);
+            result.google_token_expires_at = toFirestoreTimestamp(
+                user.google_token_expires_at,
+            );
         }
 
         return result;

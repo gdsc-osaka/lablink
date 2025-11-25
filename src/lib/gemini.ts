@@ -15,7 +15,7 @@ import { ScoredCandidate, ScheduleSuggestion } from "@/domain/ai-suggest";
 export async function suggestScheduleWithGemini(
     candidates: ScoredCandidate[],
     description: string,
-    requiredMemberCount: number
+    requiredMemberCount: number,
 ): Promise<ScheduleSuggestion[]> {
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -58,12 +58,14 @@ export async function suggestScheduleWithGemini(
                             maxOutputTokens: 1024,
                         },
                     }),
-                }
+                },
             );
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Gemini API error: ${response.status} ${errorText}`);
+                throw new Error(
+                    `Gemini API error: ${response.status} ${errorText}`,
+                );
             }
 
             const data = await response.json();
@@ -92,7 +94,9 @@ export async function suggestScheduleWithGemini(
                 return suggestions;
             }
 
-            throw new Error("Failed to parse valid suggestions from Gemini response");
+            throw new Error(
+                "Failed to parse valid suggestions from Gemini response",
+            );
         } catch (error) {
             lastError = error as Error;
             console.error(`Gemini API attempt ${attempt} failed:`, error);
@@ -115,7 +119,7 @@ export async function suggestScheduleWithGemini(
 function generatePrompt(
     candidates: ScoredCandidate[],
     description: string,
-    requiredMemberCount: number
+    requiredMemberCount: number,
 ): string {
     const candidatesText = candidates
         .slice(0, 30) // スコア上位30件
@@ -129,8 +133,11 @@ function generatePrompt(
             const endJST = new Date(end.getTime() + JST_OFFSET_MS);
 
             // JSTの日時情報を取得（UTCメソッドを使うが、既にJST時刻に変換済み）
-            const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][startJST.getUTCDay()];
-            const isWeekday = startJST.getUTCDay() >= 1 && startJST.getUTCDay() <= 5;
+            const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][
+                startJST.getUTCDay()
+            ];
+            const isWeekday =
+                startJST.getUTCDay() >= 1 && startJST.getUTCDay() <= 5;
             const dayType = isWeekday ? "平日" : "休日";
 
             // 日本時間の文字列を構築（時刻は0埋めなし）
@@ -210,7 +217,9 @@ export function parseGeminiResponse(text: string): ScheduleSuggestion[] {
         const parsed = JSON.parse(jsonText);
 
         if (!parsed.suggestions || !Array.isArray(parsed.suggestions)) {
-            throw new Error("Invalid response format: missing suggestions array");
+            throw new Error(
+                "Invalid response format: missing suggestions array",
+            );
         }
 
         // 各候補のバリデーション
@@ -238,8 +247,10 @@ export function parseGeminiResponse(text: string): ScheduleSuggestion[] {
 /**
  * フォールバック: スコア上位候補をそのまま提案として返す
  */
-function fallbackSuggestions(candidates: ScoredCandidate[]): ScheduleSuggestion[] {
-    return candidates.map(c => ({
+function fallbackSuggestions(
+    candidates: ScoredCandidate[],
+): ScheduleSuggestion[] {
+    return candidates.map((c) => ({
         start: c.start,
         end: c.end,
         reason: `参加可能: 必須${c.requiredMemberCount}人、オプション${c.optionalMemberCount}人（Gemini API 失敗のためフォールバック）`,
@@ -250,5 +261,5 @@ function fallbackSuggestions(candidates: ScoredCandidate[]): ScheduleSuggestion[
  * sleep ユーティリティ
  */
 function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }

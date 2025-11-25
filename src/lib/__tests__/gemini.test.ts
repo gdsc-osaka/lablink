@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { parseGeminiResponse } from '../gemini';
+import { describe, it, expect } from "vitest";
+import { parseGeminiResponse } from "../gemini";
 
-describe('parseGeminiResponse', () => {
-    it('should parse valid JSON response without code blocks', () => {
+describe("parseGeminiResponse", () => {
+    it("should parse valid JSON response without code blocks", () => {
         const text = `{
   "suggestions": [
     {
@@ -16,12 +16,14 @@ describe('parseGeminiResponse', () => {
         const result = parseGeminiResponse(text);
 
         expect(result).toHaveLength(1);
-        expect(result[0].start).toBe('2025-01-01T10:00:00.000Z');
-        expect(result[0].end).toBe('2025-01-01T12:00:00.000Z');
-        expect(result[0].reason).toBe('Tuesday at 19:00 is suitable for the event. All members are available.');
+        expect(result[0].start).toBe("2025-01-01T10:00:00.000Z");
+        expect(result[0].end).toBe("2025-01-01T12:00:00.000Z");
+        expect(result[0].reason).toBe(
+            "Tuesday at 19:00 is suitable for the event. All members are available.",
+        );
     });
 
-    it('should parse JSON response with markdown code blocks', () => {
+    it("should parse JSON response with markdown code blocks", () => {
         const text = `\`\`\`json
 {
   "suggestions": [
@@ -37,12 +39,14 @@ describe('parseGeminiResponse', () => {
         const result = parseGeminiResponse(text);
 
         expect(result).toHaveLength(1);
-        expect(result[0].start).toBe('2025-01-01T10:00:00.000Z');
-        expect(result[0].end).toBe('2025-01-01T12:00:00.000Z');
-        expect(result[0].reason).toBe('Thursday at 14:00 is optimal for regular meetings.');
+        expect(result[0].start).toBe("2025-01-01T10:00:00.000Z");
+        expect(result[0].end).toBe("2025-01-01T12:00:00.000Z");
+        expect(result[0].reason).toBe(
+            "Thursday at 14:00 is optimal for regular meetings.",
+        );
     });
 
-    it('should parse multiple suggestions (max 3)', () => {
+    it("should parse multiple suggestions (max 3)", () => {
         const text = `{
   "suggestions": [
     {
@@ -66,12 +70,12 @@ describe('parseGeminiResponse', () => {
         const result = parseGeminiResponse(text);
 
         expect(result).toHaveLength(3);
-        expect(result[0].reason).toBe('Suggestion 1');
-        expect(result[1].reason).toBe('Suggestion 2');
-        expect(result[2].reason).toBe('Suggestion 3');
+        expect(result[0].reason).toBe("Suggestion 1");
+        expect(result[1].reason).toBe("Suggestion 2");
+        expect(result[2].reason).toBe("Suggestion 3");
     });
 
-    it('should limit to maximum 3 suggestions', () => {
+    it("should limit to maximum 3 suggestions", () => {
         const text = `{
   "suggestions": [
     {
@@ -102,23 +106,27 @@ describe('parseGeminiResponse', () => {
         expect(result).toHaveLength(3);
     });
 
-    it('should throw error for missing suggestions array', () => {
+    it("should throw error for missing suggestions array", () => {
         const text = `{
   "data": []
 }`;
 
-        expect(() => parseGeminiResponse(text)).toThrow('Failed to parse Gemini response');
+        expect(() => parseGeminiResponse(text)).toThrow(
+            "Failed to parse Gemini response",
+        );
     });
 
-    it('should throw error for non-array suggestions', () => {
+    it("should throw error for non-array suggestions", () => {
         const text = `{
   "suggestions": "not an array"
 }`;
 
-        expect(() => parseGeminiResponse(text)).toThrow('Failed to parse Gemini response');
+        expect(() => parseGeminiResponse(text)).toThrow(
+            "Failed to parse Gemini response",
+        );
     });
 
-    it('should throw error for invalid suggestion format (missing start)', () => {
+    it("should throw error for invalid suggestion format (missing start)", () => {
         const text = `{
   "suggestions": [
     {
@@ -128,10 +136,12 @@ describe('parseGeminiResponse', () => {
   ]
 }`;
 
-        expect(() => parseGeminiResponse(text)).toThrow('Failed to parse Gemini response');
+        expect(() => parseGeminiResponse(text)).toThrow(
+            "Failed to parse Gemini response",
+        );
     });
 
-    it('should throw error for invalid suggestion format (missing end)', () => {
+    it("should throw error for invalid suggestion format (missing end)", () => {
         const text = `{
   "suggestions": [
     {
@@ -141,10 +151,12 @@ describe('parseGeminiResponse', () => {
   ]
 }`;
 
-        expect(() => parseGeminiResponse(text)).toThrow('Failed to parse Gemini response');
+        expect(() => parseGeminiResponse(text)).toThrow(
+            "Failed to parse Gemini response",
+        );
     });
 
-    it('should throw error for invalid suggestion format (missing reason)', () => {
+    it("should throw error for invalid suggestion format (missing reason)", () => {
         const text = `{
   "suggestions": [
     {
@@ -154,10 +166,12 @@ describe('parseGeminiResponse', () => {
   ]
 }`;
 
-        expect(() => parseGeminiResponse(text)).toThrow('Failed to parse Gemini response');
+        expect(() => parseGeminiResponse(text)).toThrow(
+            "Failed to parse Gemini response",
+        );
     });
 
-    it('should throw error for invalid JSON', () => {
+    it("should throw error for invalid JSON", () => {
         const text = `{
   "suggestions": [
     {
@@ -169,10 +183,12 @@ describe('parseGeminiResponse', () => {
   // Invalid JSON - missing closing brace
 `;
 
-        expect(() => parseGeminiResponse(text)).toThrow('Failed to parse Gemini response');
+        expect(() => parseGeminiResponse(text)).toThrow(
+            "Failed to parse Gemini response",
+        );
     });
 
-    it('should handle extra whitespace and newlines', () => {
+    it("should handle extra whitespace and newlines", () => {
         const text = `
 
 
@@ -196,6 +212,6 @@ describe('parseGeminiResponse', () => {
         const result = parseGeminiResponse(text);
 
         expect(result).toHaveLength(1);
-        expect(result[0].start).toBe('2025-01-01T10:00:00.000Z');
+        expect(result[0].start).toBe("2025-01-01T10:00:00.000Z");
     });
 });

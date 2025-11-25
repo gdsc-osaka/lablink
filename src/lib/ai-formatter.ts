@@ -15,7 +15,9 @@ export function formatFreeSlotsForAI(freeSlots: TimeInterval[]): string {
         const startDate = formatToJST(new Date(slot.start), "M月d日(E) HH:mm", {
             locale: ja,
         });
-        const endDate = formatToJST(new Date(slot.end), "HH:mm", { locale: ja });
+        const endDate = formatToJST(new Date(slot.end), "HH:mm", {
+            locale: ja,
+        });
         return `- ${startDate} から ${endDate} まで`;
     });
 
