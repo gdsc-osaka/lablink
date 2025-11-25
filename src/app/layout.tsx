@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { googleSans, notoSansJP } from "@/lib/font";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -18,7 +19,9 @@ export default function RootLayout({
             style={{ height: "100%" }}
             className={`${googleSans.variable} ${notoSansJP.variable} antialiased`}
         >
-            <body style={{ height: "100%" }}>{children}</body>
+            <body style={{ height: "100%" }}>
+                <Providers>{children}</Providers>
+            </body>
         </html>
     );
 }
