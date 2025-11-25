@@ -56,44 +56,40 @@ export default function AuthCallbackPage() {
                 const userCredential = await signInWithCredential(auth, credential);
                 const user = userCredential.user;
 
-                // 3. リフレッシュトークンがある場合、サーバー側で暗号化してFirestoreに保存
+                // 3. ユーザー基本情報を保存（トークン以外）
+                const userRef = doc(db, "users", user.uid);
+                await setDoc(
+                    userRef,
+                    {
+                        email: user.email,
+                        updated_at: Timestamp.now(),
+                        created_at: Timestamp.now(),
+                    },
+                    { merge: true },
+                );
+
+                // 4. リフレッシュトークンがある場合、サーバー側で暗号化してFirestoreに保存
                 if (refresh_token) {
                     setStatus("リフレッシュトークンを保存中...");
 
-                    // サーバー側で暗号化
-                    const encryptResponse = await fetch("/api/auth/save-refresh-token", {
+                    // Firebase ID Token を取得
+                    const idToken = await user.getIdToken();
+
+                    // サーバー側で暗号化 & 保存
+                    const saveResponse = await fetch("/api/auth/save-refresh-token", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            "Authorization": `Bearer ${idToken}`,
                         },
                         body: JSON.stringify({ refresh_token }),
                     });
 
-                    if (!encryptResponse.ok) {
-                        console.error("Failed to encrypt refresh token");
+                    if (!saveResponse.ok) {
+                        console.error("Failed to save refresh token");
+                        const errorData = await saveResponse.json();
+                        console.error("Error details:", errorData);
                     } else {
-                        const { encrypted_refresh_token } = await encryptResponse.json();
-
-                        // ユーザー基本情報を保存（トークン以外）
-                        const userRef = doc(db, "users", user.uid);
-                        await setDoc(
-                            userRef,
-                            {
-                                email: user.email,
-                                updated_at: Timestamp.now(),
-                                created_at: Timestamp.now(),
-                            },
-                            { merge: true },
-                        );
-
-                        // 暗号化されたトークンをサブコレクションに保存
-                        const tokenRef = doc(db, "users", user.uid, "private", "tokens");
-                        await setDoc(tokenRef, {
-                            google_refresh_token_encrypted: encrypted_refresh_token,
-                            google_token_expires_at: Timestamp.now(),
-                            updated_at: Timestamp.now(),
-                        });
-
                         console.log(`Refresh token saved for user: ${user.uid} (${user.email})`);
                     }
                 } else {
@@ -102,7 +98,7 @@ export default function AuthCallbackPage() {
 
                 setStatus("ログイン成功！リダイレクト中...");
 
-                // 4. ホームページにリダイレクト
+                // 5. ホームページにリダイレクト
                 setTimeout(() => {
                     router.push("/");
                 }, 1000);
