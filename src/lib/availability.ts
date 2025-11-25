@@ -14,12 +14,12 @@ export function findCommonFreeSlots(
     busyIntervals: TimeInterval[],
     searchStart: string,
     searchEnd: string,
-): DateInterval[] {
+): TimeInterval[] {
     const searchStartDate = parseISO(searchStart);
     const searchEndDate = parseISO(searchEnd);
 
     if (busyIntervals.length === 0) {
-        return [{ start: searchStartDate, end: searchEndDate }];
+        return [{ start: searchStartDate.toISOString(), end: searchEndDate.toISOString() }];
     }
 
     const sortedBusy: DateInterval[] = busyIntervals
@@ -65,5 +65,9 @@ export function findCommonFreeSlots(
         freeSlots.push({ start: lastBusyEnd, end: searchEndDate });
     }
 
-    return freeSlots;
+    // Date を ISO string に変換して返す
+    return freeSlots.map(slot => ({
+        start: slot.start.toISOString(),
+        end: slot.end.toISOString()
+    }));
 }
