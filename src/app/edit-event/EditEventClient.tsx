@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
 
 const timeOfDayInputItems: {
@@ -117,13 +121,13 @@ const EditEventPage = () => {
                 {/* フォーム */}
                 <form onSubmit={handleSubmit} className="space-y-6 px-15 mt-9">
                     <div>
-                        <label
+                        <Label
                             htmlFor="title"
                             className="block text-sm font-medium text-black mb-1"
                         >
                             タイトル
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="text"
                             id="title"
                             name="title"
@@ -135,13 +139,13 @@ const EditEventPage = () => {
                     </div>
 
                     <div>
-                        <label
+                        <Label
                             htmlFor="duration"
                             className="block text-sm font-medium text-black mb-1"
                         >
                             所要時間
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="text"
                             id="duration"
                             name="duration"
@@ -153,16 +157,16 @@ const EditEventPage = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-black mb-1">
+                        <Label className="block text-sm font-medium text-black mb-1">
                             時間帯
-                        </label>
+                        </Label>
                         <div className="mt-2 space-y-2">
                             {timeOfDayInputItems.map((item) => (
                                 <div
                                     key={item.value}
                                     className="flex items-center"
                                 >
-                                    <input
+                                    <Input
                                         type="checkbox"
                                         id={item.value}
                                         checked={eventData.timeOfDayCandidate.includes(
@@ -173,25 +177,25 @@ const EditEventPage = () => {
                                         }
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
-                                    <label
+                                    <Label
                                         htmlFor={item.value}
                                         className="text-black"
                                     >
                                         {item.label}
-                                    </label>
+                                    </Label>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label
+                        <Label
                             htmlFor="details"
                             className="block text-sm font-medium text-black mb-1"
                         >
                             イベントの詳細
-                        </label>
-                        <textarea
+                        </Label>
+                        <Textarea
                             id="details"
                             name="description"
                             rows={4}
@@ -204,21 +208,21 @@ const EditEventPage = () => {
 
                     {/* ボタンエリア */}
                     <div className="flex justify-between pt-6">
-                        <button
+                        <Button
                             type="button"
                             onClick={handleDelete}
                             className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                         >
                             イベントを削除
-                        </button>
+                        </Button>
 
                         <Link href="/ai-suggest">
-                            <button
+                            <Button
                                 type="button"
                                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                             >
                                 AIのsuggestへ
-                            </button>
+                            </Button>
                         </Link>
                     </div>
                 </form>
