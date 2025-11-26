@@ -34,14 +34,16 @@ describe("Integration Tests", () => {
 
         // 空き時間が予定と重複していないことを確認
         for (const freeSlot of freeSlots) {
+            const freeStart = new Date(freeSlot.start);
+            const freeEnd = new Date(freeSlot.end);
+
             for (const busyInterval of allBusyIntervals) {
                 const busyStart = new Date(busyInterval.start);
                 const busyEnd = new Date(busyInterval.end);
 
-                // 空き時間が予定と重複していないことを確認
-                expect(
-                    freeSlot.start >= busyEnd || freeSlot.end <= busyStart,
-                ).toBe(true);
+                // 重複していないことを確認：空き時間が予定の前、または後にある
+                const noOverlap = freeEnd <= busyStart || freeStart >= busyEnd;
+                expect(noOverlap).toBe(true);
             }
         }
 
@@ -73,12 +75,10 @@ describe("Integration Tests", () => {
         expect(freeSlots.length).toBeGreaterThan(0);
 
         // 最初の空き時間が検索開始時刻から始まることを確認
-        expect(freeSlots[0].start.toISOString()).toBe(
-            "2024-01-01T08:00:00.000Z",
-        );
+        expect(freeSlots[0].start).toBe("2024-01-01T08:00:00.000Z");
 
         // 最後の空き時間が検索終了時刻で終わることを確認
-        expect(freeSlots[freeSlots.length - 1].end.toISOString()).toBe(
+        expect(freeSlots[freeSlots.length - 1].end).toBe(
             "2024-01-01T17:00:00.000Z",
         );
     });
@@ -98,9 +98,7 @@ describe("Integration Tests", () => {
 
         // 境界値の予定は無視されるべき
         expect(freeSlots.length).toBe(1);
-        expect(freeSlots[0].start.toISOString()).toBe(
-            "2024-01-01T09:00:00.000Z",
-        );
-        expect(freeSlots[0].end.toISOString()).toBe("2024-01-01T17:00:00.000Z");
+        expect(freeSlots[0].start).toBe("2024-01-01T09:00:00.000Z");
+        expect(freeSlots[0].end).toBe("2024-01-01T17:00:00.000Z");
     });
 });
