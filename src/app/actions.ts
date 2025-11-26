@@ -85,8 +85,6 @@ export async function getCommonAvailability(
         // 4. Gemini APIに渡すためにデータを整形
         const formattedFreeSlots = formatFreeSlotsForAI(freeSlots);
 
-        console.log("Formatted text to be sent to Gemini:", formattedFreeSlots);
-
         // 5. 整形した文字列をGemini APIに渡す（現在は仮の戻り値）
         // const geminiResponse = await callGeminiAPI(formattedFreeSlots);
         // return geminiResponse;
@@ -242,13 +240,8 @@ export async function suggestSchedule(
             }),
         );
 
-        // 3. 各メンバーのリフレッシュトークンを取得して復号化
-        const memberAvailability = new Map<
-            string,
-            { start: string; end: string }[]
-        >();
-
-        for (const member of members) {
+        // 3. 各メンバーのリフレッシュトークンを取得して復号化（並列処理）
+        const availabilityPromises = members.map(async (member) => {
             try {
                 // Admin SDK でトークン取得
                 const tokenDoc = await adminDb
@@ -263,7 +256,12 @@ export async function suggestSchedule(
 
                 if (!encryptedToken) {
                     console.warn(`No refresh token for user ${member.userId}`);
-                    continue;
+                    return {
+                        userId: member.userId,
+                        slots: [],
+                        error: new Error("No refresh token"),
+                        isRequired: member.isRequired,
+                    };
                 }
 
                 // 復号化
@@ -281,13 +279,52 @@ export async function suggestSchedule(
                     request.dateRange.end,
                 );
 
-                memberAvailability.set(member.userId, freeSlots);
+                return {
+                    userId: member.userId,
+                    slots: freeSlots,
+                    error: null,
+                    isRequired: member.isRequired,
+                };
             } catch (error) {
                 console.error(
                     `Failed to fetch availability for user ${member.userId}:`,
                     error,
                 );
-                // このメンバーはスキップ
+                return {
+                    userId: member.userId,
+                    slots: [],
+                    error:
+                        error instanceof Error
+                            ? error
+                            : new Error("Unknown error"),
+                    isRequired: member.isRequired,
+                };
+            }
+        });
+
+        const results = await Promise.all(availabilityPromises);
+
+        // 必須メンバーのカレンダー取得に失敗した場合はエラーとする
+        const failedRequiredMembers = results.filter(
+            (r) => r.error && r.isRequired,
+        );
+        if (failedRequiredMembers.length > 0) {
+            const userIds = failedRequiredMembers.map((r) => r.userId).join(", ");
+            return {
+                success: false,
+                message: `必須メンバーのカレンダー情報を取得できませんでした: ${userIds}`,
+                suggestions: [],
+            };
+        }
+
+        // 成功したメンバーの空き時間をMapに格納
+        const memberAvailability = new Map<
+            string,
+            { start: string; end: string }[]
+        >();
+        for (const result of results) {
+            if (!result.error) {
+                memberAvailability.set(result.userId, result.slots);
             }
         }
 
