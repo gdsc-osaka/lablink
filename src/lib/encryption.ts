@@ -99,7 +99,6 @@ export function decryptToken(encryptedText: string): string {
 
         return decrypted;
     } catch (error) {
-        console.error("Decryption failed:", error);
         throw new Error(
             "Failed to decrypt token. The token may be corrupted or the encryption key may be incorrect.",
         );

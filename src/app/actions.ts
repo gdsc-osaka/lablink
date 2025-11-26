@@ -95,7 +95,6 @@ export async function getCommonAvailability(
             data: formattedFreeSlots,
         };
     } catch (error) {
-        console.error("Error in getCommonAvailability:", error);
         throw new Error(
             "An error occurred while processing calendar availability.",
         );
@@ -118,7 +117,6 @@ export async function encryptTokenForStorage(
     try {
         return encryptToken(plainToken);
     } catch (error) {
-        console.error("Error encrypting token:", error);
         throw new Error("Failed to encrypt token");
     }
 }
@@ -139,7 +137,6 @@ export async function decryptTokenFromStorage(
     try {
         return decryptToken(encryptedToken);
     } catch (error) {
-        console.error("Error decrypting token:", error);
         throw new Error("Failed to decrypt token");
     }
 }
@@ -163,7 +160,6 @@ export async function getAccessTokenFromRefreshToken(
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-        console.error("Google OAuth credentials are not configured");
         throw new Error(
             "Server configuration error: Google OAuth credentials are missing",
         );
@@ -189,7 +185,6 @@ export async function getAccessTokenFromRefreshToken(
 
         if (!tokenResponse.ok) {
             const errorText = await tokenResponse.text();
-            console.error("Token refresh failed:", errorText);
             throw new Error(`Failed to refresh access token: ${errorText}`);
         }
 
@@ -197,7 +192,6 @@ export async function getAccessTokenFromRefreshToken(
 
         return tokens.access_token;
     } catch (error) {
-        console.error("Error refreshing access token:", error);
         throw new Error("Failed to refresh access token");
     }
 }
@@ -255,7 +249,6 @@ export async function suggestSchedule(
                     tokenDoc.data()?.google_refresh_token_encrypted;
 
                 if (!encryptedToken) {
-                    console.warn(`No refresh token for user ${member.userId}`);
                     return {
                         userId: member.userId,
                         slots: [],
@@ -286,10 +279,6 @@ export async function suggestSchedule(
                     isRequired: member.isRequired,
                 };
             } catch (error) {
-                console.error(
-                    `Failed to fetch availability for user ${member.userId}:`,
-                    error,
-                );
                 return {
                     userId: member.userId,
                     slots: [],
@@ -351,36 +340,8 @@ export async function suggestSchedule(
             members,
         );
 
-        console.log(
-            `Generated ${candidates.length} candidates before filtering`,
-        );
-        console.log(
-            "Sample candidates (first 3):",
-            candidates.slice(0, 3).map((c) => ({
-                start: c.start,
-                end: c.end,
-                jstStart: new Date(c.start).toLocaleString("ja-JP", {
-                    timeZone: "Asia/Tokyo",
-                }),
-            })),
-        );
-
         // 8. 時間帯フィルタリング
         candidates = filterByTimeOfDay(candidates, request.timeSlot);
-
-        console.log(
-            `Filtered to ${candidates.length} candidates for timeSlot: ${request.timeSlot}`,
-        );
-        console.log(
-            "Sample filtered candidates (first 3):",
-            candidates.slice(0, 3).map((c) => ({
-                start: c.start,
-                end: c.end,
-                jstStart: new Date(c.start).toLocaleString("ja-JP", {
-                    timeZone: "Asia/Tokyo",
-                }),
-            })),
-        );
 
         if (candidates.length === 0) {
             return {
@@ -403,7 +364,6 @@ export async function suggestSchedule(
             suggestions,
         };
     } catch (error) {
-        console.error("Error in suggestSchedule:", error);
         return {
             success: false,
             message:
@@ -552,7 +512,6 @@ export async function createTestGroupWithMembers(
             message: `グループ "${groupName}" を作成し、${memberUserIds.length + 1}人のメンバーを追加しました`,
         };
     } catch (error) {
-        console.error("Error creating test group:", error);
         return {
             success: false,
             message:
