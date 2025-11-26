@@ -4,54 +4,21 @@ import Head from "next/head";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { createAuthService } from "@/service/auth-service";
+import { userRepo } from "@/infra/user/user-repo";
+import { authRepo } from "@/infra/auth/auth-repo";
 
-import {
-    signInWithPopup,
-    GoogleAuthProvider,
-    User,
-    AuthError,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { ResultAsync } from "neverthrow";
-
-import { auth, db } from "@/firebase/client";
-
-// Googleサインイン処理
-const signInWithGoogle = (): ResultAsync<User, AuthError> => {
-    const provider = new GoogleAuthProvider();
-
-    return ResultAsync.fromPromise(
-        signInWithPopup(auth, provider).then((result) => result.user),
-        (e) => e as AuthError,
-    );
-};
-
-// Firestoreにユーザーを登録（初回のみ）
-const createUserInFirestore = async (user: User) => {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-        await setDoc(userRef, {
-            email: user.email,
-            created_at: new Date(),
-            updated_at: new Date(),
-        });
-    }
-};
+const authService = createAuthService(userRepo, authRepo);
 
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const handleSignIn = async () => {
-        const result = await signInWithGoogle();
+        const result = await authService.signInWithGoogle();
 
         result.match(
-            async (user) => {
-                // Firestoreに登録
-                await createUserInFirestore(user);
-
+            async () => {
                 // redirectToが指定されていればそのページへ、なければグループ作成ページへ
                 const redirectTo = searchParams.get("redirectTo");
 
