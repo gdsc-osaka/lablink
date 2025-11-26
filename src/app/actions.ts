@@ -472,6 +472,14 @@ export async function createTestGroupWithMembers(
     ownerUserId: string,
     memberUserIds: string[],
 ): Promise<{ success: boolean; groupId?: string; message?: string }> {
+    // セキュリティ: 開発環境以外では実行不可
+    if (process.env.NODE_ENV !== "development") {
+        return {
+            success: false,
+            message: "This action is only available in development mode.",
+        };
+    }
+
     try {
         // グループIDを生成
         const groupId = `group_${Date.now()}`;
