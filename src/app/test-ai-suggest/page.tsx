@@ -46,7 +46,7 @@ export default function TestAISuggestPage() {
                 // 既存グループを検索
                 try {
                     const { db } = await import("@/firebase/client");
-                    const { collection, query, getDocs } = await import(
+                    const { collection, getDocs } = await import(
                         "firebase/firestore"
                     );
 

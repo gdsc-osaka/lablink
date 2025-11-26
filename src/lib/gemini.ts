@@ -27,8 +27,6 @@ export async function suggestScheduleWithGemini(
     const prompt = generatePrompt(candidates, description, requiredMemberCount);
 
     // Gemini API 呼び出し（最大3回リトライ）
-    let lastError: Error | null = null;
-
     for (let attempt = 1; attempt <= 3; attempt++) {
         try {
             const response = await fetch(
@@ -83,8 +81,6 @@ export async function suggestScheduleWithGemini(
                 "Failed to parse valid suggestions from Gemini response",
             );
         } catch (error) {
-            lastError = error as Error;
-
             // 最後の試行でなければリトライ
             if (attempt < 3) {
                 await sleep(1000 * attempt); // 1秒、2秒と待機時間を増やす

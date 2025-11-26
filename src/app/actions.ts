@@ -298,7 +298,9 @@ export async function suggestSchedule(
             (r) => r.error && r.isRequired,
         );
         if (failedRequiredMembers.length > 0) {
-            const userIds = failedRequiredMembers.map((r) => r.userId).join(", ");
+            const userIds = failedRequiredMembers
+                .map((r) => r.userId)
+                .join(", ");
             return {
                 success: false,
                 message: `必須メンバーのカレンダー情報を取得できませんでした: ${userIds}`,
