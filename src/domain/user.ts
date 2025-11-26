@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import { ResultAsync } from "neverthrow";
+import {ok, Result, ResultAsync} from "neverthrow";
 import { DBError } from "@/domain/error";
 import { User as AuthUser } from "firebase/auth";
 
@@ -15,11 +15,11 @@ export interface UserRepository {
     update(user: User): ResultAsync<User, DBError>;
 }
 
-export const createNewUser = (user: AuthUser): User => {
+export const createNewUser = (user: AuthUser): Result<User, never> => {
     const timestamp = Timestamp.now();
-    return {
+    return ok({
         email: user.email!,
         created_at: timestamp,
         updated_at: timestamp,
-    };
+    });
 }

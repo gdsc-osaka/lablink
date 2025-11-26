@@ -14,6 +14,6 @@ export const createAuthService = (
     signInWithGoogle: () =>
         authRepository
             .signInWithGoogle()
-            .map(createNewUser)
+            .andThen(createNewUser)
             .andThen(userRepository.create),
 });
