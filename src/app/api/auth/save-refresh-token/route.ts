@@ -45,14 +45,11 @@ export async function POST(request: NextRequest) {
                 updated_at: new Date(),
             });
 
-        console.log(`Refresh token saved for user: ${userId}`);
-
         return NextResponse.json({
             success: true,
             message: "Refresh token saved successfully",
         });
     } catch (error) {
-        console.error("Token save error:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 },

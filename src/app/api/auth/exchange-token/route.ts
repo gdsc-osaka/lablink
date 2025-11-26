@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
         const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
         if (!clientId || !clientSecret) {
-            console.error("Google OAuth credentials are not configured");
             return NextResponse.json(
                 {
                     error: "Server configuration error: Google OAuth credentials are missing",
@@ -49,7 +48,6 @@ export async function POST(request: NextRequest) {
 
         if (!tokenResponse.ok) {
             const errorText = await tokenResponse.text();
-            console.error("Token exchange failed:", errorText);
             return NextResponse.json(
                 {
                     error: "Failed to exchange authorization code",
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest) {
             expires_in: tokens.expires_in,
         });
     } catch (error) {
-        console.error("Token exchange error:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 },

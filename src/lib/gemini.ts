@@ -84,7 +84,6 @@ export async function suggestScheduleWithGemini(
             );
         } catch (error) {
             lastError = error as Error;
-            console.error(`Gemini API attempt ${attempt} failed:`, error);
 
             // 最後の試行でなければリトライ
             if (attempt < 3) {
@@ -94,7 +93,6 @@ export async function suggestScheduleWithGemini(
     }
 
     // 3回失敗したらフォールバック: スコア上位3件をそのまま返す
-    console.warn("Falling back to top 3 candidates after Gemini API failures");
     return fallbackSuggestions(candidates.slice(0, 3));
 }
 
@@ -224,7 +222,6 @@ export function parseGeminiResponse(text: string): ScheduleSuggestion[] {
 
         return suggestions;
     } catch (error) {
-        console.error("Failed to parse Gemini response:", text, error);
         throw new Error("Failed to parse Gemini response");
     }
 }
