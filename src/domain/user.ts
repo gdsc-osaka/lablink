@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import {ok, Result, ResultAsync} from "neverthrow";
+import { ok, Result, ResultAsync } from "neverthrow";
 import { DBError } from "@/domain/error";
 import { User as AuthUser } from "firebase/auth";
 
@@ -22,4 +22,4 @@ export const createNewUser = (user: AuthUser): Result<User, never> => {
         created_at: timestamp,
         updated_at: timestamp,
     });
-}
+};
