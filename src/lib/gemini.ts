@@ -26,11 +26,6 @@ export async function suggestScheduleWithGemini(
     // プロンプト生成
     const prompt = generatePrompt(candidates, description, requiredMemberCount);
 
-    // デバッグ: プロンプト全体をログ出力
-    console.log("=== Gemini API Prompt ===");
-    console.log(prompt);
-    console.log("=========================");
-
     // Gemini API 呼び出し（最大3回リトライ）
     let lastError: Error | null = null;
 
@@ -70,22 +65,12 @@ export async function suggestScheduleWithGemini(
 
             const data = await response.json();
 
-            // デバッグ: レスポンス全体をログ出力
-            console.log("=== Gemini API Response ===");
-            console.log(JSON.stringify(data, null, 2));
-            console.log("===========================");
-
             // レスポンスからテキストを抽出
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
             if (!text) {
                 throw new Error("No text response from Gemini API");
             }
-
-            // デバッグ: 抽出されたテキストをログ出力
-            console.log("=== Extracted Text ===");
-            console.log(text);
-            console.log("======================");
 
             // JSON パース
             const suggestions = parseGeminiResponse(text);
