@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import type { EventTimeOfDay, EventDraft } from "@/domain/event";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
 
 const timeOfDayInputItems: {
@@ -88,10 +92,10 @@ export default function CreateEventPage() {
                     className="space-y-6 px-15 mt-9"
                 >
                     <div>
-                        <label htmlFor="title" className="event-form-label">
+                        <Label htmlFor="title" className="event-form-label">
                             タイトル
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="text"
                             id="title"
                             {...register("title", {
@@ -108,10 +112,10 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="duration" className="event-form-label">
+                        <Label htmlFor="duration" className="event-form-label">
                             所要時間
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="text"
                             id="duration"
                             {...register("duration", {
@@ -128,14 +132,14 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label className="event-form-label">時間帯</label>
+                        <Label className="event-form-label">時間帯</Label>
                         <div className="mt-2 space-y-2">
                             {timeOfDayInputItems.map((item) => (
                                 <div
                                     key={item.value}
                                     className="flex items-center"
                                 >
-                                    <input
+                                    <Input
                                         type="checkbox"
                                         id={item.value}
                                         value={item.value}
@@ -145,12 +149,12 @@ export default function CreateEventPage() {
                                         })}
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
-                                    <label
+                                    <Label
                                         htmlFor={item.value}
                                         className="text-black"
                                     >
                                         {item.label}
-                                    </label>
+                                    </Label>
                                 </div>
                             ))}
                         </div>
@@ -162,12 +166,12 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label
+                        <Label
                             htmlFor="userSearch"
                             className="event-form-label"
                         >
                             優先参加者を検索して追加
-                        </label>
+                        </Label>
                         <input
                             id="userSearch"
                             type="search"
@@ -261,10 +265,10 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="details" className="event-form-label">
+                        <Label htmlFor="details" className="event-form-label">
                             イベントの詳細
-                        </label>
-                        <textarea
+                        </Label>
+                        <Textarea
                             id="details"
                             rows={4}
                             {...register("description", {
@@ -272,7 +276,7 @@ export default function CreateEventPage() {
                             })}
                             placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
                             className="event-form-input"
-                        ></textarea>
+                        ></Textarea>
                         {errors.description && (
                             <p className="event-form-error">
                                 {errors.description.message}
@@ -281,12 +285,12 @@ export default function CreateEventPage() {
                     </div>
 
                     <div className="flex justify-end">
-                        <button
+                        <Button
                             type="submit"
                             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                         >
                             AIのsuggestへ
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>
