@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { FirestoreGroupRepository } from "@/infra/group/group-repo";
 import { FirestoreUserGroupRepository } from "@/infra/group/user-group-repository";
 import { Group } from "@/domain/group";
 
-const GroupInvitationScreen: React.FC = () => {
+const GroupInvitationScreenContent: React.FC = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams.get("token");
@@ -23,10 +23,14 @@ const GroupInvitationScreen: React.FC = () => {
     const [isAccepting, setIsAccepting] = useState(false);
 
     // Service層を経由してアクセス
-    const invitationService = createInvitationService(
-        invitationRepo,
-        new FirestoreGroupRepository(),
-        new FirestoreUserGroupRepository(),
+    const invitationService = useMemo(
+        () =>
+            createInvitationService(
+                invitationRepo,
+                new FirestoreGroupRepository(),
+                new FirestoreUserGroupRepository(),
+            ),
+        [],
     );
 
     useEffect(() => {
@@ -52,7 +56,7 @@ const GroupInvitationScreen: React.FC = () => {
         };
 
         fetchGroupInfo();
-    }, [token]);
+    }, [token, invitationService]);
 
     const handleAccept = async () => {
         if (!token || !user) {
@@ -146,6 +150,20 @@ const GroupInvitationScreen: React.FC = () => {
                 </CardContent>
             </Card>
         </div>
+    );
+};
+
+const GroupInvitationScreen: React.FC = () => {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex justify-center items-center min-h-screen bg-white">
+                    <p className="text-xl text-gray-600">読み込み中...</p>
+                </div>
+            }
+        >
+            <GroupInvitationScreenContent />
+        </Suspense>
     );
 };
 

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { FirestoreGroupRepository } from "@/infra/group/group-repo";
 import { FirestoreUserGroupRepository } from "@/infra/group/user-group-repository";
 
-export default function InvitePage() {
+function InvitePageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const groupId = searchParams.get("groupId");
@@ -18,10 +18,14 @@ export default function InvitePage() {
     const [copied, setCopied] = useState(false);
 
     // Service層を経由してアクセス
-    const invitationService = createInvitationService(
-        invitationRepo,
-        new FirestoreGroupRepository(),
-        new FirestoreUserGroupRepository(),
+    const invitationService = useMemo(
+        () =>
+            createInvitationService(
+                invitationRepo,
+                new FirestoreGroupRepository(),
+                new FirestoreUserGroupRepository(),
+            ),
+        [],
     );
 
     useEffect(() => {
@@ -50,7 +54,7 @@ export default function InvitePage() {
         };
 
         generateInvitation();
-    }, [groupId]);
+    }, [groupId, invitationService]);
 
     const handleCopy = async () => {
         if (inviteUrl) {
@@ -216,5 +220,35 @@ export default function InvitePage() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function InvitePage() {
+    return (
+        <Suspense
+            fallback={
+                <main className="min-h-screen bg-white">
+                    <div className="w-full mx-auto">
+                        <div className="flex w-full h-25 bg-gray-300">
+                            <h1 className="text-4xl font-bold text-black py-8 ml-10">
+                                招待リンク
+                            </h1>
+                        </div>
+                        <div className="flex flex-col w-full bg-white p-8 md:p-12">
+                            <div className="max-w-3xl mx-auto w-full">
+                                <div className="flex flex-col items-center justify-center py-16">
+                                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                    <p className="text-lg text-gray-600 font-medium">
+                                        読み込み中...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            }
+        >
+            <InvitePageContent />
+        </Suspense>
     );
 }
