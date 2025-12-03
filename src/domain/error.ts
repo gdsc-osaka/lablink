@@ -24,9 +24,10 @@ export const ServiceLogicExtraSchema = z.object({
     code: z.string(),
 });
 
-export const ServiceLogicError = errorBuilder<string, typeof ServiceLogicExtraSchema>(
-    "ServiceLogicError", 
-);
+export const ServiceLogicError = errorBuilder<
+    string,
+    typeof ServiceLogicExtraSchema
+>("ServiceLogicError");
 type ServiceLogicError = InferError<typeof ServiceLogicError>;
 
 export type ServiceError = DBError | ServiceLogicError;
