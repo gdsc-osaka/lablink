@@ -5,77 +5,85 @@ import {
     writeBatch,
     serverTimestamp,
     Timestamp,
+    WithFieldValue,
 } from "firebase/firestore";
 import { db } from "@/firebase/client";
 import { groupConverter } from "./group-converter";
 import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
 import { UserGroupIndexData } from "./group-repo";
+import { ok, ResultAsync } from "neverthrow";
+import { DBError } from "@/domain/error";
+import { handleFirestoreError } from "../error";
 
-export class FirestoreUserGroupRepository implements UserGroupRepository {
-    // users/:userId/groups/:groupId ドキュメント参照
-    private getUserGroupDocRef(userId: string, groupId: string) {
-        return doc(db, "users", userId, "groups", groupId);
-    }
+export const firestoreUserGroupRepository: UserGroupRepository = {
+    findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
+        const userGroupsRef = collection(
+            db,
+            "users",
+            userId,
+            "groups",
+        ).withConverter(groupConverter);
 
-    // groups/:groupId/users/:userId ドキュメント参照
-    private getGroupUserDocRef(groupId: string, userId: string) {
-        return doc(db, "groups", groupId, "users", userId);
-    }
+        return ResultAsync.fromPromise(
+            getDocs(userGroupsRef),
+            handleFirestoreError,
+        ).map((snapshot) => {
+            return snapshot.docs.map((doc) => doc.data());
+        });
+    },
 
-    async findAllByUserId(userId: string): Promise<Group[]> {
-        try {
-            const userGroupsRef = collection(
-                db,
-                "users",
-                userId,
-                "groups",
-            ).withConverter(groupConverter);
-            const userGroupsSnap = await getDocs(userGroupsRef);
-
-            if (userGroupsSnap.empty) {
-                return [];
-            }
-
-            return userGroupsSnap.docs.map((doc) => doc.data());
-        } catch (error) {
-            console.error(`Error finding groups for user ${userId}:`, error);
-            throw new Error(
-                `Failed to retrieve groups list for user ${userId} from Firestore.`,
-            );
-        }
-    }
-
-    async addMember(membership: UserGroup, groupData: Group): Promise<void> {
+    addMember: (
+        membership: UserGroup,
+        groupData: Group,
+    ): ResultAsync<void, DBError> => {
         const batch = writeBatch(db);
 
-        const gruopUserRef = this.getGroupUserDocRef(
+        // groups/:groupId/users/:userId への書き込み
+        const groupUserRef = doc(
+            db,
+            "groups",
             membership.groupId,
+            "users",
             membership.userId,
         );
-        batch.set(gruopUserRef, {
+
+        batch.set(groupUserRef, {
             role: membership.role,
             joinedAt: serverTimestamp(),
         });
 
-        const userGroupRef = this.getUserGroupDocRef(
+        // users/:userId/groups/:groupId への書き込み
+        const userGroupRef = doc(
+            db,
+            "users",
             membership.userId,
+            "groups",
             membership.groupId,
         );
-        const userGroupIndexData: UserGroupIndexData = {
-            ...(groupData as Omit<Group, "createdAt" | "updatedAt">),
 
-            createdAt: groupData.createdAt as unknown as Timestamp,
-            updatedAt: groupData.updatedAt as unknown as Timestamp,
+        const userGroupIndexData: WithFieldValue<UserGroupIndexData> = {
+            ...groupData,
+            createdAt: Timestamp.fromDate(groupData.createdAt),
+            updatedAt: Timestamp.fromDate(groupData.updatedAt),
             joinedAt: serverTimestamp(),
         };
+
         batch.set(userGroupRef, userGroupIndexData);
 
-        await batch.commit();
-    }
+        return ResultAsync.fromPromise(
+            batch.commit(),
+            handleFirestoreError,
+        ).map(() => undefined);
+    },
 
-    async findUserIdsByGroupId(groupId: string): Promise<string[]> {
+    findUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
         const groupUsersRef = collection(db, "groups", groupId, "users");
-        const snapshot = await getDocs(groupUsersRef);
-        return snapshot.docs.map((doc) => doc.id);
-    }
-}
+
+        return ResultAsync.fromPromise(
+            getDocs(groupUsersRef),
+            handleFirestoreError,
+        ).map((snapshot) => {
+            return snapshot.docs.map((doc) => doc.id);
+        });
+    },
+};
