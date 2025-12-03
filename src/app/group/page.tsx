@@ -5,7 +5,9 @@ import EventList from "./_components/event-list";
 import GroupView, { Group } from "./_components/group-list";
 import GroupListSidebar from "./_components/group-list-sidebar";
 import { Event } from "@/domain/event";
-import { Timestamp } from "firebase/firestore";
+import useSWR from "swr";
+import { collection, getDocs, query as q, orderBy } from "firebase/firestore";
+import { db } from "@/firebase/client";
 
 // TODO: 実際のデータ取得に置き換える
 const mockGroups: Group[] = [
@@ -26,28 +28,24 @@ const mockGroups: Group[] = [
     },
 ];
 
-// TODO: 実際のデータ取得に置き換える
-const mockEvents: Event[] = [
-    {
-        id: "101",
-        title: "交流会",
-        description:
-            "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
-        begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
-        end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
-        created_at: new Date(),
-        updated_at: new Date(),
-    },
-    {
-        id: "102",
-        title: "ミーティング",
-        description: "外部進学した留学生のためにたこ焼きパーティーをする",
-        begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
-        end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
-        created_at: new Date(),
-        updated_at: new Date(),
-    },
-];
+// イベントをFirestoreから取得するためのfetcher
+const fetchEvents = async (): Promise<Event[]> => {
+    const col = collection(db, "events");
+    const qRef = q(col, orderBy("begin_at", "asc"));
+    const snap = await getDocs(qRef);
+    return snap.docs.map((d) => {
+        const data = d.data() as any;
+        return {
+            id: d.id,
+            title: data.title,
+            description: data.description,
+            begin_at: data.begin_at,
+            end_at: data.end_at,
+            created_at: data.created_at || new Date(),
+            updated_at: data.updated_at || new Date(),
+        } as Event;
+    });
+};
 
 const GroupPage = () => {
     const [selectedGroupId, setSelectedGroupId] = useState<string>(
@@ -56,6 +54,9 @@ const GroupPage = () => {
     const selectedGroup =
         mockGroups.find((group) => group.name === selectedGroupId) ||
         mockGroups[0];
+
+    // SWR を利用して Firestore からイベント一覧を取得
+    const { data: events, error, isLoading } = useSWR("/events", fetchEvents);
 
     return (
         <main className="flex min-h-screen bg-white">
@@ -73,7 +74,7 @@ const GroupPage = () => {
 
             {/* 右端カラム - イベント一覧 */}
             <div className="flex-1">
-                <EventList events={mockEvents} />
+                <EventList events={events ?? []} />
             </div>
         </main>
     );
