@@ -1,6 +1,7 @@
 import EventListCard from "./event-list-card";
 import Link from "next/link";
 import { Event } from "@/domain/event";
+import { Button } from "@/components/ui/button";
 
 interface EventListProps {
     events: Event[];
@@ -39,9 +40,9 @@ const EventList = ({ events }: EventListProps) => {
             <div className="w-full max-w-4xl px-8 mt-8 pb-8">
                 <div className="flex justify-end">
                     <Link href="/create-event">
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             イベント追加
-                        </button>
+                        </Button>
                     </Link>
                 </div>
             </div>
