@@ -18,23 +18,19 @@ export interface InvitationService {
     // 招待を作成
     createInvitation(
         groupId: string,
-        expiresInDays?: number
+        expiresInDays?: number,
     ): ResultAsync<Invitation, DBError>;
 
     // トークンで招待を検証
-    validateInvitation(
-        token: string
-    ): ResultAsync<Invitation, InvitationError>;
+    validateInvitation(token: string): ResultAsync<Invitation, InvitationError>;
 
     // トークンからグループ情報を取得
-    getGroupByToken(
-        token: string
-    ): ResultAsync<Group, InvitationError>;
+    getGroupByToken(token: string): ResultAsync<Group, InvitationError>;
 
     // 招待を受け入れてグループに参加
     acceptInvitation(
         token: string,
-        userId: string
+        userId: string,
     ): ResultAsync<Group, InvitationError>;
 }
 
@@ -45,7 +41,7 @@ function generateToken(): string {
 export function createInvitationService(
     invitationRepo: InvitationRepository,
     groupRepo: GroupRepository,
-    userGroupRepo: UserGroupRepository
+    userGroupRepo: UserGroupRepository,
 ): InvitationService {
     return {
         createInvitation: (groupId, expiresInDays = 7) => {
@@ -55,7 +51,7 @@ export function createInvitationService(
                 token: generateToken(),
                 createdAt: new Date(),
                 expiresAt: new Date(
-                    Date.now() + expiresInDays * 24 * 60 * 60 * 1000
+                    Date.now() + expiresInDays * 24 * 60 * 60 * 1000,
                 ),
             };
             return invitationRepo.create(invitation);
@@ -65,7 +61,7 @@ export function createInvitationService(
             return invitationRepo.findByToken(token).andThen((invitation) => {
                 if (new Date() > invitation.expiresAt) {
                     return errAsync(
-                        ExpiredError("招待リンクの有効期限が切れています")
+                        ExpiredError("招待リンクの有効期限が切れています"),
                     );
                 }
                 return okAsync(invitation);
@@ -78,7 +74,7 @@ export function createInvitationService(
                 .andThen((invitation) => {
                     if (new Date() > invitation.expiresAt) {
                         return errAsync(
-                            ExpiredError("招待リンクの有効期限が切れています")
+                            ExpiredError("招待リンクの有効期限が切れています"),
                         );
                     }
                     return okAsync(invitation);
@@ -86,12 +82,14 @@ export function createInvitationService(
                 .andThen((invitation) =>
                     ResultAsync.fromPromise(
                         groupRepo.findById(invitation.groupId),
-                        () => UnknownError("グループの取得に失敗しました")
+                        () => UnknownError("グループの取得に失敗しました"),
                     ).andThen((group) =>
                         group === null
-                            ? errAsync(NotFoundError("グループが見つかりません"))
-                            : okAsync(group)
-                    )
+                            ? errAsync(
+                                  NotFoundError("グループが見つかりません"),
+                              )
+                            : okAsync(group),
+                    ),
                 );
         },
 
@@ -102,7 +100,7 @@ export function createInvitationService(
                     // 有効期限チェック
                     if (new Date() > invitation.expiresAt) {
                         return errAsync(
-                            ExpiredError("招待リンクの有効期限が切れています")
+                            ExpiredError("招待リンクの有効期限が切れています"),
                         );
                     }
                     return okAsync(invitation);
@@ -111,12 +109,14 @@ export function createInvitationService(
                     // グループ情報を取得
                     ResultAsync.fromPromise(
                         groupRepo.findById(invitation.groupId),
-                        () => UnknownError("グループの取得に失敗しました")
+                        () => UnknownError("グループの取得に失敗しました"),
                     ).andThen((group) =>
                         group === null
-                            ? errAsync(NotFoundError("グループが見つかりません"))
-                            : okAsync(group)
-                    )
+                            ? errAsync(
+                                  NotFoundError("グループが見つかりません"),
+                              )
+                            : okAsync(group),
+                    ),
                 )
                 .andThen((group) => {
                     // メンバーを追加
@@ -129,7 +129,7 @@ export function createInvitationService(
 
                     return ResultAsync.fromPromise(
                         userGroupRepo.addMember(membership, group),
-                        () => UnknownError("グループへの参加に失敗しました")
+                        () => UnknownError("グループへの参加に失敗しました"),
                     ).map(() => group);
                 });
         },

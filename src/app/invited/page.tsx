@@ -26,7 +26,7 @@ const GroupInvitationScreen: React.FC = () => {
     const invitationService = createInvitationService(
         invitationRepo,
         new FirestoreGroupRepository(),
-        new FirestoreUserGroupRepository()
+        new FirestoreUserGroupRepository(),
     );
 
     useEffect(() => {
@@ -45,7 +45,7 @@ const GroupInvitationScreen: React.FC = () => {
                 },
                 (err) => {
                     setError(err.message);
-                }
+                },
             );
 
             setIsLoading(false);
@@ -62,7 +62,10 @@ const GroupInvitationScreen: React.FC = () => {
 
         setIsAccepting(true);
 
-        const result = await invitationService.acceptInvitation(token, user.uid);
+        const result = await invitationService.acceptInvitation(
+            token,
+            user.uid,
+        );
 
         result.match(
             (groupData) => {
@@ -71,7 +74,7 @@ const GroupInvitationScreen: React.FC = () => {
             (err) => {
                 setError(err.message);
                 setIsAccepting(false);
-            }
+            },
         );
     };
 
