@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, getIdToken, User } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Cookies from "js-cookie";
@@ -15,7 +15,7 @@ export const AuthContext = createContext<AuthContextType>({
     loading: true,
 });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -61,4 +61,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             {!loading && children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    return useContext(AuthContext);
 };
