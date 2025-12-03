@@ -1,4 +1,5 @@
 import { errorBuilder, InferError } from "obj-err";
+import { z } from "zod";
 
 export const NotFoundError = errorBuilder("NotFoundError");
 type NotFoundError = InferError<typeof NotFoundError>;
@@ -19,7 +20,13 @@ export type DBError =
     | UnauthenticatedError
     | UnknownError;
 
-export const ServiceLogicError = errorBuilder("ServiceLogicError");
+export const ServiceLogicExtraSchema = z.object({
+    code: z.string(),
+});
+
+export const ServiceLogicError = errorBuilder<string, typeof ServiceLogicExtraSchema>(
+    "ServiceLogicError", 
+);
 type ServiceLogicError = InferError<typeof ServiceLogicError>;
 
 export type ServiceError = DBError | ServiceLogicError;

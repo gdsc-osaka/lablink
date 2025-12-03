@@ -40,9 +40,7 @@ export const firestoreGroupRepository: GroupRepository = {
             handleFirestoreError,
         ).andThen((docSnap) => {
             if (!docSnap.exists()) {
-                return err(
-                    NotFoundError(`Group not found: ${groupId}`, { extra: {} }),
-                );
+                return err(NotFoundError(`Group not found: ${groupId}`));
             }
             return ok(docSnap.data());
         });
@@ -70,9 +68,7 @@ export const firestoreGroupRepository: GroupRepository = {
     update: (group: Partial<Group>): ResultAsync<Group, DBError> => {
         if (!group.id) {
             return errAsync(
-                UnknownError("Group ID is required for update operation.", {
-                    extra: {},
-                }),
+                UnknownError("Group ID is required for update operation.", {}),
             );
         }
 
