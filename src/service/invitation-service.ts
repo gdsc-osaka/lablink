@@ -77,9 +77,7 @@ export function createInvitationService(
                     () => UnknownError("グループの取得に失敗しました"),
                 ).andThen((group) =>
                     group === null
-                        ? errAsync(
-                              NotFoundError("グループが見つかりません"),
-                          )
+                        ? errAsync(NotFoundError("グループが見つかりません"))
                         : okAsync(group),
                 ),
             );
