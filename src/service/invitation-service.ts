@@ -72,14 +72,7 @@ export function createInvitationService(
 
         getGroupByToken: (token) => {
             return validateInvitation(token).andThen((invitation) =>
-                ResultAsync.fromPromise(
-                    groupRepo.findById(invitation.groupId),
-                    () => UnknownError("グループの取得に失敗しました"),
-                ).andThen((group) =>
-                    group === null
-                        ? errAsync(NotFoundError("グループが見つかりません"))
-                        : okAsync(group),
-                ),
+                groupRepo.findById(invitation.groupId),
             );
         },
 
@@ -87,16 +80,7 @@ export function createInvitationService(
             return validateInvitation(token)
                 .andThen((invitation) =>
                     // グループ情報を取得
-                    ResultAsync.fromPromise(
-                        groupRepo.findById(invitation.groupId),
-                        () => UnknownError("グループの取得に失敗しました"),
-                    ).andThen((group) =>
-                        group === null
-                            ? errAsync(
-                                  NotFoundError("グループが見つかりません"),
-                              )
-                            : okAsync(group),
-                    ),
+                    groupRepo.findById(invitation.groupId),
                 )
                 .andThen((group) => {
                     // メンバーを追加
@@ -107,10 +91,9 @@ export function createInvitationService(
                         joinedAt: new Date(),
                     };
 
-                    return ResultAsync.fromPromise(
-                        userGroupRepo.addMember(membership, group),
-                        () => UnknownError("グループへの参加に失敗しました"),
-                    ).map(() => group);
+                    return userGroupRepo
+                        .addMember(membership, group)
+                        .map(() => group);
                 });
         },
     };
