@@ -7,8 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/provider/AuthProvider";
 import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
-import { FirestoreGroupRepository } from "@/infra/group/group-repo";
-import { FirestoreUserGroupRepository } from "@/infra/group/user-group-repository";
+import { firestoreGroupRepository } from "@/infra/group/group-repo";
+import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
 import { Group } from "@/domain/group";
 
 const GroupInvitationScreenContent: React.FC = () => {
@@ -27,8 +27,8 @@ const GroupInvitationScreenContent: React.FC = () => {
         () =>
             createInvitationService(
                 invitationRepo,
-                new FirestoreGroupRepository(),
-                new FirestoreUserGroupRepository(),
+                firestoreGroupRepository,
+                firestoreUserGroupRepository,
             ),
         [],
     );

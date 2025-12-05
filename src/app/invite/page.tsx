@@ -4,8 +4,8 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
-import { FirestoreGroupRepository } from "@/infra/group/group-repo";
-import { FirestoreUserGroupRepository } from "@/infra/group/user-group-repository";
+import { firestoreGroupRepository } from "@/infra/group/group-repo";
+import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
 
 function InvitePageContent() {
     const searchParams = useSearchParams();
@@ -22,8 +22,8 @@ function InvitePageContent() {
         () =>
             createInvitationService(
                 invitationRepo,
-                new FirestoreGroupRepository(),
-                new FirestoreUserGroupRepository(),
+                firestoreGroupRepository,
+                firestoreUserGroupRepository,
             ),
         [],
     );

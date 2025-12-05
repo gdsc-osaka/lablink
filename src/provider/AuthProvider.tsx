@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, useContext } from "react";
 import { onAuthStateChanged, getIdToken, User } from "firebase/auth";
 import Cookies from "js-cookie";
 
@@ -15,7 +15,7 @@ export const AuthContext = createContext<AuthContextType>({
     loading: true,
 });
 
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
