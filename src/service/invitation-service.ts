@@ -43,6 +43,17 @@ export function createInvitationService(
     groupRepo: GroupRepository,
     userGroupRepo: UserGroupRepository,
 ): InvitationService {
+    const validateInvitation = (token: string) => {
+        return invitationRepo.findByToken(token).andThen((invitation) => {
+            if (new Date() > invitation.expiresAt) {
+                return errAsync(
+                    ExpiredError("招待リンクの有効期限が切れています"),
+                );
+            }
+            return okAsync(invitation);
+        });
+    };
+
     return {
         createInvitation: (groupId, expiresInDays = 7) => {
             const invitation: Invitation = {
@@ -57,54 +68,25 @@ export function createInvitationService(
             return invitationRepo.create(invitation);
         },
 
-        validateInvitation: (token) => {
-            return invitationRepo.findByToken(token).andThen((invitation) => {
-                if (new Date() > invitation.expiresAt) {
-                    return errAsync(
-                        ExpiredError("招待リンクの有効期限が切れています"),
-                    );
-                }
-                return okAsync(invitation);
-            });
-        },
+        validateInvitation,
 
         getGroupByToken: (token) => {
-            return invitationRepo
-                .findByToken(token)
-                .andThen((invitation) => {
-                    if (new Date() > invitation.expiresAt) {
-                        return errAsync(
-                            ExpiredError("招待リンクの有効期限が切れています"),
-                        );
-                    }
-                    return okAsync(invitation);
-                })
-                .andThen((invitation) =>
-                    ResultAsync.fromPromise(
-                        groupRepo.findById(invitation.groupId),
-                        () => UnknownError("グループの取得に失敗しました"),
-                    ).andThen((group) =>
-                        group === null
-                            ? errAsync(
-                                  NotFoundError("グループが見つかりません"),
-                              )
-                            : okAsync(group),
-                    ),
-                );
+            return validateInvitation(token).andThen((invitation) =>
+                ResultAsync.fromPromise(
+                    groupRepo.findById(invitation.groupId),
+                    () => UnknownError("グループの取得に失敗しました"),
+                ).andThen((group) =>
+                    group === null
+                        ? errAsync(
+                              NotFoundError("グループが見つかりません"),
+                          )
+                        : okAsync(group),
+                ),
+            );
         },
 
         acceptInvitation: (token, userId) => {
-            return invitationRepo
-                .findByToken(token)
-                .andThen((invitation) => {
-                    // 有効期限チェック
-                    if (new Date() > invitation.expiresAt) {
-                        return errAsync(
-                            ExpiredError("招待リンクの有効期限が切れています"),
-                        );
-                    }
-                    return okAsync(invitation);
-                })
+            return validateInvitation(token)
                 .andThen((invitation) =>
                     // グループ情報を取得
                     ResultAsync.fromPromise(

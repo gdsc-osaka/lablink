@@ -17,7 +17,7 @@ export default function LoginPage() {
             <Head>
                 <title>lablink - ログイン</title>
             </Head>
-            <div className="font-sans flex justify-center items-center mi   n-h-screen bg-gray-100 text-gray-800">
+            <div className="font-sans flex justify-center items-center min-h-screen bg-gray-100 text-gray-800">
                 <div className="bg-white p-10 rounded-xl shadow-lg text-center max-w-md w-11/12">
                     <h1 className="text-3xl font-bold text-gray-800 mb-5">
                         lablinkへようこそ
