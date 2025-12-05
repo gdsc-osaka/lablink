@@ -14,6 +14,10 @@ type UnauthenticatedError = InferError<typeof UnauthenticatedError>;
 export const UnknownError = errorBuilder("UnknownError");
 type UnknownError = InferError<typeof UnknownError>;
 
+// 招待関連エラー
+export const ExpiredError = errorBuilder("ExpiredError");
+type ExpiredError = InferError<typeof ExpiredError>;
+
 export type DBError =
     | NotFoundError
     | PermissionDeniedError
@@ -31,3 +35,5 @@ export const ServiceLogicError = errorBuilder<
 type ServiceLogicError = InferError<typeof ServiceLogicError>;
 
 export type ServiceError = DBError | ServiceLogicError;
+
+export type InvitationError = DBError | ExpiredError;

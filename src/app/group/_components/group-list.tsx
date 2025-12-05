@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 //このあたりの型定義はdomain/user.ts実装後変更予定
 // メンバーとグループのデータ型を定義
@@ -11,6 +12,7 @@ export interface Member {
 }
 
 export interface Group {
+    id: string;
     name: string;
     members: Member[]; // membersフィールドを追加
 }
@@ -21,9 +23,10 @@ interface GroupViewProps {
 }
 
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
+    const router = useRouter();
+
     const handleInviteClick = () => {
-        alert("招待ボタンがクリックされました。");
-        // TODO: Implement invitation feature
+        router.push(`/invite?groupId=${group.id}`);
     };
 
     return (
