@@ -48,7 +48,7 @@
         "embla-carousel-react": "^8.6.0",
         "firebase": "^12.6.0",
         "firebase-admin": "^13.5.0",
-        "googleapis": "^164.0.0",
+        "googleapis": "^167.0.0",
         "input-otp": "^1.4.2",
         "js-cookie": "^3.0.5",
         "lucide-react": "^0.554.0",
