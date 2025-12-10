@@ -1,30 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EventList from "./_components/event-list";
 import GroupView, { Group } from "./_components/group-list";
 import GroupListSidebar from "./_components/group-list-sidebar";
 import { Event } from "@/domain/event";
 import { Timestamp } from "firebase/firestore";
-
+import { useUserGroups, useGroupMembers } from "@/hooks/group";
+import { useAuth } from "@/provider/AuthProvider";
+import { userRepo } from "@/infra/user/user-repo";
+import { groupService } from "@/di";
 // TODO: 実際のデータ取得に置き換える
-const mockGroups: Group[] = [
-    {
-        name: "原研",
-        members: [],
-    },
-    {
-        name: "GDGoC osaka",
-        members: [
-            { id: "1", name: "tanigaki kei" },
-            { id: "2", name: "suyama souta" },
-            { id: "3", name: "yoshida kazuya" },
-            { id: "4", name: "siomi ayari" },
-            { id: "5", name: "itaya kosuke" },
-            { id: "6", name: "yamamoto sakura" },
-        ],
-    },
-];
+
 
 // TODO: 実際のデータ取得に置き換える
 const mockEvents: Event[] = [
@@ -50,25 +37,90 @@ const mockEvents: Event[] = [
 ];
 
 const GroupPage = () => {
-    const [selectedGroupId, setSelectedGroupId] = useState<string>(
-        mockGroups[0].name,
-    );
-    const selectedGroup =
-        mockGroups.find((group) => group.name === selectedGroupId) ||
-        mockGroups[0];
+    const { user } = useAuth();
+    //
+    const currentUserId = "test@example.com"
+    const { groups, loading: groupsLoading} = useUserGroups(currentUserId);
+
+    const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+
+    useEffect(() => {
+        if(groups.length > 0 && !selectedGroupId){
+            setSelectedGroupId(groups[0].id);
+        }
+    }, [groups, selectedGroupId]);
+
+    const { members, loading: membersLoading } = useGroupMembers(selectedGroupId);
+
+    const selectedGroupData = groups.find(g => g.id === selectedGroupId);
+
+    const groupForDisplay = selectedGroupData? {
+        ...selectedGroupData,
+        members: members,
+    } : null;
+
+    //以下テスト用(あとで削除)
+    const handleSeedData = async () => {
+        if (!confirm("テストデータを作成しますか？")) return;
+
+        try {
+            // ユーザーを作成 
+            await userRepo.create({
+                id: currentUserId,
+                email: currentUserId,
+                name: "テストユーザー",
+                created_at: Timestamp.now(),
+                updated_at: Timestamp.now(),
+            });
+
+            // グループを作成し、このユーザーをオーナーとして追加
+            await groupService.createGroupAndAddOwner(currentUserId, {
+                name: "原研究室（テスト）",
+            });
+            
+            await groupService.createGroupAndAddOwner(currentUserId, {
+                name: "GDGoC Osaka（テスト）",
+            });
+
+            alert("作成完了！画面をリロードしてください。");
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert("エラーが発生しました。コンソールを確認してください。");
+        }
+    };
+
+    if (groupsLoading) {
+        return <div className="flex h-screen items-center justify-center">読み込み中...</div>;
+    }
+
+    if (groups.length === 0) {
+        return <div className="flex h-screen items-center justify-center">
+                    <p>グループに参加していません</p>
+    {/* 以下テスト用(あとで削除) */}
+                    <button 
+                        onClick={handleSeedData}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    テストデータを作成する
+                </button>
+            </div>;
+    }
 
     return (
         <main className="flex min-h-screen bg-white">
             {/* 左端カラム - グループ一覧 */}
             <GroupListSidebar
-                groups={mockGroups}
+                groups={groups}
                 selectedGroupId={selectedGroupId}
-                onGroupSelect={setSelectedGroupId}
+                onGroupSelect={(id) => setSelectedGroupId(id)}
             />
 
             {/* 中央カラム - 選択されたグループのメンバー一覧 */}
             <div className="w-80">
-                <GroupView group={selectedGroup} />
+                {groupForDisplay && (
+                    <GroupView
+                    group={groupForDisplay}/>
+                )}
             </div>
 
             {/* 右端カラム - イベント一覧 */}
