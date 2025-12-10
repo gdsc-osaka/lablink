@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Group } from "./group-list";
+import { Group } from "@/domain/group"; 
 
 interface GroupListSidebarProps {
     groups: Group[];
