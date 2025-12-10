@@ -13,6 +13,7 @@ if (!admin.apps.length) {
     });
 }
 
-const authAdmin = admin.auth();
+const adminAuth = admin.auth();
+const adminDb = admin.firestore();
 
-export { authAdmin };
+export { adminAuth, adminDb };

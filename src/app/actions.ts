@@ -5,7 +5,7 @@ import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
 import { encryptToken, decryptToken } from "@/lib/encryption";
-import { adminDb, adminAuth } from "@/firebase/server";
+import { adminDb, adminAuth } from "@/firebase/admin";
 import {
     SuggestScheduleRequest,
     SuggestScheduleResponse,
