@@ -5,7 +5,7 @@ import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
 import { encryptToken, decryptToken } from "@/lib/encryption";
-import { adminDb, adminAuth } from "@/firebase/admin";
+import { dbAdmin, authAdmin } from "@/firebase/admin";
 import {
     SuggestScheduleRequest,
     SuggestScheduleResponse,
@@ -122,7 +122,7 @@ export async function saveRefreshToken(
         }
 
         // Firebase ID Token を検証してユーザーIDを取得
-        const decodedToken = await adminAuth.verifyIdToken(token);
+        const decodedToken = await authAdmin.verifyIdToken(token);
         const userId = decodedToken.uid;
 
         if (!refreshToken) {
@@ -133,7 +133,7 @@ export async function saveRefreshToken(
         const encryptedRefreshToken = encryptToken(refreshToken);
 
         // Admin SDK で /users/{userId}/private/tokens に保存
-        await adminDb
+        await dbAdmin
             .collection("users")
             .doc(userId)
             .collection("private")
@@ -269,7 +269,7 @@ export async function suggestSchedule(
         // 2. メンバー情報の構築
         const members: MemberInfo[] = await Promise.all(
             memberIds.map(async (userId) => {
-                const userDoc = await adminDb
+                const userDoc = await dbAdmin
                     .collection("users")
                     .doc(userId)
                     .get();
@@ -287,7 +287,7 @@ export async function suggestSchedule(
         const availabilityPromises = members.map(async (member) => {
             try {
                 // Admin SDK でトークン取得
-                const tokenDoc = await adminDb
+                const tokenDoc = await dbAdmin
                     .collection("users")
                     .doc(member.userId)
                     .collection("private")
@@ -430,7 +430,7 @@ export async function suggestSchedule(
  * グループのメンバーID一覧を取得
  */
 async function fetchGroupMemberIds(groupId: string): Promise<string[]> {
-    const snapshot = await adminDb
+    const snapshot = await dbAdmin
         .collection("groups")
         .doc(groupId)
         .collection("users")
