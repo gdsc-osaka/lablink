@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { auth, db } from "@/firebase/client";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
+import { Spinner } from "@/components/ui/spinner";
+import { saveRefreshToken } from "@/app/actions";
 
 export default function AuthCallbackPage() {
     const router = useRouter();
@@ -74,39 +76,19 @@ export default function AuthCallbackPage() {
                     { merge: true },
                 );
 
-                // 4. リフレッシュトークンがある場合、サーバー側で暗号化してFirestoreに保存
+                // 4. リフレッシュトークンがある場合、Server Action で暗号化してFirestoreに保存
                 if (refresh_token) {
                     setStatus("リフレッシュトークンを保存中...");
 
-                    // Firebase ID Token を取得
-                    const idToken = await user.getIdToken();
+                    // Server Action を呼び出し（Cookie ベース認証）
+                    const result = await saveRefreshToken(refresh_token);
 
-                    // サーバー側で暗号化 & 保存
-                    const saveResponse = await fetch(
-                        "/api/auth/save-refresh-token",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${idToken}`,
-                            },
-                            body: JSON.stringify({ refresh_token }),
-                        },
-                    );
-
-                    if (!saveResponse.ok) {
-                        console.error("Failed to save refresh token");
-                        const errorData = await saveResponse.json();
-                        console.error("Error details:", errorData);
-                    } else {
-                        console.log(
-                            `Refresh token saved for user: ${user.uid} (${user.email})`,
+                    if (!result.success) {
+                        console.error(
+                            "Failed to save refresh token:",
+                            result.message,
                         );
                     }
-                } else {
-                    console.warn(
-                        "No refresh token received. User may have already authorized.",
-                    );
                 }
 
                 setStatus("ログイン成功！リダイレクト中...");
@@ -133,26 +115,7 @@ export default function AuthCallbackPage() {
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
             <div className="bg-white p-10 rounded-xl shadow-lg text-center max-w-md">
                 <div className="mb-4">
-                    <svg
-                        className="animate-spin h-10 w-10 mx-auto text-blue-600"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                        ></circle>
-                        <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
+                    <Spinner className="h-10 w-10 mx-auto text-blue-600" />
                 </div>
                 <p className="text-lg text-gray-700">{status}</p>
             </div>

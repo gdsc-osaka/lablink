@@ -1,10 +1,11 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
 import { encryptToken, decryptToken } from "@/lib/encryption";
-import { adminDb } from "@/firebase/server";
+import { adminDb, adminAuth } from "@/firebase/server";
 import {
     SuggestScheduleRequest,
     SuggestScheduleResponse,
@@ -98,6 +99,54 @@ export async function getCommonAvailability(
         throw new Error(
             "An error occurred while processing calendar availability.",
         );
+    }
+}
+
+/**
+ * リフレッシュトークンを暗号化してFirestoreに保存する
+ * Cookie ベースの認証を使用
+ *
+ * @param refreshToken Google OAuth リフレッシュトークン
+ * @returns 成功/失敗の結果
+ */
+export async function saveRefreshToken(
+    refreshToken: string,
+): Promise<{ success: boolean; message: string }> {
+    try {
+        // Cookie から Firebase ID Token を取得
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+
+        if (!token) {
+            return { success: false, message: "Unauthorized: No token found" };
+        }
+
+        // Firebase ID Token を検証してユーザーIDを取得
+        const decodedToken = await adminAuth.verifyIdToken(token);
+        const userId = decodedToken.uid;
+
+        if (!refreshToken) {
+            return { success: false, message: "Refresh token is required" };
+        }
+
+        // リフレッシュトークンを暗号化
+        const encryptedRefreshToken = encryptToken(refreshToken);
+
+        // Admin SDK で /users/{userId}/private/tokens に保存
+        await adminDb
+            .collection("users")
+            .doc(userId)
+            .collection("private")
+            .doc("tokens")
+            .set({
+                google_refresh_token_encrypted: encryptedRefreshToken,
+                google_token_expires_at: new Date(),
+                updated_at: new Date(),
+            });
+
+        return { success: true, message: "Refresh token saved successfully" };
+    } catch (error) {
+        return { success: false, message: "Failed to save refresh token" };
     }
 }
 
