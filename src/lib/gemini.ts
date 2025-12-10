@@ -83,7 +83,8 @@ export async function suggestScheduleWithGemini(
                 "Failed to parse valid suggestions from Gemini response",
             );
         } catch (error) {
-            lastError = error instanceof Error ? error : new Error(String(error));
+            lastError =
+                error instanceof Error ? error : new Error(String(error));
             // 最後の試行でなければリトライ
             if (attempt < 3) {
                 await sleep(1000 * attempt); // 1秒、2秒と待機時間を増やす
