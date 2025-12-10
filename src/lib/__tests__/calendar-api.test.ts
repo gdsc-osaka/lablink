@@ -13,11 +13,11 @@ const mockOAuth2 = {
 };
 
 // Firebase Admin SDKのモック
-vi.mock("../../firebase/server", () => ({
-    adminAuth: {
+vi.mock("../../firebase/admin", () => ({
+    authAdmin: {
         verifyIdToken: vi.fn().mockResolvedValue({ uid: "test-uid" }),
     },
-    adminDb: {
+    dbAdmin: {
         collection: vi.fn().mockReturnValue({
             doc: vi.fn().mockReturnValue({
                 get: vi.fn().mockResolvedValue({
