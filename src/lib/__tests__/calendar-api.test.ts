@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getCommonAvailability } from "../../app/actions";
 
 // Google Calendar APIのモック
@@ -10,6 +11,26 @@ const mockCalendar = {
 const mockOAuth2 = {
     setCredentials: vi.fn(),
 };
+
+// Firebase Admin SDKのモック
+vi.mock("../../firebase/admin", () => ({
+    authAdmin: {
+        verifyIdToken: vi.fn().mockResolvedValue({ uid: "test-uid" }),
+    },
+    dbAdmin: {
+        collection: vi.fn().mockReturnValue({
+            doc: vi.fn().mockReturnValue({
+                get: vi.fn().mockResolvedValue({
+                    exists: true,
+                    data: () => ({
+                        accessToken: "mock-access-token",
+                        refreshToken: "mock-refresh-token",
+                    }),
+                }),
+            }),
+        }),
+    },
+}));
 
 vi.mock("googleapis", () => ({
     google: {
