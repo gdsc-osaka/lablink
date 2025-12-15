@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc,query,where,getDocs,collection,documentId } from "firebase/firestore";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 
 import { UserRepository } from "@/domain/user";
@@ -25,6 +25,20 @@ export const userRepo: UserRepository = {
                 ? okAsync(snapshot.data()!)
                 : errAsync(NotFoundError("User not found")),
         ),
+    findByIds:(ids: string[]) => {
+        const q = query(
+            collection(db, "users"), 
+            where(documentId(), "in", ids) 
+        ).withConverter(userConverter);
+
+        return ResultAsync.fromPromise(
+            getDocs(q),
+            handleFirestoreError
+        ).map((snapshot) => {
+            return snapshot.docs.map((doc) => doc.data());
+        });
+    },
+    
     update: (user) =>
         ResultAsync.fromPromise(
             setDoc(userRef(user.email), user, { merge: true }),

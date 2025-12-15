@@ -12,6 +12,7 @@ export interface User {
 export interface UserRepository {
     create(user: User): ResultAsync<User, DBError>;
     findById(uid: string): ResultAsync<User, DBError>;
+    findByIds(ids:string[]):ResultAsync<User[], DBError>;
     update(user: User): ResultAsync<User, DBError>;
 }
 
