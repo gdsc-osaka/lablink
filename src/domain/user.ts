@@ -21,7 +21,7 @@ export interface UserRepository {
 export const createNewUser = (user: AuthUser): Result<User, never> => {
     const timestamp = Timestamp.now();
     return ok({
-        id:user.email!,
+        id: user.email!,
         name: user.displayName!,
         email: user.email!,
         created_at: timestamp,

@@ -12,7 +12,6 @@ import { userRepo } from "@/infra/user/user-repo";
 import { groupService } from "@/di";
 // TODO: 実際のデータ取得に置き換える
 
-
 // TODO: 実際のデータ取得に置き換える
 const mockEvents: Event[] = [
     {
@@ -38,33 +37,31 @@ const mockEvents: Event[] = [
 
 const GroupPage = () => {
     const { user } = useAuth();
-    //
-    const currentUserId = "test@example.com"
-    const { groups, loading: groupsLoading} = useUserGroups(currentUserId);
+    // テスト用の固定ID
+    const currentUserId = "test@example.com";
+    const { groups, loading: groupsLoading } = useUserGroups(currentUserId);
 
-    const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+    const currentGroupId = selectedGroupId ?? groups[0]?.id;
 
-    useEffect(() => {
-        if(groups.length > 0 && !selectedGroupId){
-            setSelectedGroupId(groups[0].id);
-        }
-    }, [groups, selectedGroupId]);
+    const { members, loading: membersLoading } =
+        useGroupMembers(currentGroupId);
 
-    const { members, loading: membersLoading } = useGroupMembers(selectedGroupId);
+    const selectedGroupData = groups.find((g) => g.id === currentGroupId);
 
-    const selectedGroupData = groups.find(g => g.id === selectedGroupId);
-
-    const groupForDisplay = selectedGroupData? {
-        ...selectedGroupData,
-        members: members,
-    } : null;
+    const groupForDisplay = selectedGroupData
+        ? {
+              ...selectedGroupData,
+              members: members,
+          }
+        : null;
 
     //以下テスト用(あとで削除)
     const handleSeedData = async () => {
         if (!confirm("テストデータを作成しますか？")) return;
 
         try {
-            // ユーザーを作成 
+            // ユーザーを作成
             await userRepo.create({
                 id: currentUserId,
                 email: currentUserId,
@@ -77,7 +74,7 @@ const GroupPage = () => {
             await groupService.createGroupAndAddOwner(currentUserId, {
                 name: "原研究室（テスト）",
             });
-            
+
             await groupService.createGroupAndAddOwner(currentUserId, {
                 name: "GDGoC Osaka（テスト）",
             });
@@ -91,19 +88,26 @@ const GroupPage = () => {
     };
 
     if (groupsLoading) {
-        return <div className="flex h-screen items-center justify-center">読み込み中...</div>;
+        return (
+            <div className="flex h-screen items-center justify-center">
+                読み込み中...
+            </div>
+        );
     }
 
     if (groups.length === 0) {
-        return <div className="flex h-screen items-center justify-center">
-                    <p>グループに参加していません</p>
-    {/* 以下テスト用(あとで削除) */}
-                    <button 
-                        onClick={handleSeedData}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <p>グループに参加していません</p>
+                {/* 以下テスト用(あとで削除) */}
+                <button
+                    onClick={handleSeedData}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
                     テストデータを作成する
                 </button>
-            </div>;
+            </div>
+        );
     }
 
     return (
@@ -111,16 +115,13 @@ const GroupPage = () => {
             {/* 左端カラム - グループ一覧 */}
             <GroupListSidebar
                 groups={groups}
-                selectedGroupId={selectedGroupId}
+                selectedGroupId={currentGroupId}
                 onGroupSelect={(id) => setSelectedGroupId(id)}
             />
 
             {/* 中央カラム - 選択されたグループのメンバー一覧 */}
             <div className="w-80">
-                {groupForDisplay && (
-                    <GroupView
-                    group={groupForDisplay}/>
-                )}
+                {groupForDisplay && <GroupView group={groupForDisplay} />}
             </div>
 
             {/* 右端カラム - イベント一覧 */}

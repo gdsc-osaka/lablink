@@ -7,8 +7,7 @@ import {
     UserGroupRepository,
 } from "@/domain/group";
 import { User, UserRepository } from "@/domain/user";
-import { ServiceError, ServiceLogicError, DBError } from "@/domain/error";
-import { group } from "console";
+import { ServiceError, ServiceLogicError } from "@/domain/error";
 
 // 依存関係をまとめた型
 interface GroupServiceDeps {
@@ -41,9 +40,7 @@ export interface GroupService {
         groupId: string,
     ) => ResultAsync<string[], ServiceError>;
 
-    getGroupMembers: (
-        groupId: string,
-    ) => ResultAsync<User[], ServiceError>;
+    getGroupMembers: (groupId: string) => ResultAsync<User[], ServiceError>;
 
     deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
 }
@@ -147,16 +144,14 @@ export const createGroupService = ({
         });
     },
 
-    getGroupMembers: (groupId: string): ResultAsync<User[],ServiceError> => {
-        return validateRequiredId(
-            groupId,
-            "グループID",
-            "MISSING_GROUP_ID",
-        ).andThen(() => {
-            return userGroupRepo.findUserIdsByGroupId(groupId);
-        }).andThen((userIds) => {
-            return userRepo.findByIds(userIds);
-        });
+    getGroupMembers: (groupId: string): ResultAsync<User[], ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() => {
+                return userGroupRepo.findUserIdsByGroupId(groupId);
+            })
+            .andThen((userIds) => {
+                return userRepo.findByIds(userIds);
+            });
     },
 
     updateGroupInfo: (

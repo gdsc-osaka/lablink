@@ -4,7 +4,7 @@ import { firestoreUserGroupRepository } from "./infra/group/user-group-repositor
 import { userRepo } from "./infra/user/user-repo";
 
 export const groupService = createGroupService({
-  groupRepo: firestoreGroupRepository,
-  userGroupRepo: firestoreUserGroupRepository,
-  userRepo: userRepo,
+    groupRepo: firestoreGroupRepository,
+    userGroupRepo: firestoreUserGroupRepository,
+    userRepo: userRepo,
 });
