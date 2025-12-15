@@ -17,7 +17,7 @@ export interface UserService {
     /* ユーザー情報の更新(名前)*/
     updateUser: (
         userId: string,
-        dto: UpdateUserDto
+        dto: UpdateUserDto,
     ) => ResultAsync<User, ServiceError>;
 }
 
@@ -28,13 +28,17 @@ interface UserServiceDeps {
 const validateUserId = (userId: string): ResultAsync<void, ServiceError> => {
     if (!userId) {
         return errAsync(
-            ServiceLogicError("ユーザーIDが必要です", { extra: { code: "MISSING_ID" } })
+            ServiceLogicError("ユーザーIDが必要です", {
+                extra: { code: "MISSING_ID" },
+            }),
         );
     }
     return okAsync(undefined);
 };
 
-export const createUserService = ({ userRepo }: UserServiceDeps): UserService => ({
+export const createUserService = ({
+    userRepo,
+}: UserServiceDeps): UserService => ({
     getUserById: (userId) => {
         return validateUserId(userId).andThen(() => userRepo.findById(userId));
     },
@@ -49,11 +53,11 @@ export const createUserService = ({ userRepo }: UserServiceDeps): UserService =>
 
     updateUser: (userId, dto) => {
         return validateUserId(userId)
-            .andThen(() => userRepo.findById(userId)) 
+            .andThen(() => userRepo.findById(userId))
             .andThen((existingUser) => {
                 const updatedUser: User = {
                     ...existingUser,
-                    ...dto, 
+                    ...dto,
                     updated_at: Timestamp.now(),
                 };
                 return userRepo.update(updatedUser);

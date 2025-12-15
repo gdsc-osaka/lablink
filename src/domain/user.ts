@@ -5,6 +5,7 @@ import { User as AuthUser } from "firebase/auth";
 
 export interface User {
     email: string;
+    name?: string;
     created_at: Timestamp;
     updated_at: Timestamp;
 }
@@ -12,7 +13,7 @@ export interface User {
 export interface UserRepository {
     create(user: User): ResultAsync<User, DBError>;
     findById(uid: string): ResultAsync<User, DBError>;
-    findByIds(ids:string[]):ResultAsync<User[], DBError>;
+    findByIds(ids: string[]): ResultAsync<User[], DBError>;
     update(user: User): ResultAsync<User, DBError>;
 }
 
