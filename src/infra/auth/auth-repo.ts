@@ -15,7 +15,7 @@ export const authRepo: AuthRepository = {
 
         // Google Calendar APIのアクセス権をリクエスト
         provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
-        
+
         return ResultAsync.fromPromise(
             signInWithPopup(auth, provider).then((result) => result.user),
             (e) => e as AuthError,
