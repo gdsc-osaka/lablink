@@ -25,7 +25,7 @@ export default function LoginPage() {
                 if (redirectTo) {
                     router.push(`/groups/${redirectTo}`);
                 } else {
-                    router.push("/create-groups");
+                    router.push("/create-group");
                 }
             },
             (error) => {
