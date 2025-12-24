@@ -13,7 +13,7 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen items-center justify-center bg-slate-100">
-            <div className="w-full max-w-4xl rounded-md border-2 bg-white px-8 py-12 shadow-lg">
+            <div className="w-full max-w-6xl rounded-md border-2 bg-white px-8 py-12 shadow-lg">
                 <div className="flex flex-col items-center gap-6">
                     {/* タイトル */}
                     <h1 className="text-4xl md:text-5xl font-bold text-center">
@@ -33,7 +33,7 @@ export default function Home() {
                     {/* ボタン */}
                     <Button
                         onClick={handleButtonClick}
-                        className="btn-primary mt-4"
+                        className="btn-primary mt-4 py-6"
                     >
                         lablinkを始める
                     </Button>
