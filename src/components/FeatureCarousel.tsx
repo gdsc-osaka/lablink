@@ -51,7 +51,7 @@ export default function FeatureCarousel() {
         <div className="w-full mt-8 mb-8">
             <Carousel
                 opts={{
-                    align: "center",
+                    align: "start",
                     loop: false,
                     startIndex: 0,
                 }}
@@ -59,7 +59,7 @@ export default function FeatureCarousel() {
                 className="w-full"
             >
                 <CarouselContent className="-ml-4">
-                    <CarouselItem className="pl-4 md:basis-1/3">
+                    <CarouselItem className="pl-4 md:basis-1/2">
                         <div className="carousel-slide-primary flex flex-col">
                             <h3 className="carousel-slide-text-light font-bold mt-4">
                                 Lablinkとは？
@@ -87,7 +87,7 @@ export default function FeatureCarousel() {
                             </p>
                         </div>
                     </CarouselItem>
-                    <CarouselItem className="pl-4 md:basis-1/3">
+                    <CarouselItem className="pl-4 md:basis-1/2">
                         <div className="carousel-slide-secondary flex flex-col">
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 2
@@ -115,7 +115,7 @@ export default function FeatureCarousel() {
                             </p>
                         </div>
                     </CarouselItem>
-                    <CarouselItem className="pl-4 md:basis-1/3">
+                    <CarouselItem className="pl-4 md:basis-1/2">
                         <div className="carousel-slide-secondary flex flex-col">
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 3
@@ -143,7 +143,7 @@ export default function FeatureCarousel() {
                             </p>
                         </div>
                     </CarouselItem>
-                    <CarouselItem className="pl-4 md:basis-1/3">
+                    <CarouselItem className="pl-4 md:basis-1/2">
                         <div className="carousel-slide-secondary flex flex-col">
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 4
@@ -171,7 +171,7 @@ export default function FeatureCarousel() {
                             </p>
                         </div>
                     </CarouselItem>
-                    <CarouselItem className="pl-4 md:basis-1/3">
+                    <CarouselItem className="pl-4 md:basis-1/2">
                         <div className="carousel-slide-secondary flex flex-col">
                             <h3 className="carousel-slide-text-dark font-bold mt-4">
                                 スライド 5
