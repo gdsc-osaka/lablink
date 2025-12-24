@@ -28,7 +28,7 @@ export default function LandingHero() {
                     <Button
                         onClick={handleCTAClick}
                         size="lg"
-                        className="mt-8 w-full sm:w-auto px-8 py-6"
+                        className="mt-8 px-8 py-6"
                     >
                         lablinkを始める
                     </Button>
