@@ -1,0 +1,39 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
+export default function LandingHero() {
+    const router = useRouter();
+
+    const handleCTAClick = () => {
+        router.push("/login");
+    };
+
+    return (
+        <section className="py-16 md:py-24">
+            <div className="container mx-auto max-w-[1200px] px-6 md:px-8">
+                <div className="flex flex-col items-center text-center space-y-6">
+                    {/* タイトル */}
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+                        Lablink
+                    </h1>
+
+                    {/* サブタイトル */}
+                    <p className="mt-4 text-muted-foreground text-base md:text-lg max-w-2xl">
+                        スケジュール調整を半自動化
+                    </p>
+
+                    {/* CTA ボタン */}
+                    <Button
+                        onClick={handleCTAClick}
+                        size="lg"
+                        className="mt-8 w-full sm:w-auto px-8 py-6"
+                    >
+                        lablinkを始める
+                    </Button>
+                </div>
+            </div>
+        </section>
+    );
+}
