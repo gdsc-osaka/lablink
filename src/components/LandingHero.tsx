@@ -11,7 +11,7 @@ export default function LandingHero() {
     };
 
     return (
-        <section className="py-16 md:py-24">
+        <section className="pt-16 md:pt-18 pb-0">
             <div className="container mx-auto max-w-[1200px] px-6 md:px-8">
                 <div className="flex flex-col items-center text-center space-y-6">
                     {/* タイトル */}
@@ -28,7 +28,7 @@ export default function LandingHero() {
                     <Button
                         onClick={handleCTAClick}
                         size="lg"
-                        className="mt-8 px-8 py-6"
+                        className="mt-4 px-12 py-7 text-lg md:text-xl lg:text-2xl"
                     >
                         lablinkを始める
                     </Button>
