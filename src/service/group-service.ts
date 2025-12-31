@@ -6,12 +6,14 @@ import {
     UserGroup,
     UserGroupRepository,
 } from "@/domain/group";
-import { ServiceError, ServiceLogicError, DBError } from "@/domain/error";
+import { User, UserRepository } from "@/domain/user";
+import { ServiceError, ServiceLogicError } from "@/domain/error";
 
 // 依存関係をまとめた型
 interface GroupServiceDeps {
     groupRepo: GroupRepository;
     userGroupRepo: UserGroupRepository;
+    userRepo: UserRepository;
 }
 
 export interface GroupService {
@@ -37,6 +39,8 @@ export interface GroupService {
     getMemberIdsByGroupId: (
         groupId: string,
     ) => ResultAsync<string[], ServiceError>;
+
+    getGroupMembers: (groupId: string) => ResultAsync<User[], ServiceError>;
 
     deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
 }
@@ -66,6 +70,7 @@ const validateRequiredId = (
 export const createGroupService = ({
     groupRepo,
     userGroupRepo,
+    userRepo,
 }: GroupServiceDeps): GroupService => ({
     createGroupAndAddOwner: (
         userId: string,
@@ -137,6 +142,16 @@ export const createGroupService = ({
         ).andThen(() => {
             return groupRepo.findById(groupId);
         });
+    },
+
+    getGroupMembers: (groupId: string): ResultAsync<User[], ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() => {
+                return userGroupRepo.findUserIdsByGroupId(groupId);
+            })
+            .andThen((userIds) => {
+                return userRepo.findByIds(userIds);
+            });
     },
 
     updateGroupInfo: (
