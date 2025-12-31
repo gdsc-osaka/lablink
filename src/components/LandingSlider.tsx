@@ -49,6 +49,15 @@ const slides: SlideData[] = [
         bgClass: "bg-gradient-to-br from-slate-100 to-slate-200",
         textClass: "text-gray-900",
     },
+    {
+        id: 4,
+        title: "簡単な操作",
+        description: "こちらはスライド3の説明文です。",
+        image: "/screenshots/screenshot3.png",
+        alt: "Easy operation interface",
+        bgClass: "bg-gradient-to-br from-slate-100 to-slate-200",
+        textClass: "text-gray-900",
+    },
 ];
 
 export default function LandingSlider() {
@@ -89,14 +98,14 @@ export default function LandingSlider() {
 
     return (
         <section className="py-12 md:py-16">
-            <div className="container mx-auto max-w-[1200px] px-6 md:px-8">
+            <div className="container mx-auto w-full max-w-none px-6 md:px-8">
                 <Carousel
                     opts={{
                         align: "start",
-                        loop: true,
+                        loop: false,
                     }}
                     setApi={setApi}
-                    className="w-full"
+                    className="w-full overflow-hidden"
                 >
                     <CarouselContent className="-ml-4">
                         {slides.map((slide) => (
@@ -146,8 +155,12 @@ export default function LandingSlider() {
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    {canScrollPrev && <CarouselPrevious />}
-                    {canScrollNext && <CarouselNext />}
+                    {canScrollPrev && (
+                        <CarouselPrevious className="left-2 md:left-4" />
+                    )}
+                    {canScrollNext && (
+                        <CarouselNext className="right-2 md:right-4" />
+                    )}
                 </Carousel>
 
                 {/* Lightbox */}
@@ -174,9 +187,7 @@ export default function LandingSlider() {
                                 className="absolute -top-4 -right-4 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 onClick={() => setLightboxSrc(null)}
                                 aria-label="Close preview"
-                            >
-                                ×
-                            </button>
+                            ></button>
                         </div>
                     </div>
                 )}
