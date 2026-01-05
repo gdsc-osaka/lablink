@@ -1,12 +1,9 @@
-"use server";
-
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authAdmin } from "@/firebase/admin";
 import type { DecodedIdToken } from 'firebase-admin/auth';
 
 //サーバー側で認証チェックする
-//未認証の場合はログインページへリダイレクトする
 export async function requireAuth(): Promise<DecodedIdToken> {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
@@ -23,7 +20,9 @@ export async function requireAuth(): Promise<DecodedIdToken> {
 }
 
 // IDトークンをhttpOnly Cookieに保存
+//クライアントコンポーネントからサーバーアクションとして呼び出す
 export async function setAuthToken(token: string) {
+    "use server";
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
         httpOnly: true,
@@ -35,7 +34,9 @@ export async function setAuthToken(token: string) {
 }
 
 // 認証トークンをCookieから削除
+//クライアントコンポーネントからサーバーアクションとして呼び出す
 export async function removeAuthToken() {
+    "use server";
     const cookieStore = await cookies();
     cookieStore.delete("token");
 }
