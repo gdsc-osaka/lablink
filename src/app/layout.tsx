@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "../provider/AuthProvider";
 import { googleSans, notoSansJP } from "@/lib/font";
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
             style={{ height: "100%" }}
             className={`${googleSans.variable} ${notoSansJP.variable} antialiased`}
         >
-            <body style={{ height: "100%" }}>{children}</body>
+            <body style={{ height: "100%" }}>
+                <AuthProvider>{children}</AuthProvider>
+            </body>
         </html>
     );
 }
