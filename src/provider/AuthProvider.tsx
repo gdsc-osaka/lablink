@@ -1,9 +1,9 @@
-import React, { createContext, useEffect, useState } from "react";
+"use client";
+import React, { createContext, useEffect, useState, useContext } from "react";
 import { onAuthStateChanged, getIdToken, User } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
 import Cookies from "js-cookie";
 
-import { auth, db } from "@/firebase/client";
+import { auth } from "@/firebase/client";
 
 type AuthContextType = {
     user: User | null;
@@ -19,29 +19,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Firestoreにユーザー登録（初回のみ）
-    const createUserIfNotExists = async (user: User) => {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            await setDoc(userRef, {
-                uid: user.uid,
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                createdAt: new Date(),
-            });
-        }
-    };
-
     useEffect(() => {
         // Firebase Authの状態監視
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
-
-                // Firestoreにユーザー情報を登録
-                await createUserIfNotExists(currentUser);
 
                 // Firebase IDトークンをCookieに保存
                 const token = await getIdToken(currentUser, true);
@@ -61,4 +43,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             {!loading && children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    return useContext(AuthContext);
 };
