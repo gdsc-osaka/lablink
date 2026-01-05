@@ -1,7 +1,6 @@
 "use client";
 import React, { createContext, useEffect, useState, useContext } from "react";
-import { onAuthStateChanged, getIdToken, User } from "firebase/auth";
-import Cookies from "js-cookie";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 import { auth } from "@/firebase/client";
 
@@ -21,17 +20,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         // Firebase Authの状態監視
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-
-                // Firebase IDトークンをCookieに保存
-                const token = await getIdToken(currentUser, true);
-                Cookies.set("token", token, { path: "/" });
-            } else {
-                setUser(null);
-                Cookies.remove("token", { path: "/" });
-            }
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
             setLoading(false);
         });
 
