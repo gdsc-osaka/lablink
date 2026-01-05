@@ -9,7 +9,7 @@ import { userRepo } from "@/infra/user/user-repo";
 import { authRepo } from "@/infra/auth/auth-repo";
 import { auth } from "@/firebase/client";
 import { getIdToken } from "firebase/auth";
-import { setAuthToken } from "@/lib/auth/server-auth";
+import { createAuthSession } from "@/lib/auth/server-auth";
 
 const authService = createAuthService(userRepo, authRepo);
 
@@ -22,11 +22,11 @@ export default function LoginPage() {
 
         result.match(
             async () => {
-                // Firebase Authの現在のユーザーからIDトークンを取得してCookieに保存
+                // Firebase Authの現在のユーザーからIDトークンを取得してセッションクッキーを作成
                 const currentUser = auth.currentUser;
                 if (currentUser) {
-                    const token = await getIdToken(currentUser, true);
-                    await setAuthToken(token);
+                    const idToken = await getIdToken(currentUser);
+                    await createAuthSession(idToken);
                 }
 
                 // redirectToが指定されていればそのページへ、なければグループ作成ページへ
