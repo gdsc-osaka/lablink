@@ -10,6 +10,8 @@ export interface EventDraft {
     title: string;
     duration: string;
     timeOfDayCandidate: EventTimeOfDay[];
+    // 優先参加者をカンマ区切りで表す（例: "alice@example.com,bob@example.com"）
+    priorityParticipants?: string;
     description: string;
 }
 
