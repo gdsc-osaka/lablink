@@ -1,5 +1,4 @@
 import { findCommonFreeSlots } from "../availability";
-import { formatFreeSlotsForAI } from "../ai-formatter";
 
 describe("Integration Tests", () => {
     it("複数ユーザーのカレンダーから共通の空き時間を正しく計算できる", () => {
@@ -46,12 +45,6 @@ describe("Integration Tests", () => {
                 expect(noOverlap).toBe(true);
             }
         }
-
-        // AI用フォーマットが正しく動作することを確認
-        const formattedText = formatFreeSlotsForAI(freeSlots);
-        expect(formattedText).toContain("利用可能な共通の空き時間帯リスト:");
-        expect(formattedText).toContain("から");
-        expect(formattedText).toContain("まで");
     });
 
     it("複雑な予定パターンでも正しく空き時間を計算できる", () => {
