@@ -1,3 +1,5 @@
+'use server';
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authAdmin } from "@/firebase/admin";
@@ -6,7 +8,6 @@ import type { DecodedIdToken } from 'firebase-admin/auth';
 // セッションクッキー作成（IDトークンから）
 // クライアントコンポーネントからサーバーアクションとして呼び出す
 export async function createAuthSession(idToken: string) {
-    "use server";
 
     // 14日間有効なセッションクッキーを作成
     const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14日間（ミリ秒）
@@ -49,7 +50,6 @@ export async function requireAuth(): Promise<DecodedIdToken> {
 // セッション削除
 // クライアントコンポーネントからサーバーアクションとして呼び出す
 export async function removeAuthSession() {
-    "use server";
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
 
