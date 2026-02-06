@@ -104,7 +104,7 @@ jobs:
             - name: Create .env.local file
               shell: bash
               run: |
-                  echo "${{ secrets.ENV_LOCAL}}" > .env.local
+                  printf '%s\n' '${{ secrets.ENV_LOCAL }}' > .env.local
 
             - name: Build
               run: pnpm build
