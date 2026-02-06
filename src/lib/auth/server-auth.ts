@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authAdmin } from "@/firebase/admin";
+import { getAuthAdmin } from "@/firebase/admin";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { cache } from "react";
 
@@ -12,9 +12,12 @@ export async function createAuthSession(idToken: string) {
     const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14日間
 
     try {
-        const sessionCookie = await authAdmin.createSessionCookie(idToken, {
-            expiresIn,
-        });
+        const sessionCookie = await getAuthAdmin().createSessionCookie(
+            idToken,
+            {
+                expiresIn,
+            },
+        );
 
         const cookieStore = await cookies();
         cookieStore.set("session", sessionCookie, {
@@ -40,7 +43,7 @@ export const requireAuth = cache(async (): Promise<DecodedIdToken> => {
     }
 
     try {
-        const decodedClaims = await authAdmin.verifySessionCookie(
+        const decodedClaims = await getAuthAdmin().verifySessionCookie(
             sessionCookie,
             true,
         );
@@ -60,7 +63,7 @@ export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
     }
 
     try {
-        const decodedClaims = await authAdmin.verifySessionCookie(
+        const decodedClaims = await getAuthAdmin().verifySessionCookie(
             sessionCookie,
             true,
         );
@@ -80,8 +83,8 @@ export async function removeAuthSession() {
     if (sessionCookie) {
         try {
             const decodedClaims =
-                await authAdmin.verifySessionCookie(sessionCookie);
-            await authAdmin.revokeRefreshTokens(decodedClaims.sub);
+                await getAuthAdmin().verifySessionCookie(sessionCookie);
+            await getAuthAdmin().revokeRefreshTokens(decodedClaims.sub);
         } catch (error) {}
     }
 
