@@ -17,5 +17,3 @@ export const createAuthService = (
             .andThen(createNewUser)
             .andThen(userRepository.create),
 });
-
-
