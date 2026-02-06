@@ -11,7 +11,8 @@ import { Toaster } from "@/components/ui/sonner";
 const CreateGroupPage = () => {
     const [groupName, setGroupName] = useState("");
 
-    const handleSubmit = () => {
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         toast.success("グループを作成しました", { description: groupName });
         // TODO: グループ作成ロジックを実装
         setGroupName("");
