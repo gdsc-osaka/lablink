@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+    - name: Documentation
+      url: https://github.com/Harineko0/yarnie/wiki
+      about: Check the documentation for help
+    - name: Discussions
+      url: https://github.com/Harineko0/yarnie/discussions
+      about: Ask questions and discuss ideas with the community
