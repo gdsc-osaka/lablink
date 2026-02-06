@@ -36,7 +36,7 @@ const CreateGroupPage = () => {
                     className="mb-6 h-10 border border-slate-300 bg-white text-base shadow-inner focus-visible:ring-blue-500"
                     required
                 />
-                <Button
+                <Button type="submit" className="btn-primary">
                     type="submit"
                     className="btn-primary"
                     onClick={() => handleSubmit()}
