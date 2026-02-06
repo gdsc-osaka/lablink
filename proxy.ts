@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 認証が必要なルート（(auth)フォルダ内のルート）
+// 認証が必要なルート
 const protectedRoutes = [
     '/group',
     '/ai-suggest',
@@ -15,14 +15,7 @@ const protectedRoutes = [
 // 公開ルート
 const publicRoutes = ['/', '/login'];
 
-/**
- * Proxy - 楽観的リダイレクトのみ
- *
- * 🚨 CVE-2025-29927 セキュリティ対策：
- * - トークンの検証は行わない（x-middleware-subrequest ヘッダーバイパスを防ぐため）
- * - クッキーの有無のみで判定（高速な楽観的チェック）
- * - セキュアな検証はServer Components/Server Actionsで実施
- */
+// 楽観的チェックのみ行う
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const sessionCookie = request.cookies.get('session');
@@ -42,6 +35,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-    // 静的ファイルと画像を除外
     matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$).*)'],
 };
