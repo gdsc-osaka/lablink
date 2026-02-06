@@ -1,19 +1,20 @@
-'use server';
+"use server";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authAdmin } from "@/firebase/admin";
-import type { DecodedIdToken } from 'firebase-admin/auth';
-import { cache } from 'react';
+import type { DecodedIdToken } from "firebase-admin/auth";
+import { cache } from "react";
 
 // セッションクッキー作成（IDトークンから）
 // CCからServer Actionとして呼び出す
 export async function createAuthSession(idToken: string) {
-
     const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14日間
 
     try {
-        const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn });
+        const sessionCookie = await authAdmin.createSessionCookie(idToken, {
+            expiresIn,
+        });
 
         const cookieStore = await cookies();
         cookieStore.set("session", sessionCookie, {
@@ -39,7 +40,10 @@ export const requireAuth = cache(async (): Promise<DecodedIdToken> => {
     }
 
     try {
-        const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
+        const decodedClaims = await authAdmin.verifySessionCookie(
+            sessionCookie,
+            true,
+        );
         return decodedClaims;
     } catch (error) {
         redirect("/login");
@@ -56,7 +60,10 @@ export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
     }
 
     try {
-        const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
+        const decodedClaims = await authAdmin.verifySessionCookie(
+            sessionCookie,
+            true,
+        );
         return decodedClaims;
     } catch (error) {
         return null;
@@ -72,10 +79,10 @@ export async function removeAuthSession() {
     // セッションを無効化（リフレッシュトークンを取り消し）
     if (sessionCookie) {
         try {
-            const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie);
+            const decodedClaims =
+                await authAdmin.verifySessionCookie(sessionCookie);
             await authAdmin.revokeRefreshTokens(decodedClaims.sub);
-        } catch (error) {
-        }
+        } catch (error) {}
     }
 
     cookieStore.delete("session");
