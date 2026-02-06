@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authAdmin } from "@/firebase/admin";
 import type { DecodedIdToken } from 'firebase-admin/auth';
+import { cache } from 'react';
 
 // セッションクッキー作成（IDトークンから）
-// クライアントコンポーネントからサーバーアクションとして呼び出す
+// CCからServer Actionとして呼び出す
 export async function createAuthSession(idToken: string) {
 
-    // 14日間有効なセッションクッキーを作成
-    const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14日間（ミリ秒）
+    const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14日間
 
     try {
         const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn });
@@ -21,7 +21,7 @@ export async function createAuthSession(idToken: string) {
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             path: "/",
-            maxAge: expiresIn / 1000, // 秒に変換
+            maxAge: expiresIn / 1000,
         });
     } catch (error) {
         throw new Error("Failed to create session");
@@ -30,7 +30,7 @@ export async function createAuthSession(idToken: string) {
 
 // サーバー側で認証チェックする
 // 未認証の場合はログインページへリダイレクトする
-export async function requireAuth(): Promise<DecodedIdToken> {
+export const requireAuth = cache(async (): Promise<DecodedIdToken> => {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
 
@@ -39,16 +39,32 @@ export async function requireAuth(): Promise<DecodedIdToken> {
     }
 
     try {
-        // セッションクッキーを検証（checkRevoked: true で無効化されたトークンを拒否）
         const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
         return decodedClaims;
     } catch (error) {
         redirect("/login");
     }
-}
+});
+
+// セッション取得（リダイレクトなし）
+export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("session")?.value;
+
+    if (!sessionCookie) {
+        return null;
+    }
+
+    try {
+        const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
+        return decodedClaims;
+    } catch (error) {
+        return null;
+    }
+});
 
 // セッション削除
-// クライアントコンポーネントからサーバーアクションとして呼び出す
+// CCからServer Actionとして呼び出す
 export async function removeAuthSession() {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
@@ -59,7 +75,6 @@ export async function removeAuthSession() {
             const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie);
             await authAdmin.revokeRefreshTokens(decodedClaims.sub);
         } catch (error) {
-            // エラーは無視（既に無効なセッションの可能性）
         }
     }
 
