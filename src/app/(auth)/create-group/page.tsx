@@ -38,10 +38,6 @@ const CreateGroupPage = () => {
                     required
                 />
                 <Button type="submit" className="btn-primary">
-                    type="submit"
-                    className="btn-primary"
-                    onClick={() => handleSubmit()}
-                >
                     作成
                 </Button>
             </form>
