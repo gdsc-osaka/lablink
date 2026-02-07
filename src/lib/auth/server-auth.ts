@@ -28,7 +28,12 @@ export async function createAuthSession(idToken: string) {
             maxAge: expiresIn / 1000,
         });
     } catch (error) {
-        throw new Error("Failed to create session");
+        const message =
+            error instanceof Error ? error.message : String(error);
+        console.error("Failed to create session:", message);
+        throw new Error(`Failed to create session: ${message}`, {
+            cause: error,
+        });
     }
 }
 
