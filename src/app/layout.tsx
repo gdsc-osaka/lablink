@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../provider/AuthProvider";
 import { googleSans, notoSansJP } from "@/lib/font";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
     title: "lablink",
@@ -21,6 +22,7 @@ export default function RootLayout({
         >
             <body style={{ height: "100%" }}>
                 <AuthProvider>{children}</AuthProvider>
+                <Toaster />
             </body>
         </html>
     );
