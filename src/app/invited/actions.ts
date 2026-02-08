@@ -13,17 +13,19 @@ import { cookies } from "next/headers";
 export async function acceptGroupInvitation(
     token: string,
 ): Promise<{ success: boolean; groupId?: string; error?: string }> {
-
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
-    
+
     if (!sessionCookie) {
         return { success: false, error: "ログインしてください" };
     }
 
     let userId: string;
     try {
-        const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
+        const decodedClaims = await authAdmin.verifySessionCookie(
+            sessionCookie,
+            true,
+        );
         userId = decodedClaims.uid;
     } catch (error) {
         return { success: false, error: "認証に失敗しました" };

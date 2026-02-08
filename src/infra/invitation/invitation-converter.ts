@@ -17,7 +17,9 @@ export const invitationConverter: FirestoreDataConverter<Invitation> = {
             token: modelObject.token,
             createdAt: toTimestamp(modelObject.createdAt),
             expiresAt: toTimestamp(modelObject.expiresAt),
-            ...(modelObject.usedAt && { usedAt: toTimestamp(modelObject.usedAt) }),
+            ...(modelObject.usedAt && {
+                usedAt: toTimestamp(modelObject.usedAt),
+            }),
             ...(modelObject.usedBy && { usedBy: modelObject.usedBy }),
         };
     },

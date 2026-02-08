@@ -140,9 +140,11 @@ async function GroupInvitationScreenContent({
     );
 }
 
-export default async function GroupInvitationScreen({ searchParams }: PageProps) {
+export default async function GroupInvitationScreen({
+    searchParams,
+}: PageProps) {
     const params = await searchParams;
-    
+
     return (
         <Suspense
             fallback={

@@ -40,9 +40,7 @@ export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
     return (
         <div>
             {error && (
-                <p className="text-red-600 text-sm mb-4 text-center">
-                    {error}
-                </p>
+                <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
             )}
             <div className="flex justify-between gap-12">
                 <Button
