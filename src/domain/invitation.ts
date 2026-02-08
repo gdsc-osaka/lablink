@@ -12,4 +12,5 @@ export interface Invitation {
 export interface InvitationRepository {
     create(invitation: Invitation): ResultAsync<Invitation, DBError>;
     findByToken(token: string): ResultAsync<Invitation, DBError>;
+    delete(invitationId: string): ResultAsync<void, DBError>;
 }

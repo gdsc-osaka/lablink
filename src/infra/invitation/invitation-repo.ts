@@ -8,6 +8,7 @@ import {
     query,
     setDoc,
     where,
+    deleteDoc,
 } from "firebase/firestore";
 import { invitationConverter } from "@/infra/invitation/invitation-converter";
 import { handleFirestoreError } from "@/infra/error";
@@ -36,4 +37,9 @@ export const invitationRepo: InvitationRepository = {
                     ? errAsync(NotFoundError("Invitation not found"))
                     : okAsync(data),
             ),
+    delete: (invitationId) =>
+        ResultAsync.fromPromise(
+            deleteDoc(invitationRef(invitationId)),
+            handleFirestoreError,
+        ).map(() => undefined),
 };
