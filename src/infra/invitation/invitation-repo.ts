@@ -9,6 +9,8 @@ import {
     setDoc,
     where,
     deleteDoc,
+    updateDoc,
+    serverTimestamp,
 } from "firebase/firestore";
 import { invitationConverter } from "@/infra/invitation/invitation-converter";
 import { handleFirestoreError } from "@/infra/error";
@@ -37,6 +39,14 @@ export const invitationRepo: InvitationRepository = {
                     ? errAsync(NotFoundError("Invitation not found"))
                     : okAsync(data),
             ),
+    markAsUsed: (invitationId, userId) =>
+        ResultAsync.fromPromise(
+            updateDoc(invitationRef(invitationId), {
+                usedAt: serverTimestamp(),
+                usedBy: userId,
+            }),
+            handleFirestoreError,
+        ).map(() => undefined),
     delete: (invitationId) =>
         ResultAsync.fromPromise(
             deleteDoc(invitationRef(invitationId)),
