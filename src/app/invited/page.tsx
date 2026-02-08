@@ -133,7 +133,7 @@ async function GroupInvitationScreenContent({
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <InvitationButtons token={token} userId={userId} />
+                    <InvitationButtons token={token}/>
                 </CardContent>
             </Card>
         </div>

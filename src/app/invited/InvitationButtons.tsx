@@ -7,12 +7,10 @@ import { acceptGroupInvitation, declineGroupInvitation } from "./actions";
 
 interface InvitationButtonsProps {
     token: string;
-    userId: string;
 }
 
 export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
     token,
-    userId,
 }) => {
     const router = useRouter();
     const [isAccepting, setIsAccepting] = useState(false);
