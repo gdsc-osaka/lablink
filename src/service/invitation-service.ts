@@ -50,6 +50,12 @@ export function createInvitationService(
                     ExpiredError("招待リンクの有効期限が切れています"),
                 );
             }
+            // 使用済みの場合もエラー
+            if (invitation.usedAt) {
+                return errAsync(
+                    ExpiredError("この招待リンクは既に使用されています"),
+                );
+            }
             return okAsync(invitation);
         });
     };
@@ -77,11 +83,14 @@ export function createInvitationService(
         },
 
         acceptInvitation: (token, userId) => {
+            let invitationId: string;
+
             return validateInvitation(token)
-                .andThen((invitation) =>
+                .andThen((invitation) => {
+                    invitationId = invitation.id;
                     // グループ情報を取得
-                    groupRepo.findById(invitation.groupId),
-                )
+                    return groupRepo.findById(invitation.groupId);
+                })
                 .andThen((group) => {
                     // メンバーを追加
                     const membership: UserGroup = {
@@ -93,6 +102,12 @@ export function createInvitationService(
 
                     return userGroupRepo
                         .addMember(membership, group)
+                        .map(() => group);
+                })
+                .andThen((group) => {
+                    // 招待を使用済みにマーク
+                    return invitationRepo
+                        .markAsUsed(invitationId, userId)
                         .map(() => group);
                 });
         },
