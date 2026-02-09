@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import MemberMenuModal, { MenuPosition } from "./member-menu-modal";
+import RemoveMemberConfirmModal from "./remove-member-confirm-modal";
 
 //このあたりの型定義はdomain/user.ts実装後変更予定
 // メンバーとグループのデータ型を定義
@@ -27,6 +28,9 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     const router = useRouter();
     const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
     const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [selectedMemberForRemoval, setSelectedMemberForRemoval] =
+        useState<Member | null>(null);
 
     const handleInviteClick = () => {
         router.push(`/invite?groupId=${group.id}`);
@@ -47,6 +51,29 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     const handleCloseMenu = () => {
         setActiveMemberId(null);
         setMenuPosition(null);
+    };
+
+    const handleRemoveClick = () => {
+        const memberToRemove = group.members.find(
+            (m) => m.id === activeMemberId,
+        );
+        if (memberToRemove) {
+            setSelectedMemberForRemoval(memberToRemove);
+            setConfirmModalOpen(true);
+        }
+    };
+
+    const handleCloseConfirmModal = () => {
+        setConfirmModalOpen(false);
+        setSelectedMemberForRemoval(null);
+    };
+
+    const handleConfirmRemoval = async () => {
+        // TODO: 削除処理をここに実装
+        console.log(
+            `Removing member: ${selectedMemberForRemoval?.name}`,
+        );
+        handleCloseConfirmModal();
     };
 
     return (
@@ -89,7 +116,17 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                 isOpen={Boolean(activeMemberId)}
                 position={menuPosition}
                 onClose={handleCloseMenu}
+                onRemoveClick={handleRemoveClick}
             />
+            {selectedMemberForRemoval && (
+                <RemoveMemberConfirmModal
+                    isOpen={confirmModalOpen}
+                    memberName={selectedMemberForRemoval.name}
+                    isCurrentUser={false}
+                    onConfirm={handleConfirmRemoval}
+                    onCancel={handleCloseConfirmModal}
+                />
+            )}
             <button
                 onClick={handleInviteClick}
                 className="mt-6 py-2.5 px-5 rounded bg-blue-500 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors"
