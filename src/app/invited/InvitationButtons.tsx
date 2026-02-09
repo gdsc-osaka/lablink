@@ -20,12 +20,17 @@ export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
         setIsAccepting(true);
         setError(null);
 
-        const response = await acceptGroupInvitation(token);
+        try {
+            const response = await acceptGroupInvitation(token);
 
-        if (response.success && response.groupId) {
-            router.push(`/group?id=${response.groupId}`);
-        } else {
-            setError(response.error || "参加に失敗しました");
+            if (response.success && response.groupId) {
+                router.push(`/group?id=${response.groupId}`);
+            } else {
+                setError(response.error || "参加に失敗しました");
+                setIsAccepting(false);
+            }
+        } catch (error) {
+            setError("予期しないエラーが発生しました");
             setIsAccepting(false);
         }
     };
