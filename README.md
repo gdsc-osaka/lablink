@@ -4,16 +4,16 @@
 
 ## 技術スタック
 
-| カテゴリ | 技術 |
-| --- | --- |
-| フレームワーク | Next.js 16 (App Router, Turbopack) |
-| 言語 | TypeScript 5 |
-| UI | shadcn/ui + Tailwind CSS v4 |
-| 認証 | Firebase Authentication (Google ログイン) |
-| データベース | Cloud Firestore |
-| テスト | Vitest |
-| デプロイ | Firebase App Hosting |
-| CI | GitHub Actions |
+| カテゴリ       | 技術                                      |
+| -------------- | ----------------------------------------- |
+| フレームワーク | Next.js 16 (App Router, Turbopack)        |
+| 言語           | TypeScript 5                              |
+| UI             | shadcn/ui + Tailwind CSS v4               |
+| 認証           | Firebase Authentication (Google ログイン) |
+| データベース   | Cloud Firestore                           |
+| テスト         | Vitest                                    |
+| デプロイ       | Firebase App Hosting                      |
+| CI             | GitHub Actions                            |
 
 ## セットアップ
 
@@ -61,16 +61,16 @@ pnpm dev
 
 ## コマンド一覧
 
-| コマンド | 説明 |
-| --- | --- |
-| `pnpm dev` | 開発サーバーを起動 (Turbopack) |
-| `pnpm build` | プロダクションビルド |
-| `pnpm start` | ビルド済みアプリを起動 |
-| `pnpm lint` | ESLint + Prettier のチェック |
-| `pnpm fix` | ESLint + Prettier の自動修正 |
-| `pnpm test` | テストを実行 |
-| `pnpm test:watch` | テストをウォッチモードで実行 |
-| `pnpm test:coverage` | カバレッジ付きでテストを実行 |
+| コマンド             | 説明                           |
+| -------------------- | ------------------------------ |
+| `pnpm dev`           | 開発サーバーを起動 (Turbopack) |
+| `pnpm build`         | プロダクションビルド           |
+| `pnpm start`         | ビルド済みアプリを起動         |
+| `pnpm lint`          | ESLint + Prettier のチェック   |
+| `pnpm fix`           | ESLint + Prettier の自動修正   |
+| `pnpm test`          | テストを実行                   |
+| `pnpm test:watch`    | テストをウォッチモードで実行   |
+| `pnpm test:coverage` | カバレッジ付きでテストを実行   |
 
 ## プロジェクト構成
 
