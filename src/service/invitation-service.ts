@@ -83,32 +83,20 @@ export function createInvitationService(
         },
 
         acceptInvitation: (token, userId) => {
-            let invitationId: string;
-
             return validateInvitation(token)
                 .andThen((invitation) => {
-                    invitationId = invitation.id;
-                    // グループ情報を取得
-                    return groupRepo.findById(invitation.groupId);
-                })
-                .andThen((group) => {
-                    // メンバーを追加
-                    const membership: UserGroup = {
-                        groupId: group.id,
-                        userId,
-                        role: "member",
-                        joinedAt: new Date(),
-                    };
-
-                    return userGroupRepo
-                        .addMember(membership, group)
-                        .map(() => group);
-                })
-                .andThen((group) => {
-                    // 招待を使用済みにマーク
+                    // トランザクションで招待受け入れ + メンバー追加を原子的に実行
                     return invitationRepo
-                        .markAsUsed(invitationId, userId)
-                        .map(() => group);
+                        .acceptInvitationTransaction(
+                            invitation.id,
+                            userId,
+                            invitation.groupId,
+                        )
+                        .map(() => invitation.groupId);
+                })
+                .andThen((groupId) => {
+                    // グループ情報を取得して返す
+                    return groupRepo.findById(groupId);
                 });
         },
     };

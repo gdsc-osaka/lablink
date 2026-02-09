@@ -40,7 +40,7 @@ export async function acceptGroupInvitation(
 
     return result.match(
         (group) => {
-            // 招待が使用済みにマークされる（invitationRepo.markAsUsed で自動実行）
+            // Transaction で招待の使用済みマークとメンバー追加が完了
             return { success: true, groupId: group.id };
         },
         (err) => ({ success: false, error: err.message }),
