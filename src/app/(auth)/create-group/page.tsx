@@ -1,18 +1,19 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 const CreateGroupPage = () => {
     const [groupName, setGroupName] = useState("");
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // TODO:Toasterの使い方が分からず断念
-        console.log("グループが作成されました:", { groupName });
+        toast.success("グループを作成しました", { description: groupName });
+        // TODO: グループ作成ロジックを実装
+        setGroupName("");
     };
 
     return (

@@ -1,18 +1,20 @@
 // /src/firebase/admin.ts
 import admin from "firebase-admin";
 
-const serviceAccount: admin.ServiceAccount = {
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-};
+function getFirebaseApp(): admin.app.App {
+    if (admin.apps.length) {
+        return admin.apps[0]!;
+    }
 
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+    return admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        }),
     });
 }
 
-const authAdmin = admin.auth();
-
-export { authAdmin };
+export function getAuthAdmin(): admin.auth.Auth {
+    return getFirebaseApp().auth();
+}
