@@ -6,9 +6,11 @@ import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { firestoreGroupRepository } from "@/infra/group/group-repo";
 import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
-import { authAdmin } from "@/firebase/admin";
+import { getAuthAdmin } from "@/firebase/admin";
 import { cookies } from "next/headers";
 import { InvitationButtons } from "./InvitationButtons";
+import type { Group } from "@/domain/group";
+import type { InvitationError } from "@/domain/error";
 
 interface PageProps {
     searchParams: Promise<{ token?: string }>;
@@ -52,6 +54,7 @@ async function GroupInvitationScreenContent({
     let userId: string | null = null;
     if (sessionCookie) {
         try {
+            const authAdmin = getAuthAdmin();
             const decodedClaims = await authAdmin.verifySessionCookie(
                 sessionCookie,
                 true,
@@ -96,8 +99,8 @@ async function GroupInvitationScreenContent({
     const result = await invitationService.getGroupByToken(token);
 
     const groupOrError = result.match(
-        (group) => ({ group, error: null }),
-        (err) => ({ group: null, error: err.message }),
+        (group: Group) => ({ group, error: null }),
+        (err: InvitationError) => ({ group: null, error: err.message }),
     );
 
     if (groupOrError.error || !groupOrError.group) {
