@@ -23,7 +23,6 @@ function InvitePageContent() {
             createInvitationService(
                 invitationRepo,
                 firestoreGroupRepository,
-                firestoreUserGroupRepository,
             ),
         [],
     );
