@@ -1,8 +1,6 @@
 "use server";
 
-import { createInvitationService } from "@/service/invitation-service";
-import { invitationRepo } from "@/infra/invitation/invitation-repo";
-import { firestoreGroupRepository } from "@/infra/group/group-repo";
+import { invitationService } from "@/service/invitation-service";
 import { getAuthAdmin } from "@/firebase/admin";
 import { cookies } from "next/headers";
 
@@ -30,12 +28,8 @@ export async function acceptGroupInvitation(
     } catch (error) {
         return { success: false, error: "認証に失敗しました" };
     }
-    const service = createInvitationService(
-        invitationRepo,
-        firestoreGroupRepository,
-    );
 
-    const result = await service.acceptInvitation(token, userId);
+    const result = await invitationService.acceptInvitation(token, userId);
 
     return result.match(
         (group) => {

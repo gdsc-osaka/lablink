@@ -8,6 +8,8 @@ import {
     UnknownError,
 } from "@/domain/error";
 import { Group, GroupRepository } from "@/domain/group";
+import { invitationRepo } from "@/infra/invitation/invitation-repo";
+import { firestoreGroupRepository } from "@/infra/group/group-repo";
 
 export interface InvitationService {
     // 招待を作成
@@ -95,3 +97,8 @@ export function createInvitationService(
         },
     };
 }
+
+export const invitationService = createInvitationService(
+    invitationRepo,
+    firestoreGroupRepository,
+);
