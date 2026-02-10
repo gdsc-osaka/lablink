@@ -82,7 +82,9 @@ async function GroupInvitationScreenContent({
                             className="w-full"
                             asChild
                         >
-                            <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}>
+                            <Link
+                                href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
+                            >
                                 ログインする
                             </Link>
                         </Button>
@@ -113,7 +115,8 @@ async function GroupInvitationScreenContent({
                 <Card className="w-[500px] bg-gray-200">
                     <CardHeader className="items-center justify-center text-center">
                         <CardTitle className="text-2xl font-normal text-red-600">
-                            {groupOrError.error || "招待情報を読み込めませんでした"}
+                            {groupOrError.error ||
+                                "招待情報を読み込めませんでした"}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
