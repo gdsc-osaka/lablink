@@ -66,6 +66,7 @@ async function GroupInvitationScreenContent({
     }
 
     if (!userId) {
+        const redirectUrl = `/invited?token=${token}`;
         return (
             <div className="flex justify-center items-center min-h-screen bg-white">
                 <Card className="w-[500px] bg-gray-200">
@@ -81,8 +82,11 @@ async function GroupInvitationScreenContent({
                             className="w-full"
                             asChild
                         >
-                            <Link href="/login">ログインする</Link>
+                            <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}>
+                                ログインする
+                            </Link>
                         </Button>
+                        {/* TODO: ログイン Server Action が実装されたら、ログインページで redirect パラメータを処理してリダイレクト機能を完成させる */}
                     </CardContent>
                 </Card>
             </div>
