@@ -77,11 +77,7 @@ export const invitationRepo: InvitationRepository = {
                 });
 
                 // 5. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
-                const userGroupRef = doc(
-                    db,
-                    `users/${userId}/groups`,
-                    groupId,
-                );
+                const userGroupRef = doc(db, `users/${userId}/groups`, groupId);
                 transaction.set(userGroupRef, {
                     groupId,
                     role: "member",
