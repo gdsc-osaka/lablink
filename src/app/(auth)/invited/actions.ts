@@ -4,7 +4,7 @@ import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { firestoreGroupRepository } from "@/infra/group/group-repo";
 import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
-import { authAdmin } from "@/firebase/admin";
+import { getAuthAdmin } from "@/firebase/admin";
 import { cookies } from "next/headers";
 
 /**
@@ -22,6 +22,7 @@ export async function acceptGroupInvitation(
 
     let userId: string;
     try {
+        const authAdmin = getAuthAdmin();
         const decodedClaims = await authAdmin.verifySessionCookie(
             sessionCookie,
             true,
