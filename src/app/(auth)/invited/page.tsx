@@ -5,9 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { firestoreGroupRepository } from "@/infra/group/group-repo";
-import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
-import { getAuthAdmin } from "@/firebase/admin";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth/server-auth";
 import { InvitationButtons } from "./InvitationButtons";
 import type { Group } from "@/domain/group";
 import type { InvitationError } from "@/domain/error";
@@ -41,54 +39,6 @@ async function GroupInvitationScreenContent({
                         >
                             <Link href="/">ホームに戻る</Link>
                         </Button>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    // 認証情報の取得
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
-
-    let userId: string | null = null;
-    if (sessionCookie) {
-        try {
-            const authAdmin = getAuthAdmin();
-            const decodedClaims = await authAdmin.verifySessionCookie(
-                sessionCookie,
-                true,
-            );
-            userId = decodedClaims.uid;
-        } catch (error) {
-            console.error("Session verification failed:", error);
-        }
-    }
-
-    if (!userId) {
-        const redirectUrl = `/invited?token=${token}`;
-        return (
-            <div className="flex justify-center items-center min-h-screen bg-white">
-                <Card className="w-[500px] bg-gray-200">
-                    <CardHeader className="items-center justify-center text-center">
-                        <CardTitle className="text-2xl font-normal text-red-600">
-                            ログインが必要です
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            className="w-full"
-                            asChild
-                        >
-                            <Link
-                                href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
-                            >
-                                ログインする
-                            </Link>
-                        </Button>
-                        {/* TODO: ログイン Server Action が実装されたら、ログインページで redirect パラメータを処理してリダイレクト機能を完成させる */}
                     </CardContent>
                 </Card>
             </div>
@@ -152,6 +102,9 @@ async function GroupInvitationScreenContent({
 export default async function GroupInvitationScreen({
     searchParams,
 }: PageProps) {
+    // tokenが存在する場合に、requireAuth()へ渡してログイン時に招待ページへ戻るようにする
+    await requireAuth(searchParams);
+
     return (
         <Suspense
             fallback={

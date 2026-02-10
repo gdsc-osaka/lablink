@@ -38,24 +38,35 @@ export async function createAuthSession(idToken: string) {
 
 // サーバー側で認証チェックする
 // 未認証の場合はログインページへリダイレクトする
-export const requireAuth = cache(async (): Promise<DecodedIdToken> => {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
+// searchParamsが渡された場合（例: invitedページからの呼び出し）、tokenをリダイレクト先に引き継ぐ
+export const requireAuth = cache(
+    async (searchParams?: { token?: string }): Promise<DecodedIdToken> => {
+        const cookieStore = await cookies();
+        const sessionCookie = cookieStore.get("session")?.value;
 
-    if (!sessionCookie) {
-        redirect("/login");
-    }
+        if (!sessionCookie) {
+            // tokenが存在する場合は、ログイン後に招待ページへ戻るようにリダイレクト先を指定
+            const redirectUrl = searchParams?.token
+                ? `/login?redirectTo=${encodeURIComponent(`/invited?token=${searchParams.token}`)}`
+                : "/login";
+            redirect(redirectUrl);
+        }
 
-    try {
-        const decodedClaims = await getAuthAdmin().verifySessionCookie(
-            sessionCookie,
-            true,
-        );
-        return decodedClaims;
-    } catch (error) {
-        redirect("/login");
-    }
-});
+        try {
+            const decodedClaims = await getAuthAdmin().verifySessionCookie(
+                sessionCookie,
+                true,
+            );
+            return decodedClaims;
+        } catch (error) {
+            // tokenが存在する場合は、ログイン後に招待ページへ戻るようにリダイレクト先を指定
+            const redirectUrl = searchParams?.token
+                ? `/login?redirectTo=${encodeURIComponent(`/invited?token=${searchParams.token}`)}`
+                : "/login";
+            redirect(redirectUrl);
+        }
+    },
+);
 
 // セッション取得（リダイレクトなし）
 export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
