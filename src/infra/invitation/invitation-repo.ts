@@ -69,20 +69,34 @@ export const invitationRepo: InvitationRepository = {
                 });
 
                 // 4. グループにメンバー追加 (groups/{groupId}/users/{userId})
+                // 既存メンバーシップがあるかチェック（管理者の降格を防止）
                 const groupUserRef = doc(db, `groups/${groupId}/users`, userId);
-                transaction.set(groupUserRef, {
-                    userId,
-                    role: "member",
-                    joinedAt: serverTimestamp(),
-                });
+                const groupUserSnap = await transaction.get(groupUserRef);
+
+                if (!groupUserSnap.exists()) {
+                    // 新規メンバーの場合のみ追加
+                    transaction.set(groupUserRef, {
+                        userId,
+                        role: "member",
+                        joinedAt: serverTimestamp(),
+                    });
+                }
+                // 既に存在する場合は何もしない（既存の role を保持）
 
                 // 5. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
+                // 既存メンバーシップがあるかチェック
                 const userGroupRef = doc(db, `users/${userId}/groups`, groupId);
-                transaction.set(userGroupRef, {
-                    groupId,
-                    role: "member",
-                    joinedAt: serverTimestamp(),
-                });
+                const userGroupSnap = await transaction.get(userGroupRef);
+
+                if (!userGroupSnap.exists()) {
+                    // 新規メンバーの場合のみ追加
+                    transaction.set(userGroupRef, {
+                        groupId,
+                        role: "member",
+                        joinedAt: serverTimestamp(),
+                    });
+                }
+                // 既に存在する場合は何もしない（既存の role を保持）
             }),
             handleFirestoreError,
         ).map(() => undefined),
