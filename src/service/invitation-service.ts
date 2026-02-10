@@ -7,10 +7,7 @@ import {
     NotFoundError,
     UnknownError,
 } from "@/domain/error";
-import {
-    Group,
-    GroupRepository,
-} from "@/domain/group";
+import { Group, GroupRepository } from "@/domain/group";
 
 export interface InvitationService {
     // 招待を作成
