@@ -13,7 +13,7 @@ import type { Group } from "@/domain/group";
 import type { InvitationError } from "@/domain/error";
 
 interface PageProps {
-    searchParams: Promise<{ token?: string }>;
+    searchParams: { token?: string };
 }
 
 async function GroupInvitationScreenContent({
@@ -99,7 +99,6 @@ async function GroupInvitationScreenContent({
     const invitationService = createInvitationService(
         invitationRepo,
         firestoreGroupRepository,
-        firestoreUserGroupRepository,
     );
 
     const result = await invitationService.getGroupByToken(token);
@@ -153,8 +152,6 @@ async function GroupInvitationScreenContent({
 export default async function GroupInvitationScreen({
     searchParams,
 }: PageProps) {
-    const params = await searchParams;
-
     return (
         <Suspense
             fallback={
@@ -163,7 +160,7 @@ export default async function GroupInvitationScreen({
                 </div>
             }
         >
-            <GroupInvitationScreenContent searchParams={params} />
+            <GroupInvitationScreenContent searchParams={searchParams} />
         </Suspense>
     );
 }

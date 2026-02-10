@@ -10,8 +10,6 @@ import {
 import {
     Group,
     GroupRepository,
-    UserGroup,
-    UserGroupRepository,
 } from "@/domain/group";
 
 export interface InvitationService {
@@ -41,7 +39,6 @@ function generateToken(): string {
 export function createInvitationService(
     invitationRepo: InvitationRepository,
     groupRepo: GroupRepository,
-    userGroupRepo: UserGroupRepository,
 ): InvitationService {
     const validateInvitation = (token: string) => {
         return invitationRepo.findByToken(token).andThen((invitation) => {

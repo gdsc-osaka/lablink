@@ -3,7 +3,6 @@
 import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { firestoreGroupRepository } from "@/infra/group/group-repo";
-import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
 import { getAuthAdmin } from "@/firebase/admin";
 import { cookies } from "next/headers";
 
@@ -34,7 +33,6 @@ export async function acceptGroupInvitation(
     const service = createInvitationService(
         invitationRepo,
         firestoreGroupRepository,
-        firestoreUserGroupRepository,
     );
 
     const result = await service.acceptInvitation(token, userId);
