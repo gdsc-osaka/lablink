@@ -19,11 +19,7 @@ function InvitePageContent() {
 
     // Service層を経由してアクセス
     const invitationService = useMemo(
-        () =>
-            createInvitationService(
-                invitationRepo,
-                firestoreGroupRepository,
-            ),
+        () => createInvitationService(invitationRepo, firestoreGroupRepository),
         [],
     );
 
