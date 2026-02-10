@@ -11,10 +11,13 @@ import {
     deleteDoc,
     serverTimestamp,
     runTransaction,
+    Timestamp,
 } from "firebase/firestore";
 import { invitationConverter } from "@/infra/invitation/invitation-converter";
+import { groupConverter } from "@/infra/group/group-converter";
 import { handleFirestoreError } from "@/infra/error";
 import { NotFoundError } from "@/domain/error";
+import type { UserGroupIndexData } from "@/infra/group/group-repo";
 
 const invitationsRef = collection(db, "invitations").withConverter(
     invitationConverter,
@@ -62,13 +65,25 @@ export const invitationRepo: InvitationRepository = {
                     throw new Error("この招待リンクは既に使用されています");
                 }
 
-                // 3. 招待を使用済みにマーク
+                // 3. グループドキュメントを取得（users/{userId}/groups/{groupId} のインデックス作成用）
+                const groupDocRef = doc(db, "groups", groupId).withConverter(
+                    groupConverter,
+                );
+                const groupSnap = await transaction.get(groupDocRef);
+
+                if (!groupSnap.exists()) {
+                    throw new Error("グループが見つかりません");
+                }
+
+                const groupData = groupSnap.data();
+
+                // 4. 招待を使用済みにマーク
                 transaction.update(invitationDocRef, {
                     usedAt: serverTimestamp(),
                     usedBy: userId,
                 });
 
-                // 4. グループにメンバー追加 (groups/{groupId}/users/{userId})
+                // 5. グループにメンバー追加 (groups/{groupId}/users/{userId})
                 // 既存メンバーシップがあるかチェック（管理者の降格を防止）
                 const groupUserRef = doc(db, `groups/${groupId}/users`, userId);
                 const groupUserSnap = await transaction.get(groupUserRef);
@@ -83,18 +98,21 @@ export const invitationRepo: InvitationRepository = {
                 }
                 // 既に存在する場合は何もしない（既存の role を保持）
 
-                // 5. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
+                // 6. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
                 // 既存メンバーシップがあるかチェック
                 const userGroupRef = doc(db, `users/${userId}/groups`, groupId);
                 const userGroupSnap = await transaction.get(userGroupRef);
 
                 if (!userGroupSnap.exists()) {
                     // 新規メンバーの場合のみ追加
-                    transaction.set(userGroupRef, {
-                        groupId,
-                        role: "member",
+                    // 既存の addMember と同じ形式で書き込む（groupConverter で読み取れる形式）
+                    const userGroupIndexData: UserGroupIndexData = {
+                        ...groupData,
+                        createdAt: Timestamp.fromDate(groupData.createdAt),
+                        updatedAt: Timestamp.fromDate(groupData.updatedAt),
                         joinedAt: serverTimestamp(),
-                    });
+                    };
+                    transaction.set(userGroupRef, userGroupIndexData);
                 }
                 // 既に存在する場合は何もしない（既存の role を保持）
             }),
