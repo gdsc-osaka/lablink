@@ -9,7 +9,7 @@ import {
 } from "@/domain/error";
 import { Group, GroupRepository } from "@/domain/group";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
-import { firestoreGroupRepository } from "@/infra/group/group-repo";
+import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 
 export interface InvitationService {
     // 招待を作成
@@ -100,5 +100,5 @@ export function createInvitationService(
 
 export const invitationService = createInvitationService(
     invitationRepo,
-    firestoreGroupRepository,
+    firestoreGroupAdminRepository,
 );

@@ -1,64 +1,79 @@
-import { InvitationRepository } from "@/domain/invitation";
+import { Invitation, InvitationRepository } from "@/domain/invitation";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
-import { db } from "@/firebase/client";
-import {
-    collection,
-    doc,
-    getDocs,
-    query,
-    setDoc,
-    where,
-    deleteDoc,
-    serverTimestamp,
-    runTransaction,
-    Timestamp,
-} from "firebase/firestore";
-import { invitationConverter } from "@/infra/invitation/invitation-converter";
-import { groupConverter } from "@/infra/group/group-converter";
-import { handleFirestoreError } from "@/infra/error";
+import { getFirestoreAdmin } from "@/firebase/admin";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { handleAdminError } from "@/infra/error-admin";
 import { NotFoundError } from "@/domain/error";
-import type { UserGroupIndexData } from "@/infra/group/group-repo";
 
-const invitationsRef = collection(db, "invitations").withConverter(
-    invitationConverter,
-);
-const invitationRef = (id: string) =>
-    doc(db, "invitations", id).withConverter(invitationConverter);
+const db = getFirestoreAdmin();
+const invitationsRef = db.collection("invitations");
+const invitationRef = (id: string) => invitationsRef.doc(id);
+
+const toInvitationData = (invitation: Invitation) => {
+    return {
+        groupId: invitation.groupId,
+        token: invitation.token,
+        createdAt: Timestamp.fromDate(invitation.createdAt),
+        expiresAt: Timestamp.fromDate(invitation.expiresAt),
+        ...(invitation.usedAt && {
+            usedAt: Timestamp.fromDate(invitation.usedAt),
+        }),
+        ...(invitation.usedBy && { usedBy: invitation.usedBy }),
+    };
+};
+
+const fromInvitationDoc = (
+    doc: FirebaseFirestore.QueryDocumentSnapshot,
+): Invitation => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        groupId: data.groupId,
+        token: data.token,
+        createdAt: data.createdAt.toDate(),
+        expiresAt: data.expiresAt.toDate(),
+        usedAt: data.usedAt ? data.usedAt.toDate() : undefined,
+        usedBy: data.usedBy,
+    };
+};
 
 export const invitationRepo: InvitationRepository = {
     create: (invitation) =>
         ResultAsync.fromPromise(
-            setDoc(invitationRef(invitation.id), invitation),
-            handleFirestoreError,
+            invitationRef(invitation.id).set(toInvitationData(invitation)),
+            handleAdminError,
         ).map(() => invitation),
     findByToken: (token) =>
         ResultAsync.fromPromise(
-            getDocs(query(invitationsRef, where("token", "==", token))),
-            handleFirestoreError,
+            invitationsRef.where("token", "==", token).get(),
+            handleAdminError,
         )
-            .map((snapshot) => snapshot.docs.map((doc) => doc.data()).at(0))
-            .andThen((data) =>
-                data === undefined
+            .map((snapshot) => snapshot.docs.at(0))
+            .andThen((doc) =>
+                doc === undefined
                     ? errAsync(NotFoundError("Invitation not found"))
-                    : okAsync(data),
+                    : okAsync(fromInvitationDoc(doc)),
             ),
     delete: (invitationId) =>
         ResultAsync.fromPromise(
-            deleteDoc(invitationRef(invitationId)),
-            handleFirestoreError,
+            invitationRef(invitationId).delete(),
+            handleAdminError,
         ).map(() => undefined),
     acceptInvitationTransaction: (invitationId, userId, groupId) =>
         ResultAsync.fromPromise(
-            runTransaction(db, async (transaction) => {
+            db.runTransaction(async (transaction) => {
                 // 1. 招待ドキュメントを取得
-                const invitationDocRef = doc(db, "invitations", invitationId);
+                const invitationDocRef = invitationRef(invitationId);
                 const invitationSnap = await transaction.get(invitationDocRef);
 
-                if (!invitationSnap.exists()) {
+                if (!invitationSnap.exists) {
                     throw new Error("招待が見つかりません");
                 }
 
                 const invitationData = invitationSnap.data();
+                if (!invitationData) {
+                    throw new Error("招待が見つかりません");
+                }
 
                 // 2. 使用済みチェック（トランザクション内で原子性保証）
                 if (invitationData.usedAt) {
@@ -66,56 +81,68 @@ export const invitationRepo: InvitationRepository = {
                 }
 
                 // 3. グループドキュメントを取得（users/{userId}/groups/{groupId} のインデックス作成用）
-                const groupDocRef = doc(db, "groups", groupId).withConverter(
-                    groupConverter,
-                );
+                const groupDocRef = db.collection("groups").doc(groupId);
                 const groupSnap = await transaction.get(groupDocRef);
 
-                if (!groupSnap.exists()) {
+                if (!groupSnap.exists) {
                     throw new Error("グループが見つかりません");
                 }
 
                 const groupData = groupSnap.data();
+                if (!groupData) {
+                    throw new Error("グループが見つかりません");
+                }
 
                 // 4. 招待を使用済みにマーク
                 transaction.update(invitationDocRef, {
-                    usedAt: serverTimestamp(),
+                    usedAt: FieldValue.serverTimestamp(),
                     usedBy: userId,
                 });
 
                 // 5. グループにメンバー追加 (groups/{groupId}/users/{userId})
                 // 既存メンバーシップがあるかチェック（管理者の降格を防止）
-                const groupUserRef = doc(db, `groups/${groupId}/users`, userId);
+                const groupUserRef = db
+                    .collection("groups")
+                    .doc(groupId)
+                    .collection("users")
+                    .doc(userId);
                 const groupUserSnap = await transaction.get(groupUserRef);
 
-                if (!groupUserSnap.exists()) {
+                if (!groupUserSnap.exists) {
                     // 新規メンバーの場合のみ追加
                     transaction.set(groupUserRef, {
-                        userId,
                         role: "member",
-                        joinedAt: serverTimestamp(),
+                        joinedAt: FieldValue.serverTimestamp(),
                     });
                 }
                 // 既に存在する場合は何もしない（既存の role を保持）
 
                 // 6. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
                 // 既存メンバーシップがあるかチェック
-                const userGroupRef = doc(db, `users/${userId}/groups`, groupId);
+                const userGroupRef = db
+                    .collection("users")
+                    .doc(userId)
+                    .collection("groups")
+                    .doc(groupId);
                 const userGroupSnap = await transaction.get(userGroupRef);
 
-                if (!userGroupSnap.exists()) {
+                if (!userGroupSnap.exists) {
                     // 新規メンバーの場合のみ追加
                     // 既存の addMember と同じ形式で書き込む（groupConverter で読み取れる形式）
-                    const userGroupIndexData: UserGroupIndexData = {
+                    const userGroupIndexData = {
                         ...groupData,
-                        createdAt: Timestamp.fromDate(groupData.createdAt),
-                        updatedAt: Timestamp.fromDate(groupData.updatedAt),
-                        joinedAt: serverTimestamp(),
+                        createdAt: groupData.createdAt instanceof Date
+                            ? Timestamp.fromDate(groupData.createdAt)
+                            : groupData.createdAt,
+                        updatedAt: groupData.updatedAt instanceof Date
+                            ? Timestamp.fromDate(groupData.updatedAt)
+                            : groupData.updatedAt,
+                        joinedAt: FieldValue.serverTimestamp(),
                     };
                     transaction.set(userGroupRef, userGroupIndexData);
                 }
                 // 既に存在する場合は何もしない（既存の role を保持）
             }),
-            handleFirestoreError,
+            handleAdminError,
         ).map(() => undefined),
 };
