@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { invitationService } from "@/service/invitation-service";
+import { createInvitationService } from "@/service/invitation-service";
+import { invitationRepo } from "@/infra/invitation/invitation-repo";
+import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import { requireAuth } from "@/lib/auth/server-auth";
 import { InvitationButtons } from "./InvitationButtons";
 import type { Group } from "@/domain/group";
@@ -44,6 +46,7 @@ async function GroupInvitationScreenContent({
     }
 
     // グループ情報の取得
+    const invitationService = createInvitationService(invitationRepo, firestoreGroupAdminRepository);
     const result = await invitationService.getGroupByToken(token);
 
     const groupOrError = result.match(

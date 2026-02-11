@@ -92,7 +92,4 @@ export function createInvitationService(
     };
 }
 
-export const invitationService = createInvitationService(
-    invitationRepo,
-    firestoreGroupAdminRepository,
-);
+
