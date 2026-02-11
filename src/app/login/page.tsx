@@ -33,7 +33,7 @@ export default function LoginPage() {
                 const redirectTo = searchParams.get("redirectTo");
 
                 if (redirectTo) {
-                    router.push(`/groups/${redirectTo}`);
+                    router.push(decodeURIComponent(redirectTo));
                 } else {
                     router.push("/create-group");
                 }
