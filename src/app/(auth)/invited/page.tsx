@@ -9,15 +9,15 @@ import type { Group } from "@/domain/group";
 import type { InvitationError } from "@/domain/error";
 
 interface PageProps {
-    searchParams: { token?: string };
+    searchParams: Promise<{ token?: string }>;
 }
 
 async function GroupInvitationScreenContent({
     searchParams,
 }: {
-    searchParams: { token?: string };
+    searchParams: Promise<{ token?: string }>;
 }) {
-    const token = searchParams.token;
+    const { token } = await searchParams;
 
     if (!token) {
         return (
@@ -92,11 +92,9 @@ async function GroupInvitationScreenContent({
     );
 }
 
-export default async function GroupInvitationScreen({
-    searchParams,
-}: PageProps) {
+export default async function GroupInvitationScreen({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
     // tokenが存在する場合に、requireAuth()へ渡してログイン時に招待ページへ戻るようにする
-    await requireAuth(searchParams);
+    await requireAuth(await searchParams);
 
     return (
         <Suspense

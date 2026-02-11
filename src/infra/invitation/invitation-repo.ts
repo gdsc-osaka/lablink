@@ -131,12 +131,14 @@ export const invitationRepo: InvitationRepository = {
                     // 既存の addMember と同じ形式で書き込む（groupConverter で読み取れる形式）
                     const userGroupIndexData = {
                         ...groupData,
-                        createdAt: groupData.createdAt instanceof Date
-                            ? Timestamp.fromDate(groupData.createdAt)
-                            : groupData.createdAt,
-                        updatedAt: groupData.updatedAt instanceof Date
-                            ? Timestamp.fromDate(groupData.updatedAt)
-                            : groupData.updatedAt,
+                        createdAt:
+                            groupData.createdAt instanceof Date
+                                ? Timestamp.fromDate(groupData.createdAt)
+                                : groupData.createdAt,
+                        updatedAt:
+                            groupData.updatedAt instanceof Date
+                                ? Timestamp.fromDate(groupData.updatedAt)
+                                : groupData.updatedAt,
                         joinedAt: FieldValue.serverTimestamp(),
                     };
                     transaction.set(userGroupRef, userGroupIndexData);
