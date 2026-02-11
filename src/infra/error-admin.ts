@@ -20,10 +20,13 @@ export const handleAdminError = (error: unknown): DBError => {
             .with("not-found", () => NotFoundError)
             .with("permission-denied", () => PermissionDeniedError)
             .with("unauthenticated", () => UnauthenticatedError)
-            .otherwise(() => UnknownError)(adminError.message ?? "Unknown error", {
-            cause: error instanceof Error ? error : undefined,
-            stack: adminError.stack,
-        });
+            .otherwise(() => UnknownError)(
+            adminError.message ?? "Unknown error",
+            {
+                cause: error instanceof Error ? error : undefined,
+                stack: adminError.stack,
+            },
+        );
     }
 
     return UnknownError(

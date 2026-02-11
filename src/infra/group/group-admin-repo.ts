@@ -7,7 +7,10 @@ import { handleAdminError } from "@/infra/error-admin";
 
 const db = getFirestoreAdmin();
 
-const toGroup = (docId: string, data: FirebaseFirestore.DocumentData): Group => {
+const toGroup = (
+    docId: string,
+    data: FirebaseFirestore.DocumentData,
+): Group => {
     return {
         id: docId,
         name: data.name,
@@ -20,15 +23,14 @@ export const firestoreGroupAdminRepository: GroupRepository = {
     findById: (groupId: string): ResultAsync<Group, DBError> => {
         const docRef = db.collection("groups").doc(groupId);
 
-        return ResultAsync.fromPromise(
-            docRef.get(),
-            handleAdminError,
-        ).andThen((docSnap) => {
-            if (!docSnap.exists) {
-                return err(NotFoundError(`Group not found: ${groupId}`));
-            }
-            return ok(toGroup(docSnap.id, docSnap.data()!));
-        });
+        return ResultAsync.fromPromise(docRef.get(), handleAdminError).andThen(
+            (docSnap) => {
+                if (!docSnap.exists) {
+                    return err(NotFoundError(`Group not found: ${groupId}`));
+                }
+                return ok(toGroup(docSnap.id, docSnap.data()!));
+            },
+        );
     },
 
     save: (group: Group, _userId: string): ResultAsync<Group, DBError> => {
@@ -54,10 +56,11 @@ export const firestoreGroupAdminRepository: GroupRepository = {
         }
 
         const docRef = db.collection("groups").doc(group.id);
-        const updateData: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
-            ...group,
-            updatedAt: FieldValue.serverTimestamp(),
-        };
+        const updateData: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> =
+            {
+                ...group,
+                updatedAt: FieldValue.serverTimestamp(),
+            };
 
         return ResultAsync.fromPromise(
             docRef.update(updateData),
@@ -67,9 +70,8 @@ export const firestoreGroupAdminRepository: GroupRepository = {
 
     delete: (groupId: string): ResultAsync<void, DBError> => {
         const docRef = db.collection("groups").doc(groupId);
-        return ResultAsync.fromPromise(
-            docRef.delete(),
-            handleAdminError,
-        ).map(() => undefined);
+        return ResultAsync.fromPromise(docRef.delete(), handleAdminError).map(
+            () => undefined,
+        );
     },
 };
