@@ -1,15 +1,10 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { requireAuth } from "@/lib/auth/server-auth";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 
-export default function EventCompletePage() {
-    const router = useRouter();
-
-    const handleBackToHome = () => {
-        router.push("/");
-    };
+export default async function EventCompletePage() {
+    await requireAuth();
 
     return (
         <div className="min-h-screen bg-white">
@@ -36,10 +31,10 @@ export default function EventCompletePage() {
                     </div>
 
                     <Button
-                        onClick={handleBackToHome}
+                        asChild
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     >
-                        ホームに戻る
+                        <Link href="/">ホームに戻る</Link>
                     </Button>
                 </div>
             </div>
