@@ -36,7 +36,8 @@ export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
     };
 
     const handleReject = async () => {
-        await declineGroupInvitation();
+        setIsAccepting(true); // ボタンを無効化
+        await declineGroupInvitation(token);
         router.push("/");
     };
 
