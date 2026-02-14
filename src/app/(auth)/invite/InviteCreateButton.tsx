@@ -23,14 +23,19 @@ export default function InviteCreateButton({
         }
 
         setIsLoading(true);
-        const result = await createInvitationAction(groupId);
+        try {
+            const result = await createInvitationAction(groupId);
 
-        if (result.success) {
-            onSuccess(result.token);
-        } else {
-            onError(result.error);
+            if (result.success) {
+                onSuccess(result.token);
+            } else {
+                onError(result.error);
+            }
+        } catch (error) {
+            onError("予期せぬエラーが発生しました");
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     return (
