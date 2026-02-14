@@ -48,8 +48,9 @@ export async function acceptGroupInvitation(
 /**
  * 招待を拒否する Server Action
  */
-export async function declineGroupInvitation(): Promise<{
-    success: boolean;
-}> {
+export async function declineGroupInvitation(
+    _token: string,
+): Promise<{ success: boolean; error?: string }> {
+    // 招待拒否については別ブランチで対応 (別PRで対応)
     return { success: true };
 }
