@@ -5,6 +5,7 @@ import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import type { Invitation } from "@/domain/invitation";
 import type { InvitationError } from "@/domain/error";
+import { requireAuth } from "@/lib/auth/server-auth";
 
 export async function createInvitationAction(
     groupId: string,
@@ -12,6 +13,8 @@ export async function createInvitationAction(
     | { success: true; token: string }
     | { success: false; error: string }
 > {
+    await requireAuth();
+
     if (!groupId) {
         return { success: false, error: "グループIDが指定されていません" };
     }
