@@ -23,6 +23,9 @@ export interface InvitationService {
         token: string,
         userId: string,
     ): ResultAsync<Group, InvitationError>;
+
+    // 招待を拒否
+    declineInvitation(token: string): ResultAsync<void, InvitationError>;
 }
 
 function generateToken(): string {
@@ -56,6 +59,7 @@ export function createInvitationService(
                 id: crypto.randomUUID(),
                 groupId,
                 token: generateToken(),
+                status: "pending",
                 createdAt: new Date(),
                 expiresAt: new Date(
                     Date.now() + expiresInDays * 24 * 60 * 60 * 1000,
@@ -88,6 +92,12 @@ export function createInvitationService(
                     // グループ情報を取得して返す
                     return groupRepo.findById(groupId);
                 });
+        },
+
+        declineInvitation: (token) => {
+            return validateInvitation(token).andThen(() => {
+                return invitationRepo.decline(token);
+            });
         },
     };
 }

@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { Group } from "@/domain/group";
 import { InvitationError } from "@/domain/error";
 
+
 /**
  * 招待を受け入れてグループに参加する Server Action
  */
@@ -48,8 +49,17 @@ export async function acceptGroupInvitation(
 /**
  * 招待を拒否する Server Action
  */
-export async function declineGroupInvitation(): Promise<{
-    success: boolean;
-}> {
-    return { success: true };
+export async function declineGroupInvitation(
+    token: string,
+): Promise<{ success: boolean; error?: string }> {
+    const service = createInvitationService(
+        invitationRepo,
+        firestoreGroupAdminRepository,
+    );
+    const result = await service.declineInvitation(token);
+
+    return result.match(
+        () => ({ success: true }),
+        (err: InvitationError) => ({ success: false, error: err.message }),
+    );
 }
