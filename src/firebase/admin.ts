@@ -18,3 +18,7 @@ function getFirebaseApp(): admin.app.App {
 export function getAuthAdmin(): admin.auth.Auth {
     return getFirebaseApp().auth();
 }
+
+export function getDbAdmin(): admin.firestore.Firestore {
+    return getFirebaseApp().firestore();
+}
