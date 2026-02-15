@@ -1,13 +1,21 @@
-﻿
-import { requireAuth } from "@/lib/auth/server-auth";
+﻿import { requireAuth } from "@/lib/auth/server-auth";
 import CreateEventForm from "./CreateEventForm";
+
+// テスト用の静的ユーザー一覧
+// TODO: UserRepository.findAll() または UserGroupRepository.findUsersByGroupId() を実装したら置き換える
+const MOCK_USERS = [
+    { id: "1", username: "tanigaki kei", email: "tanigaki_kei@example.com" },
+    { id: "2", username: "suyama souta", email: "suyama_souta@example.com" },
+    { id: "3", username: "yoshida kazuya", email: "yoshida_kazuya@example.com" },
+    { id: "4", username: "siomi ayari", email: "siomi_ayari@example.com" },
+    { id: "5", username: "itaya kosuke", email: "itaya_kosuke@example.com" },
+];
 
 export default async function CreateEventPage() {
     await requireAuth();
-    // サーバー側でユーザー一覧を取得
-    // TODO: グループのユーザー一覧取得serviceができたらそちらを使う(とりあえずapi叩いておく)
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/users`, { cache: "no-store" });
-    const users = res.ok ? await res.json() : [];
+
+    const users = MOCK_USERS;
+
     return (
         <main className="min-h-screen bg-white">
             <div className="w-full mx-auto">
