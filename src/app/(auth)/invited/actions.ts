@@ -7,6 +7,7 @@ import { Group } from "@/domain/group";
 import { InvitationError } from "@/domain/error";
 import { requireAuth } from "@/lib/auth/server-auth";
 
+
 /**
  * 招待を受け入れてグループに参加する Server Action
  */
@@ -32,8 +33,16 @@ export async function acceptGroupInvitation(
  * 招待を拒否する Server Action
  */
 export async function declineGroupInvitation(
-    _token: string,
+    token: string,
 ): Promise<{ success: boolean; error?: string }> {
-    // 招待拒否については別ブランチで対応 (別PRで対応)
-    return { success: true };
+    const service = createInvitationService(
+        invitationRepo,
+        firestoreGroupAdminRepository,
+    );
+    const result = await service.declineInvitation(token);
+
+    return result.match(
+        () => ({ success: true }),
+        (err: InvitationError) => ({ success: false, error: err.message }),
+    );
 }

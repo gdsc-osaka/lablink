@@ -1,4 +1,8 @@
-import { Invitation, InvitationRepository } from "@/domain/invitation";
+import {
+    Invitation,
+    InvitationRepository,
+    InvitationStatus,
+} from "@/domain/invitation";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import { getFirestoreAdmin } from "@/firebase/admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
@@ -13,6 +17,7 @@ const toInvitationData = (invitation: Invitation) => {
     return {
         groupId: invitation.groupId,
         token: invitation.token,
+        status: invitation.status,
         createdAt: Timestamp.fromDate(invitation.createdAt),
         expiresAt: Timestamp.fromDate(invitation.expiresAt),
         ...(invitation.usedAt && {
@@ -30,6 +35,7 @@ const fromInvitationDoc = (
         id: doc.id,
         groupId: data.groupId,
         token: data.token,
+        status: (data.status as InvitationStatus) || "pending", // 既存データ用
         createdAt: data.createdAt.toDate(),
         expiresAt: data.expiresAt.toDate(),
         usedAt: data.usedAt ? data.usedAt.toDate() : undefined,
@@ -54,6 +60,20 @@ export const invitationRepo: InvitationRepository = {
                     ? errAsync(NotFoundError("Invitation not found"))
                     : okAsync(fromInvitationDoc(doc)),
             ),
+    decline: (token) =>
+        ResultAsync.fromPromise(
+            invitationsRef.where("token", "==", token).get(),
+            handleAdminError,
+        )
+            .map((snapshot) => snapshot.docs.at(0))
+            .andThen((doc) => {
+                if (!doc) return errAsync(NotFoundError("Invitation not found"));
+                return ResultAsync.fromPromise(
+                    doc.ref.update({ status: "declined" }),
+                    handleAdminError,
+                );
+            })
+            .map(() => undefined),
     delete: (invitationId) =>
         ResultAsync.fromPromise(
             invitationRef(invitationId).delete(),
@@ -75,12 +95,15 @@ export const invitationRepo: InvitationRepository = {
                     throw new Error("招待が見つかりません");
                 }
 
-                // 2. 使用済みチェック（トランザクション内で原子性保証）
-                if (invitationData.usedAt) {
+                // 2. 使用済み・ステータスチェック（トランザクション内で原子性保証）
+                if (invitationData.status === "declined") {
+                    throw new Error("この招待リンクは拒否されています");
+                }
+                if (invitationData.status === "accepted" || invitationData.usedAt) {
                     throw new Error("この招待リンクは既に使用されています");
                 }
 
-                // 3. グループドキュメントを取得（users/{userId}/groups/{groupId} のインデックス作成用）
+                // 3. グループドキュメントを取得
                 const groupDocRef = db.collection("groups").doc(groupId);
                 const groupSnap = await transaction.get(groupDocRef);
 
@@ -88,13 +111,18 @@ export const invitationRepo: InvitationRepository = {
                     throw new Error("グループが見つかりません");
                 }
 
-                const groupData = groupSnap.data();
+                const groupData = groupSnap.data() as {
+                    createdAt: Timestamp | Date;
+                    updatedAt: Timestamp | Date;
+                    [key: string]: any;
+                };
                 if (!groupData) {
                     throw new Error("グループが見つかりません");
                 }
 
                 // 4. 招待を使用済みにマーク
                 transaction.update(invitationDocRef, {
+                    status: "accepted",
                     usedAt: FieldValue.serverTimestamp(),
                     usedBy: userId,
                 });
@@ -109,16 +137,13 @@ export const invitationRepo: InvitationRepository = {
                 const groupUserSnap = await transaction.get(groupUserRef);
 
                 if (!groupUserSnap.exists) {
-                    // 新規メンバーの場合のみ追加
                     transaction.set(groupUserRef, {
                         role: "member",
                         joinedAt: FieldValue.serverTimestamp(),
                     });
                 }
-                // 既に存在する場合は何もしない（既存の role を保持）
 
                 // 6. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
-                // 既存メンバーシップがあるかチェック
                 const userGroupRef = db
                     .collection("users")
                     .doc(userId)
