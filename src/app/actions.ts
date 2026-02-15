@@ -5,7 +5,7 @@ import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
 import { encryptToken, decryptToken } from "@/lib/encryption";
-import { dbAdmin, authAdmin } from "@/firebase/admin";
+import { getDbAdmin, getAuthAdmin } from "@/firebase/admin";
 import {
     SuggestScheduleRequest,
     SuggestScheduleResponse,
@@ -32,6 +32,9 @@ interface CommonAvailabilityResponse {
     message: string;
     data: string; // Geminiに渡すために整形された文字列
 }
+
+const dbAdmin = getDbAdmin();
+const authAdmin = getAuthAdmin();
 
 export async function getCommonAvailability(
     accessToken: string,

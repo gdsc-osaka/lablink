@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { createAuthService } from "@/service/auth-service";
 import { userRepo } from "@/infra/user/user-repo";
 import { authRepo } from "@/infra/auth/auth-repo";
+import { auth } from "@/firebase/client";
+import { getIdToken } from "firebase/auth";
+import { createAuthSession } from "@/lib/auth/server-auth";
 
 const authService = createAuthService(userRepo, authRepo);
 
@@ -19,13 +22,20 @@ export default function LoginPage() {
 
         result.match(
             async () => {
+                // Firebase Authの現在のユーザーからIDトークンを取得してセッションクッキーを作成
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    const idToken = await getIdToken(currentUser);
+                    await createAuthSession(idToken);
+                }
+
                 // redirectToが指定されていればそのページへ、なければグループ作成ページへ
                 const redirectTo = searchParams.get("redirectTo");
 
                 if (redirectTo) {
                     router.push(`/groups/${redirectTo}`);
                 } else {
-                    router.push("/create-groups");
+                    router.push("/create-group");
                 }
             },
             (error) => {
