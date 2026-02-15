@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { createInvitationService } from "@/service/invitation-service";
 import { invitationRepo } from "@/infra/invitation/invitation-repo";
 import { firestoreGroupRepository } from "@/infra/group/group-repo";
-import { firestoreUserGroupRepository } from "@/infra/group/user-group-repository";
 
 function InvitePageContent() {
     const searchParams = useSearchParams();
@@ -19,12 +18,7 @@ function InvitePageContent() {
 
     // Service層を経由してアクセス
     const invitationService = useMemo(
-        () =>
-            createInvitationService(
-                invitationRepo,
-                firestoreGroupRepository,
-                firestoreUserGroupRepository,
-            ),
+        () => createInvitationService(invitationRepo, firestoreGroupRepository),
         [],
     );
 

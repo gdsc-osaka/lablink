@@ -17,6 +17,10 @@ export const invitationConverter: FirestoreDataConverter<Invitation> = {
             token: modelObject.token,
             createdAt: toTimestamp(modelObject.createdAt),
             expiresAt: toTimestamp(modelObject.expiresAt),
+            ...(modelObject.usedAt && {
+                usedAt: toTimestamp(modelObject.usedAt),
+            }),
+            ...(modelObject.usedBy && { usedBy: modelObject.usedBy }),
         };
     },
     fromFirestore(
@@ -30,6 +34,8 @@ export const invitationConverter: FirestoreDataConverter<Invitation> = {
             token: data.token,
             createdAt: data.createdAt.toDate(),
             expiresAt: data.expiresAt.toDate(),
+            usedAt: data.usedAt ? data.usedAt.toDate() : undefined,
+            usedBy: data.usedBy,
         };
     },
 };
