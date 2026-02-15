@@ -36,35 +36,37 @@ export async function createAuthSession(idToken: string) {
     }
 }
 
-// サーバー側で認証チェックする
-// 未認証の場合はログインページへリダイレクトする
-// searchParamsが渡された場合（例: invitedページからの呼び出し）、tokenをリダイレクト先に引き継ぐ
+/**
+ * サーバーサイドで認証状態をチェック
+ * 未認証の場合はログインページへリダイレクト（この関数は値を返さずに終了）
+ *
+ * @param searchParams リダイレクト先で保持したいパラメータ（例: 招待トークン）
+ * @returns 認証済みの場合はデコードされたIDトークンを返す。未認証の場合はリダイレクトするため返り値はない。
+ */
 export const requireAuth = cache(
-    async (searchParams?: { token?: string }): Promise<DecodedIdToken> => {
+    async (searchParams?: {
+        token?: string;
+    }): Promise<DecodedIdToken | never> => {
         const cookieStore = await cookies();
         const sessionCookie = cookieStore.get("session")?.value;
 
-        if (!sessionCookie) {
-            // tokenが存在する場合は、ログイン後に招待ページへ戻るようにリダイレクト先を指定
-            const redirectUrl = searchParams?.token
-                ? `/login?redirectTo=${encodeURIComponent(`/invited?token=${searchParams.token}`)}`
-                : "/login";
-            redirect(redirectUrl);
+        if (sessionCookie) {
+            try {
+                const decodedClaims = await getAuthAdmin().verifySessionCookie(
+                    sessionCookie,
+                    true,
+                );
+                return decodedClaims;
+            } catch (error) {
+                // セッションが無効な場合はリダイレクト処理へ進む
+            }
         }
 
-        try {
-            const decodedClaims = await getAuthAdmin().verifySessionCookie(
-                sessionCookie,
-                true,
-            );
-            return decodedClaims;
-        } catch (error) {
-            // tokenが存在する場合は、ログイン後に招待ページへ戻るようにリダイレクト先を指定
-            const redirectUrl = searchParams?.token
-                ? `/login?redirectTo=${encodeURIComponent(`/invited?token=${searchParams.token}`)}`
-                : "/login";
-            redirect(redirectUrl);
-        }
+        // tokenが存在する場合は、ログイン後に招待ページへ戻るようにリダイレクト先を指定
+        const redirectUrl = searchParams?.token
+            ? `/login?redirectTo=${encodeURIComponent(`/invited?token=${searchParams.token}`)}`
+            : "/login";
+        redirect(redirectUrl);
     },
 );
 
