@@ -120,15 +120,7 @@ export const invitationRepo: InvitationRepository = {
                     throw new Error("グループが見つかりません");
                 }
 
-                // 4. 招待を使用済みにマーク
-                transaction.update(invitationDocRef, {
-                    status: "accepted",
-                    usedAt: FieldValue.serverTimestamp(),
-                    usedBy: userId,
-                });
-
-                // 5. グループにメンバー追加 (groups/{groupId}/users/{userId})
-                // 既存メンバーシップがあるかチェック（管理者の降格を防止）
+                // 4. グループメンバーシップをチェック (groups/{groupId}/users/{userId})
                 const groupUserRef = db
                     .collection("groups")
                     .doc(groupId)
@@ -136,14 +128,7 @@ export const invitationRepo: InvitationRepository = {
                     .doc(userId);
                 const groupUserSnap = await transaction.get(groupUserRef);
 
-                if (!groupUserSnap.exists) {
-                    transaction.set(groupUserRef, {
-                        role: "member",
-                        joinedAt: FieldValue.serverTimestamp(),
-                    });
-                }
-
-                // 6. ユーザーのグループ一覧に追加 (users/{userId}/groups/{groupId})
+                // 5. ユーザーのグループ一覧をチェック (users/{userId}/groups/{groupId})
                 const userGroupRef = db
                     .collection("users")
                     .doc(userId)
@@ -151,9 +136,23 @@ export const invitationRepo: InvitationRepository = {
                     .doc(groupId);
                 const userGroupSnap = await transaction.get(userGroupRef);
 
+                // 6. 招待を使用済みにマーク
+                transaction.update(invitationDocRef, {
+                    status: "accepted",
+                    usedAt: FieldValue.serverTimestamp(),
+                    usedBy: userId,
+                });
+
+                // 7. グループにメンバー追加（既存メンバーシップがない場合）
+                if (!groupUserSnap.exists) {
+                    transaction.set(groupUserRef, {
+                        role: "member",
+                        joinedAt: FieldValue.serverTimestamp(),
+                    });
+                }
+
+                // 8. ユーザーのグループ一覧に追加（既存エントリがない場合）
                 if (!userGroupSnap.exists) {
-                    // 新規メンバーの場合のみ追加
-                    // 既存の addMember と同じ形式で書き込む（groupConverter で読み取れる形式）
                     const userGroupIndexData = {
                         ...groupData,
                         createdAt:
@@ -168,7 +167,6 @@ export const invitationRepo: InvitationRepository = {
                     };
                     transaction.set(userGroupRef, userGroupIndexData);
                 }
-                // 既に存在する場合は何もしない（既存の role を保持）
             }),
             handleAdminError,
         ).map(() => undefined),
