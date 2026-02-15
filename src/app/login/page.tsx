@@ -34,7 +34,7 @@ export default function LoginPage() {
                 const redirectTo = searchParams.get("redirectTo");
 
                 if (isSafeRedirectUrl(redirectTo)) {
-                    router.push(redirectTo!);
+                    router.push(redirectTo);
                 } else {
                     router.push("/create-group");
                 }
