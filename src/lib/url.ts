@@ -1,13 +1,12 @@
-
 /**
  * リダイレクト先URLが安全な相対パスかどうかを検証
  * オープンリダイレクト脆弱性を防ぐため、外部サイトへのリダイレクト（//やhttpで始まるもの）を拒否
- * 
+ *
  * @param url 検証するURL
  * @returns 安全な相対パスの場合はtrue（型ガードとして機能）
  */
 export function isSafeRedirectUrl(
-    url: string | null | undefined
+    url: string | null | undefined,
 ): url is string {
     if (!url) return false;
     // スラッシュで始まらない場合は相対パスではない（または絶対URL）
@@ -22,7 +21,7 @@ export function isSafeRedirectUrl(
     const pathOnly = url.split("?")[0].split("#")[0];
 
     // ディレクトリトラバーサルを防ぐ
-    if (pathOnly.split("/").some(segment => segment === "..")) return false;
+    if (pathOnly.split("/").some((segment) => segment === "..")) return false;
 
     return true;
 }

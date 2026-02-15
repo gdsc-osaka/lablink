@@ -6,7 +6,11 @@ import CreateEventForm from "./CreateEventForm";
 const MOCK_USERS = [
     { id: "1", username: "tanigaki kei", email: "tanigaki_kei@example.com" },
     { id: "2", username: "suyama souta", email: "suyama_souta@example.com" },
-    { id: "3", username: "yoshida kazuya", email: "yoshida_kazuya@example.com" },
+    {
+        id: "3",
+        username: "yoshida kazuya",
+        email: "yoshida_kazuya@example.com",
+    },
     { id: "4", username: "siomi ayari", email: "siomi_ayari@example.com" },
     { id: "5", username: "itaya kosuke", email: "itaya_kosuke@example.com" },
 ];

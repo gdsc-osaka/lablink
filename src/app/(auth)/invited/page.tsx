@@ -48,7 +48,10 @@ async function GroupInvitationScreenContent({
     }
 
     // グループ情報の取得
-    const invitationService = createInvitationService(invitationRepo, firestoreGroupAdminRepository);
+    const invitationService = createInvitationService(
+        invitationRepo,
+        firestoreGroupAdminRepository,
+    );
     const result = await invitationService.getGroupByToken(token);
 
     const groupOrError = result.match(
@@ -97,8 +100,11 @@ async function GroupInvitationScreenContent({
     );
 }
 
-export default async function GroupInvitationScreen({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
-
+export default async function GroupInvitationScreen({
+    searchParams,
+}: {
+    searchParams: Promise<{ token?: string }>;
+}) {
     return (
         <Suspense
             fallback={

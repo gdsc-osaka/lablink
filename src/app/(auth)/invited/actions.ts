@@ -7,7 +7,6 @@ import { Group } from "@/domain/group";
 import { InvitationError } from "@/domain/error";
 import { requireAuth } from "@/lib/auth/server-auth";
 
-
 /**
  * 招待を受け入れてグループに参加する Server Action
  */
@@ -17,7 +16,10 @@ export async function acceptGroupInvitation(
     const decodedClaims = await requireAuth();
     const userId = decodedClaims.uid;
 
-    const invitationService = createInvitationService(invitationRepo, firestoreGroupAdminRepository);
+    const invitationService = createInvitationService(
+        invitationRepo,
+        firestoreGroupAdminRepository,
+    );
     const result = await invitationService.acceptInvitation(token, userId);
 
     return result.match(

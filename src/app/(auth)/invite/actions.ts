@@ -10,8 +10,7 @@ import { requireAuth } from "@/lib/auth/server-auth";
 export async function createInvitationAction(
     groupId: string,
 ): Promise<
-    | { success: true; token: string }
-    | { success: false; error: string }
+    { success: true; token: string } | { success: false; error: string }
 > {
     await requireAuth();
 

@@ -14,7 +14,8 @@ export default function InvitePageContent({ groupId }: InvitePageContentProps) {
     const [copied, setCopied] = useState(false);
 
     const handleSuccess = (token: string) => {
-        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        const origin =
+            typeof window !== "undefined" ? window.location.origin : "";
         setInviteUrl(`${origin}/invited?token=${token}`);
         setError(null);
     };
@@ -32,7 +33,9 @@ export default function InvitePageContent({ groupId }: InvitePageContentProps) {
                 setTimeout(() => setCopied(false), 2000);
             } catch (err) {
                 console.error("Failed to copy:", err);
-                setError("URLのコピーに失敗しました。手動でコピーしてください。");
+                setError(
+                    "URLのコピーに失敗しました。手動でコピーしてください。",
+                );
             }
         }
     };
@@ -110,10 +113,11 @@ export default function InvitePageContent({ groupId }: InvitePageContentProps) {
                             </div>
                             <button
                                 onClick={handleCopy}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md ${copied
+                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md ${
+                                    copied
                                         ? "bg-green-500 text-white"
                                         : "bg-blue-500 hover:bg-blue-600 text-white"
-                                    }`}
+                                }`}
                             >
                                 {copied ? (
                                     <>

@@ -36,7 +36,6 @@ export async function createAuthSession(idToken: string) {
     }
 }
 
-
 /**
  * サーバーサイドで認証状態をチェック
  * 未認証の場合はログインページへリダイレクト（この関数は値を返さずに終了）
@@ -45,7 +44,9 @@ export async function createAuthSession(idToken: string) {
  * @returns 認証済みの場合はデコードされたIDトークンを返す。未認証の場合はリダイレクトするため返り値はない。
  */
 export const requireAuth = cache(
-    async (searchParams?: { token?: string }): Promise<DecodedIdToken | never> => {
+    async (searchParams?: {
+        token?: string;
+    }): Promise<DecodedIdToken | never> => {
         const cookieStore = await cookies();
         const sessionCookie = cookieStore.get("session")?.value;
 
@@ -101,7 +102,7 @@ export async function removeAuthSession() {
             const decodedClaims =
                 await getAuthAdmin().verifySessionCookie(sessionCookie);
             await getAuthAdmin().revokeRefreshTokens(decodedClaims.sub);
-        } catch (error) { }
+        } catch (error) {}
     }
 
     cookieStore.delete("session");

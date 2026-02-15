@@ -39,8 +39,14 @@ export default function CreateEventForm({ users }: Props) {
     });
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<User[]>([]);
-    const fuse = useMemo(() => new Fuse(users, { keys: ["username", "email"], threshold: 0.3 }), [users]);
-    const results = useMemo(() => (query ? fuse.search(query).map((r: any) => r.item) : []), [query, fuse]);
+    const fuse = useMemo(
+        () => new Fuse(users, { keys: ["username", "email"], threshold: 0.3 }),
+        [users],
+    );
+    const results = useMemo(
+        () => (query ? fuse.search(query).map((r: any) => r.item) : []),
+        [query, fuse],
+    );
     useEffect(() => {
         const csv = selected.map((s) => s.email).join(",");
         setValue("priorityParticipants", csv);
@@ -50,42 +56,113 @@ export default function CreateEventForm({ users }: Props) {
         router.push("/ai-suggest");
     };
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 px-15 mt-9">
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6 px-15 mt-9"
+        >
             <div>
-                <Label htmlFor="title" className="event-form-label">タイトル</Label>
-                <Input type="text" id="title" {...register("title", { required: "タイトルは必須です" })} placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）" className="event-form-input" />
-                {errors.title && <p className="event-form-error">{errors.title.message}</p>}
+                <Label htmlFor="title" className="event-form-label">
+                    タイトル
+                </Label>
+                <Input
+                    type="text"
+                    id="title"
+                    {...register("title", { required: "タイトルは必須です" })}
+                    placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
+                    className="event-form-input"
+                />
+                {errors.title && (
+                    <p className="event-form-error">{errors.title.message}</p>
+                )}
             </div>
             <div>
-                <Label htmlFor="duration" className="event-form-label">所要時間</Label>
-                <Input type="text" id="duration" {...register("duration", { required: "所要時間は必須です" })} placeholder="イベントの所要時間 (例: 30分、2時間)" className="event-form-input" />
-                {errors.duration && <p className="event-form-error">{errors.duration.message}</p>}
+                <Label htmlFor="duration" className="event-form-label">
+                    所要時間
+                </Label>
+                <Input
+                    type="text"
+                    id="duration"
+                    {...register("duration", {
+                        required: "所要時間は必須です",
+                    })}
+                    placeholder="イベントの所要時間 (例: 30分、2時間)"
+                    className="event-form-input"
+                />
+                {errors.duration && (
+                    <p className="event-form-error">
+                        {errors.duration.message}
+                    </p>
+                )}
             </div>
             <div>
                 <Label className="event-form-label">時間帯</Label>
                 <div className="mt-2 space-y-2">
                     {timeOfDayInputItems.map((item) => (
                         <div key={item.value} className="flex items-center">
-                            <Input type="checkbox" id={item.value} value={item.value} {...register("timeOfDayCandidate", { required: "時間帯を少なくとも1つ選択してください" })} className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-                            <Label htmlFor={item.value} className="text-black">{item.label}</Label>
+                            <Input
+                                type="checkbox"
+                                id={item.value}
+                                value={item.value}
+                                {...register("timeOfDayCandidate", {
+                                    required:
+                                        "時間帯を少なくとも1つ選択してください",
+                                })}
+                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <Label htmlFor={item.value} className="text-black">
+                                {item.label}
+                            </Label>
                         </div>
                     ))}
                 </div>
-                {errors.timeOfDayCandidate && <p className="event-form-error">{errors.timeOfDayCandidate.message}</p>}
+                {errors.timeOfDayCandidate && (
+                    <p className="event-form-error">
+                        {errors.timeOfDayCandidate.message}
+                    </p>
+                )}
             </div>
             <div>
-                <Label htmlFor="userSearch" className="event-form-label">優先参加者を検索して追加</Label>
-                <input id="userSearch" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ユーザー名やメールで検索" className="event-form-input" />
+                <Label htmlFor="userSearch" className="event-form-label">
+                    優先参加者を検索して追加
+                </Label>
+                <input
+                    id="userSearch"
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="ユーザー名やメールで検索"
+                    className="event-form-input"
+                />
                 {results.length > 0 && (
                     <div className="mt-2 space-y-1 max-h-48 overflow-auto border rounded p-2 bg-white">
                         {results.map((u) => (
-                            <div key={u.id} className="flex items-center justify-between py-1">
+                            <div
+                                key={u.id}
+                                className="flex items-center justify-between py-1"
+                            >
                                 <div>
-                                    <div className="text-sm font-medium">{u.username}</div>
-                                    <div className="text-xs text-gray-500">{u.email}</div>
+                                    <div className="text-sm font-medium">
+                                        {u.username}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        {u.email}
+                                    </div>
                                 </div>
                                 <div>
-                                    <button type="button" className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm" onClick={() => { setSelected((prev) => prev.find((p) => p.id === u.id) ? prev : [...prev, u]); setQuery(""); }}>追加</button>
+                                    <button
+                                        type="button"
+                                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
+                                        onClick={() => {
+                                            setSelected((prev) =>
+                                                prev.find((p) => p.id === u.id)
+                                                    ? prev
+                                                    : [...prev, u],
+                                            );
+                                            setQuery("");
+                                        }}
+                                    >
+                                        追加
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -94,23 +171,57 @@ export default function CreateEventForm({ users }: Props) {
                 {selected.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                         {selected.map((s) => (
-                            <div key={s.id} className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm">
+                            <div
+                                key={s.id}
+                                className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm"
+                            >
                                 <span className="mr-2">{s.username}</span>
-                                <button type="button" onClick={() => setSelected((prev) => prev.filter((p) => p.id !== s.id))} className="text-xs text-gray-600 hover:text-gray-800">×</button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setSelected((prev) =>
+                                            prev.filter((p) => p.id !== s.id),
+                                        )
+                                    }
+                                    className="text-xs text-gray-600 hover:text-gray-800"
+                                >
+                                    ×
+                                </button>
                             </div>
                         ))}
                     </div>
                 )}
                 <input type="hidden" {...register("priorityParticipants")} />
-                <p className="text-sm text-gray-500 mt-1">検索してユーザーを一人ずつ追加してください（任意）。</p>
+                <p className="text-sm text-gray-500 mt-1">
+                    検索してユーザーを一人ずつ追加してください（任意）。
+                </p>
             </div>
             <div>
-                <Label htmlFor="details" className="event-form-label">イベントの詳細</Label>
-                <Textarea id="details" rows={4} {...register("description", { required: "イベントの詳細は必須です" })} placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする" className="event-form-input"></Textarea>
-                {errors.description && <p className="event-form-error">{errors.description.message}</p>}
+                <Label htmlFor="details" className="event-form-label">
+                    イベントの詳細
+                </Label>
+                <Textarea
+                    id="details"
+                    rows={4}
+                    {...register("description", {
+                        required: "イベントの詳細は必須です",
+                    })}
+                    placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
+                    className="event-form-input"
+                ></Textarea>
+                {errors.description && (
+                    <p className="event-form-error">
+                        {errors.description.message}
+                    </p>
+                )}
             </div>
             <div className="flex justify-end">
-                <Button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">AIのsuggestへ</Button>
+                <Button
+                    type="submit"
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    AIのsuggestへ
+                </Button>
             </div>
         </form>
     );
