@@ -70,9 +70,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
 
     const handleConfirmRemoval = async () => {
         // TODO: 削除処理をここに実装
-        console.log(
-            `Removing member: ${selectedMemberForRemoval?.name}`,
-        );
+        console.log(`Removing member: ${selectedMemberForRemoval?.name}`);
         handleCloseConfirmModal();
     };
 
@@ -99,7 +97,9 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                             <button
                                 type="button"
                                 aria-label="メンバーメニュー"
-                                onClick={(event) => handleOpenMenu(member.id, event)}
+                                onClick={(event) =>
+                                    handleOpenMenu(member.id, event)
+                                }
                                 className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                             >
                                 <span className="text-lg leading-none">⋯</span>
