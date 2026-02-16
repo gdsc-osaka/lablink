@@ -1,0 +1,99 @@
+{
+  "users": {
+    "user1_id": {
+      "email": "user1@example.com",
+      "created_at": "2025-01-01T00:00:00.000Z",
+      "updated_at": "2025-01-01T00:00:00.000Z",
+      "groups": {
+        "haraken_group_id": {
+          "name": "原研",
+          "createdAt": "2025-01-05T00:00:00.000Z",
+          "updatedAt": "2025-01-05T00:00:00.000Z",
+          "joinedAt": "2025-01-05T00:00:00.000Z"
+        },
+        "gdgoc_group_id": {
+          "name": "GDGoC osaka",
+          "createdAt": "2025-01-10T00:00:00.000Z",
+          "updatedAt": "2025-01-10T00:00:00.000Z",
+          "joinedAt": "2025-01-10T00:00:00.000Z"
+        }
+      }
+    },
+    "user2_id": {
+      "email": "user2@example.com",
+      "created_at": "2025-01-02T00:00:00.000Z",
+      "updated_at": "2025-01-02T00:00:00.000Z",
+      "groups": {
+        "gdgoc_group_id": {
+          "name": "GDGoC osaka",
+          "createdAt": "2025-01-10T00:00:00.000Z",
+          "updatedAt": "2025-01-10T00:00:00.000Z",
+          "joinedAt": "2025-01-11T00:00:00.000Z"
+        }
+      }
+    },
+    "user3_id": {
+      "email": "user3@example.com",
+      "created_at": "2025-01-03T00:00:00.000Z",
+      "updated_at": "2025-01-03T00:00:00.000Z",
+      "groups": {
+        "gdgoc_group_id": {
+          "name": "GDGoC osaka",
+          "createdAt": "2025-01-10T00:00:00.000Z",
+          "updatedAt": "2025-01-10T00:00:00.000Z",
+          "joinedAt": "2025-01-12T00:00:00.000Z"
+        }
+      }
+    }
+  },
+  "groups": {
+    "haraken_group_id": {
+      "name": "原研",
+      "createdAt": "2025-01-05T00:00:00.000Z",
+      "updatedAt": "2025-01-05T00:00:00.000Z",
+      "users": {
+        "user1_id": {
+          "role": "owner",
+          "joinedAt": "2025-01-05T00:00:00.000Z"
+        }
+      }
+    },
+    "gdgoc_group_id": {
+      "name": "GDGoC osaka",
+      "createdAt": "2025-01-10T00:00:00.000Z",
+      "updatedAt": "2025-01-10T00:00:00.000Z",
+      "users": {
+        "user1_id": {
+          "role": "owner",
+          "joinedAt": "2025-01-10T00:00:00.000Z"
+        },
+        "user2_id": {
+          "role": "member",
+          "joinedAt": "2025-01-11T00:00:00.000Z"
+        },
+        "user3_id": {
+          "role": "member",
+          "joinedAt": "2025-01-12T00:00:00.000Z"
+        }
+      },
+      "events": {
+        "event_koryukai_id": {
+          "title": "交流会",
+          "description": "メンバーとの交流会",
+          "begin_at": "2025-05-12T04:00:00.000Z",
+          "end_at": "2025-05-12T07:00:00.000Z",
+          "created_at": "2025-05-01T00:00:00.000Z",
+          "updated_at": "2025-05-01T00:00:00.000Z"
+        },
+        "event_meeting_id": {
+          "title": "ミーティング",
+          "description": "次回のイベントについて",
+          "begin_at": "2025-05-23T02:00:00.000Z",
+          "end_at": "2025-05-23T03:00:00.000Z",
+          "created_at": "2025-05-15T00:00:00.000Z",
+          "updated_at": "2025-05-15T00:00:00.000Z"
+        }
+      }
+    }
+  }
+}

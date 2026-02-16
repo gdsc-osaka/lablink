@@ -10,7 +10,8 @@
         "fix": "prettier . --write && eslint . --fix",
         "test": "vitest",
         "test:watch": "vitest --watch",
-        "test:coverage": "vitest --coverage"
+        "test:coverage": "vitest --coverage",
+        "seed": "tsx scripts/seed-firestore.ts"
     },
     "dependencies": {
         "@date-fns/tz": "^1.4.1",

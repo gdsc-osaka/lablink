@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to check user roles
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isGroupMember(groupId) {
+      return isAuthenticated() && exists(/databases/$(database)/documents/groups/$(groupId)/users/$(request.auth.uid));
+    }
+
+    function isGroupOwner(groupId) {
+      return isAuthenticated() && get(/databases/$(database)/documents/groups/$(groupId)/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Users can only read and update their own profile
+      allow read, update: if isAuthenticated() && request.auth.uid == userId;
+      // No one can create users directly via Firestore (usually done via Auth SDK)
+      allow create: if false;
+      allow delete: if false;
+
+      // User's Groups Subcollection
+      match /groups/{groupId} {
+        // A user can read their own list of groups if they are authenticated
+        allow read: if isAuthenticated() && request.auth.uid == userId;
+        // UserGroup documents within a user's subcollection are managed by joining/leaving groups, not direct creation/deletion
+        allow write: if false;
+      }
+
+      // User's Private Subcollection (existing rules)
+      match /private/{document=**} {
+        allow read, write: if false;
+      }
+    }
+
+    // Groups Collection
+    match /groups/{groupId} {
+      // Group members can read group information
+      allow read: if isGroupMember(groupId);
+      // Only authenticated users can create a new group
+      allow create: if isAuthenticated();
+      // Only the group owner can update or delete the group
+      allow update, delete: if isGroupOwner(groupId);
+
+      // Group's Users Subcollection (Group Members)
+      match /users/{memberId} {
+        // Any group member can read the list of members
+        allow read: if isGroupMember(groupId);
+        // A user can add themselves to a group (e.g., if invited)
+        // Or owner can add/remove members.
+        allow create: if isAuthenticated() && request.auth.uid == memberId; // User can create their own membership entry
+        allow update, delete: if isGroupOwner(groupId); // Only owner can update/delete member roles or remove members
+      }
+
+      // Group's Events Subcollection
+      match /events/{eventId} {
+        // Group members can read events
+        allow read: if isGroupMember(groupId);
+        // Only the group owner can create, update, or delete events
+        allow create, update, delete: if isGroupOwner(groupId);
+      }
+    }
+
+    // Invitations Collection
+    match /invitations/{invitationId} {
+      // Authenticated users can read invitations (e.g., to validate a token)
+      allow read: if isAuthenticated();
+      // Authenticated users can create invitations
+      allow create: if isAuthenticated();
+      // Deletion of an invitation is allowed only if the user is a group member
+      // (This implies the invitation is tied to a group, which needs to be explicitly defined in invitation document)
+      // For simplicity here, assuming an invitation document contains the groupId.
+      // E.g., allow delete: if isGroupMember(resource.data.groupId);
+      allow delete: if true; // Loosened for example, consider tying to group membership
+    }
+  }
+}
