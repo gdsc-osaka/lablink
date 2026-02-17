@@ -1,7 +1,5 @@
-"use client";
-
 import React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 //このあたりの型定義はdomain/user.ts実装後変更予定
 // メンバーとグループのデータ型を定義
@@ -23,12 +21,6 @@ interface GroupViewProps {
 }
 
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
-    const router = useRouter();
-
-    const handleInviteClick = () => {
-        router.push(`/invite?groupId=${group.id}`);
-    };
-
     return (
         <div className="p-5 bg-gray-100 h-full flex flex-col">
             <h2 className="font-bold text-2xl text-center mb-6 text-black">
@@ -57,12 +49,12 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                     </p>
                 )}
             </div>
-            <button
-                onClick={handleInviteClick}
-                className="mt-6 py-2.5 px-5 rounded bg-blue-500 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors"
+            <Link
+                href={`/invite?groupId=${group.id}`}
+                className="mt-6 py-2.5 px-5 rounded bg-blue-500 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors text-center"
             >
                 招待
-            </button>
+            </Link>
         </div>
     );
 };

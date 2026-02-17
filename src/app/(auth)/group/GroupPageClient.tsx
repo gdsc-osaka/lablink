@@ -16,23 +16,16 @@ export default function GroupPageClient({
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const handleGroupSelect = (groupName: string) => {
-        const group = groups.find((g) => g.name === groupName);
-        if (group) {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set("groupId", group.id);
-            router.push(`/group?${params.toString()}`);
-        }
+    const handleGroupSelect = (groupId: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("groupId", groupId);
+        router.push(`/group?${params.toString()}`);
     };
-
-    // 選択されたグループ名を取得（表示用）
-    const selectedGroupName =
-        groups.find((g) => g.id === selectedGroupId)?.name || groups[0]?.name;
 
     return (
         <GroupListSidebar
             groups={groups}
-            selectedGroupId={selectedGroupName}
+            selectedGroupId={selectedGroupId}
             onGroupSelect={handleGroupSelect}
         />
     );

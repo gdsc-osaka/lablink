@@ -217,13 +217,24 @@ export const createGroupService = ({
                                 const memberIds =
                                     groupMemberData?.memberIds || [];
 
-                                const members = memberIds.map((id) => {
-                                    const user = userMap.get(id);
-                                    return {
-                                        id,
-                                        name: user?.email || id,
-                                    };
-                                });
+                                const members = memberIds
+                                    .map((id) => {
+                                        const user = userMap.get(id);
+                                        if (!user) {
+                                            console.warn(
+                                                `User not found for ID: ${id} in group ${group.id}`,
+                                            );
+                                            return null;
+                                        }
+                                        return {
+                                            id,
+                                            name: user.email,
+                                        };
+                                    })
+                                    .filter(
+                                        (member): member is { id: string; name: string } =>
+                                            member !== null,
+                                    );
 
                                 return {
                                     id: group.id,
