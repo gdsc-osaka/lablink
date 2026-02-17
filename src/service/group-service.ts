@@ -5,10 +5,12 @@ import {
     CreateGroupDto,
     UserGroup,
     UserGroupRepository,
+    GroupWithMembers,
 } from "@/domain/group";
-import { ServiceError, ServiceLogicError, DBError } from "@/domain/error";
+import { ServiceError, ServiceLogicError } from "@/domain/error";
+import { findUsersByIds } from "@/infra/user/user-admin-repo";
+// ui層のコンポーネントから直接インフラ層をインポートするのは避けたいので、service層でインフラ層を呼び出しました。
 
-// 依存関係をまとめた型
 interface GroupServiceDeps {
     groupRepo: GroupRepository;
     userGroupRepo: UserGroupRepository;
@@ -37,6 +39,10 @@ export interface GroupService {
     getMemberIdsByGroupId: (
         groupId: string,
     ) => ResultAsync<string[], ServiceError>;
+
+    getGroupsWithMembersByUserId: (
+        userId: string,
+    ) => ResultAsync<GroupWithMembers[], ServiceError>;
 
     deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
 }
@@ -171,6 +177,71 @@ export const createGroupService = ({
             "MISSING_GROUP_ID",
         ).andThen(() => {
             return userGroupRepo.findUserIdsByGroupId(groupId);
+        });
+    },
+
+    getGroupsWithMembersByUserId: (
+        userId: string,
+    ): ResultAsync<GroupWithMembers[], ServiceError> => {
+        return validateRequiredId(
+            userId,
+            "ユーザーID",
+            "MISSING_USER_ID",
+        ).andThen(() => {
+            return userGroupRepo.findAllByUserId(userId).andThen((groups) => {
+                // 全グループのメンバーIDを取得
+                const memberPromises = groups.map((group) =>
+                    userGroupRepo
+                        .findUserIdsByGroupId(group.id)
+                        .map((ids) => ({ groupId: group.id, memberIds: ids })),
+                );
+
+                return ResultAsync.combine(memberPromises).andThen(
+                    (groupMembers) => {
+                        // 全ユニークなユーザーIDを収集
+                        const allUserIds = Array.from(
+                            new Set(groupMembers.flatMap((gm) => gm.memberIds)),
+                        );
+
+                        // ユーザー情報を一括取得
+                        return findUsersByIds(allUserIds).andThen((userMap) => {
+                            const groupsWithMembers = groups.map((group) => {
+                                const groupMemberData = groupMembers.find(
+                                    (gm) => gm.groupId === group.id,
+                                );
+                                const memberIds =
+                                    groupMemberData?.memberIds || [];
+
+                                const members = memberIds
+                                    .map((id) => {
+                                        const user = userMap.get(id);
+                                        if (!user) {
+                                            console.warn(
+                                                `User not found for ID: ${id} in group ${group.id}`,
+                                            );
+                                            // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
+                                            return {
+                                                id,
+                                                name: "Unknown User",
+                                            };
+                                        }
+                                        return {
+                                            id,
+                                            name: user.email,
+                                        };
+                                    });
+
+                                return {
+                                    id: group.id,
+                                    name: group.name,
+                                    members,
+                                };
+                            });
+                            return okAsync(groupsWithMembers);
+                        });
+                    },
+                );
+            });
         });
     },
 
