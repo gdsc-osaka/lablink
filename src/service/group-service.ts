@@ -219,17 +219,17 @@ export const createGroupService = ({
                                             console.warn(
                                                 `User not found for ID: ${id} in group ${group.id}`,
                                             );
-                                            return null;
+                                            // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
+                                            return {
+                                                id,
+                                                name: "Unknown User",
+                                            };
                                         }
                                         return {
                                             id,
                                             name: user.email,
                                         };
-                                    })
-                                    .filter(
-                                        (member): member is { id: string; name: string } =>
-                                            member !== null,
-                                    );
+                                    });
 
                                 return {
                                     id: group.id,
