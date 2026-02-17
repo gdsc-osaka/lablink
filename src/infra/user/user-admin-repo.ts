@@ -10,8 +10,8 @@ const db = getFirestoreAdmin();
 const toUser = (data: FirebaseFirestore.DocumentData): User => {
     return {
         email: data.email,
-        created_at: Timestamp.fromMillis(data.created_at.toMillis()),
-        updated_at: Timestamp.fromMillis(data.updated_at.toMillis()),
+        created_at: data.created_at,
+        updated_at: data.updated_at,
     } as User;
 };
 

@@ -59,10 +59,11 @@ export const firestoreUserGroupAdminRepository: UserGroupRepository = {
             .collection("groups")
             .doc(membership.groupId);
 
+
         const userGroupIndexData = {
             name: groupData.name,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
+            createdAt: groupData.createdAt,
+            updatedAt: groupData.updatedAt,
             joinedAt: FieldValue.serverTimestamp(),
         };
 
