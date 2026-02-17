@@ -9,9 +9,9 @@ const db = getFirestoreAdmin();
 
 const toUser = (data: FirebaseFirestore.DocumentData): User => {
     return {
-        email: data.email,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
+        email: data.email || "Unknown Email",
+        created_at: data.created_at || Timestamp.now(),
+        updated_at: data.updated_at || Timestamp.now(),
     } as User;
 };
 
@@ -61,32 +61,28 @@ export const findUsersByIds = (
         return okAsync(new Map());
     }
 
-    const promises = userIds.map((uid) =>
-        userAdminRepo.findById(uid).match(
-            (user) => ({ uid, user }),
-            (error) => {
-                // サービス層でビジネスコンテキストを含めてログ出力するため、ここではサイレント
-                // ただし、NotFound以外のエラー（DB接続エラーなど）は握りつぶさずにthrowする
-                if (!error.message.includes("not found")) {
-                    throw error;
+    const results = userIds.map((uid) =>
+        userAdminRepo
+            .findById(uid)
+            .map((user) => ({ uid, user }))
+            .orElse((error) => {
+                // NotFoundは想定内なのでnull（成功）として扱う
+                if (error.message.includes("not found")) {
+                    return okAsync(null);
                 }
-                return null;
-            },
-        ),
+                // それ以外のエラーはそのまま伝播させる
+                return errAsync(error);
+            }),
     );
 
-    // Note: match()はPromiseを返すため、Promise.allで待機する必要がある
-    // ResultAsync.fromPromiseのAPI要件によりerror handlerの指定が必要
-    return ResultAsync.fromPromise(Promise.all(promises), handleAdminError).map(
-        (results) => {
-            const userMap = new Map<string, User>();
-            results.forEach((result) => {
-                if (result && result.user) {
-                    userMap.set(result.uid, result.user);
-                }
-            });
-            return userMap;
-        },
-    );
+    return ResultAsync.combine(results).map((combinedResults) => {
+        const userMap = new Map<string, User>();
+        combinedResults.forEach((result) => {
+            if (result && result.user) {
+                userMap.set(result.uid, result.user);
+            }
+        });
+        return userMap;
+    });
 };
 

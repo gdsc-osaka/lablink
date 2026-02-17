@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
+import { Suspense } from "react";
 //サービスインスタンスを構築するためにinfraをインポートしていますが、diコンテナを別でつくった方がいいですか？
 import { Event } from "@/domain/event";
 import { GroupWithMembers } from "@/domain/group";
@@ -129,14 +130,22 @@ export default async function GroupPage({ searchParams }: PageProps) {
     return (
         <main className="flex min-h-screen bg-white">
             {/* 左端カラム - グループ一覧（クライアントコンポーネント） */}
-            <GroupPageClient
-                groups={groups}
-                selectedGroupId={selectedGroup?.id}
-            />
+            <Suspense
+                fallback={
+                    <div className="w-64 border-r border-gray-200 bg-gray-50 h-full flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                }
+            >
+                <GroupPageClient
+                    groups={groups}
+                    selectedGroupId={selectedGroup?.id}
+                />
+            </Suspense>
 
             {/* 中央カラム - 選択されたグループのメンバー一覧（サーバーコンポーネント） */}
             <div className="w-80">
-                {selectedGroup && <GroupView group={selectedGroup} />}
+                <GroupView group={selectedGroup} />
             </div>
 
             {/* 右端カラム - イベント一覧（サーバーコンポーネント） */}

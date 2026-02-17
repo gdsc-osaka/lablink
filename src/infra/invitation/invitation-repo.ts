@@ -33,11 +33,11 @@ const fromInvitationDoc = (
     const data = doc.data();
     return {
         id: doc.id,
-        groupId: data.groupId,
-        token: data.token,
+        groupId: data.groupId || "",
+        token: data.token || "",
         status: (data.status as InvitationStatus) || "pending", // 既存データ用
-        createdAt: data.createdAt.toDate(),
-        expiresAt: data.expiresAt.toDate(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        expiresAt: data.expiresAt?.toDate() || new Date(),
         usedAt: data.usedAt ? data.usedAt.toDate() : undefined,
         usedBy: data.usedBy,
     };
