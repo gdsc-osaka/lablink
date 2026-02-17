@@ -9,7 +9,10 @@ interface GroupPageClientProps {
     selectedGroupId?: string;
 }
 
-export default function GroupPageClient({ groups, selectedGroupId }: GroupPageClientProps) {
+export default function GroupPageClient({
+    groups,
+    selectedGroupId,
+}: GroupPageClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -23,7 +26,8 @@ export default function GroupPageClient({ groups, selectedGroupId }: GroupPageCl
     };
 
     // 選択されたグループ名を取得（表示用）
-    const selectedGroupName = groups.find((g) => g.id === selectedGroupId)?.name || groups[0]?.name;
+    const selectedGroupName =
+        groups.find((g) => g.id === selectedGroupId)?.name || groups[0]?.name;
 
     return (
         <GroupListSidebar

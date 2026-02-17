@@ -200,23 +200,21 @@ export const createGroupService = ({
                 const memberPromises = groups.map((group) =>
                     userGroupRepo
                         .findUserIdsByGroupId(group.id)
-                        .map((ids) => ({ groupId: group.id, memberIds: ids }))
+                        .map((ids) => ({ groupId: group.id, memberIds: ids })),
                 );
 
                 return ResultAsync.combine(memberPromises).andThen(
                     (groupMembers) => {
                         // 全ユニークなユーザーIDを収集
                         const allUserIds = Array.from(
-                            new Set(
-                                groupMembers.flatMap((gm) => gm.memberIds)
-                            )
+                            new Set(groupMembers.flatMap((gm) => gm.memberIds)),
                         );
 
                         // ユーザー情報を一括取得
                         return findUsersByIds(allUserIds).map((userMap) => {
                             return groups.map((group) => {
                                 const groupMemberData = groupMembers.find(
-                                    (gm) => gm.groupId === group.id
+                                    (gm) => gm.groupId === group.id,
                                 );
                                 const memberIds =
                                     groupMemberData?.memberIds || [];
@@ -236,7 +234,7 @@ export const createGroupService = ({
                                 };
                             });
                         });
-                    }
+                    },
                 );
             });
         });
@@ -254,4 +252,3 @@ export const groupService = createGroupService({
     groupRepo: firestoreGroupAdminRepository,
     userGroupRepo: firestoreUserGroupAdminRepository,
 });
-

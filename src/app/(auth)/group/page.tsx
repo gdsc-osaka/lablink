@@ -16,7 +16,9 @@ export default async function GroupPage({ searchParams }: PageProps) {
     const selectedGroupId = params.groupId;
 
     // ユーザーが所属するグループ一覧（メンバー情報込み）を取得
-    const groupsResult = await groupService.getGroupsWithMembersByUserId(user.uid);
+    const groupsResult = await groupService.getGroupsWithMembersByUserId(
+        user.uid,
+    );
     let groups: GroupWithMembers[] = [];
     let errorMessage: string | null = null;
     await groupsResult.match(
@@ -25,9 +27,10 @@ export default async function GroupPage({ searchParams }: PageProps) {
             return null;
         },
         (error: ServiceError) => {
-            errorMessage = error.message || "グループ情報の取得中にエラーが発生しました。";
+            errorMessage =
+                error.message || "グループ情報の取得中にエラーが発生しました。";
             return null;
-        }
+        },
     );
 
     // 選択されたグループ（デフォルトは最初のグループ）
@@ -46,8 +49,8 @@ export default async function GroupPage({ searchParams }: PageProps) {
                 </div>
             )}
             {/* 左端カラム - グループ一覧（クライアントコンポーネント） */}
-            <GroupPageClient 
-                groups={groups} 
+            <GroupPageClient
+                groups={groups}
                 selectedGroupId={selectedGroup?.id}
             />
 

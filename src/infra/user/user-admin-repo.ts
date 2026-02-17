@@ -27,19 +27,17 @@ export const userAdminRepo: UserRepository = {
             handleAdminError,
         ).map(() => user);
     },
-    
+
     findById: (uid) => {
         const docRef = db.collection("users").doc(uid);
-        return ResultAsync.fromPromise(
-            docRef.get(),
-            handleAdminError,
-        ).andThen((snapshot) =>
-            snapshot.exists
-                ? okAsync(toUser(snapshot.data()!))
-                : errAsync(NotFoundError("User not found")),
+        return ResultAsync.fromPromise(docRef.get(), handleAdminError).andThen(
+            (snapshot) =>
+                snapshot.exists
+                    ? okAsync(toUser(snapshot.data()!))
+                    : errAsync(NotFoundError("User not found")),
         );
     },
-    
+
     update: (user) => {
         const docRef = db.collection("users").doc(user.email);
         return ResultAsync.fromPromise(
@@ -48,7 +46,7 @@ export const userAdminRepo: UserRepository = {
                     email: user.email,
                     updated_at: user.updated_at,
                 },
-                { merge: true }
+                { merge: true },
             ),
             handleAdminError,
         ).map(() => user);
@@ -66,20 +64,19 @@ export const findUsersByIds = (
     const promises = userIds.map((uid) =>
         userAdminRepo.findById(uid).match(
             (user) => ({ uid, user }),
-            () => null
-        )
+            () => null,
+        ),
     );
 
-    return ResultAsync.fromPromise(
-        Promise.all(promises),
-        handleAdminError,
-    ).map((results) => {
-        const userMap = new Map<string, User>();
-        results.forEach((result) => {
-            if (result && result.user) {
-                userMap.set(result.uid, result.user);
-            }
-        });
-        return userMap;
-    });
+    return ResultAsync.fromPromise(Promise.all(promises), handleAdminError).map(
+        (results) => {
+            const userMap = new Map<string, User>();
+            results.forEach((result) => {
+                if (result && result.user) {
+                    userMap.set(result.uid, result.user);
+                }
+            });
+            return userMap;
+        },
+    );
 };

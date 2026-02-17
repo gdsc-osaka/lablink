@@ -59,7 +59,6 @@ export const firestoreUserGroupAdminRepository: UserGroupRepository = {
             .collection("groups")
             .doc(membership.groupId);
 
-
         const userGroupIndexData = {
             name: groupData.name,
             createdAt: groupData.createdAt,
@@ -69,10 +68,9 @@ export const firestoreUserGroupAdminRepository: UserGroupRepository = {
 
         batch.set(userGroupRef, userGroupIndexData);
 
-        return ResultAsync.fromPromise(
-            batch.commit(),
-            handleAdminError,
-        ).map(() => undefined);
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
     },
 
     findUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
