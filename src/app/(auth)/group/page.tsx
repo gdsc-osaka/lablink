@@ -2,7 +2,6 @@ import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
-import { userAdminRepo } from "@/infra/user/user-admin-repo";
 //サービスインスタンスを構築するためにinfraをインポートしていますが、diコンテナを別でつくった方がいいですか？
 import { Event } from "@/domain/event";
 import { GroupWithMembers } from "@/domain/group";
@@ -24,7 +23,6 @@ export default async function GroupPage({ searchParams }: PageProps) {
     const groupService = createGroupService({
         groupRepo: firestoreGroupAdminRepository,
         userGroupRepo: userGroupAdminRepo,
-        userRepo: userAdminRepo,
     });
 
     // ユーザーが所属するグループ一覧（メンバー情報込み）を取得
@@ -115,9 +113,15 @@ export default async function GroupPage({ searchParams }: PageProps) {
     }
 
     // 選択されたグループ（デフォルトは最初のグループ）
-    const selectedGroup = selectedGroupId
-        ? groups.find((g) => g.id === selectedGroupId)
-        : groups[0];
+    const selectedGroup = (() => {
+        if (selectedGroupId) {
+            const found = groups.find((g) => g.id === selectedGroupId);
+            if (found) return found;
+            // 無効なgroupIdの場合は最初のグループにフォールバック
+            console.warn(`Group ID not found: ${selectedGroupId}, using first group`);
+        }
+        return groups[0];
+    })();
 
     // TODO: イベント一覧を取得（event-serviceの実装が必要）
     const events: Event[] = [];

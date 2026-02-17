@@ -4,20 +4,9 @@ import { ResultAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 import { handleAdminError } from "@/infra/error-admin";
 import { getFirestoreAdmin } from "@/firebase/admin";
+import { toGroupFromAdmin } from "./group-converter";
 
 const db = getFirestoreAdmin();
-
-const toGroup = (
-    docId: string,
-    data: FirebaseFirestore.DocumentData,
-): Group => {
-    return {
-        id: docId,
-        name: data.name,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-    };
-};
 
 export const userGroupAdminRepo: UserGroupRepository = {
     findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
@@ -30,7 +19,7 @@ export const userGroupAdminRepo: UserGroupRepository = {
             userGroupsRef.get(),
             handleAdminError,
         ).map((snapshot) => {
-            return snapshot.docs.map((doc) => toGroup(doc.id, doc.data()));
+            return snapshot.docs.map((doc) => toGroupFromAdmin(doc.id, doc.data()));
         });
     },
 

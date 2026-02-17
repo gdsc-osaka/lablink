@@ -7,14 +7,13 @@ import {
     UserGroupRepository,
     GroupWithMembers,
 } from "@/domain/group";
-import type { User, UserRepository } from "@/domain/user";
-import { DBError, ServiceError, ServiceLogicError } from "@/domain/error";
+import { ServiceError, ServiceLogicError } from "@/domain/error";
 import { findUsersByIds } from "@/infra/user/user-admin-repo";
+// ui層のコンポーネントから直接インフラ層をインポートするのは避けたいので、service層でインフラ層を呼び出しました。
 
 interface GroupServiceDeps {
     groupRepo: GroupRepository;
     userGroupRepo: UserGroupRepository;
-    userRepo: UserRepository;
 }
 
 export interface GroupService {
@@ -73,7 +72,6 @@ const validateRequiredId = (
 export const createGroupService = ({
     groupRepo,
     userGroupRepo,
-    userRepo,
 }: GroupServiceDeps): GroupService => ({
     createGroupAndAddOwner: (
         userId: string,

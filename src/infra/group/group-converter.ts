@@ -35,4 +35,17 @@ const groupConverter: FirestoreDataConverter<Group> = {
     },
 };
 
+// Admin SDK用の変換ユーティリティ
+export const toGroupFromAdmin = (
+    docId: string,
+    data: FirebaseFirestore.DocumentData,
+): Group => {
+    return {
+        id: docId,
+        name: data.name,
+        createdAt: data.createdAt.toDate(),
+        updatedAt: data.updatedAt.toDate(),
+    };
+};
+
 export { groupConverter };

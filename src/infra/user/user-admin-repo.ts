@@ -65,12 +65,7 @@ export const findUsersByIds = (
         userAdminRepo.findById(uid).match(
             (user) => ({ uid, user }),
             (error) => {
-                // NotFoundは警告レベル（ユーザー削除済みなど）、それ以外はエラーレベル
-                if (error.message.includes("not found")) {
-                    console.warn(`User not found: ${uid}`);
-                } else {
-                    console.error(`Failed to fetch user ${uid}:`, error);
-                }
+                // サービス層でビジネスコンテキストを含めてログ出力するため、ここではサイレント
                 return null;
             },
         ),
