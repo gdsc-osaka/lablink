@@ -1,6 +1,11 @@
 import { requireAuth } from "@/lib/auth/server-auth";
-import { groupService, GroupWithMembers } from "@/service/group-service";
+import { createGroupService } from "@/service/group-service";
+import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
+import { createUserGroupAdminRepository } from "@/infra/group/user-group-admin-repository";
+import { userAdminRepo } from "@/infra/user/user-admin-repo";
+import { getFirestoreAdmin } from "@/firebase/admin";
 import { Event } from "@/domain/event";
+import { GroupWithMembers } from "@/domain/group";
 import { ServiceError } from "@/domain/error";
 import GroupPageClient from "./GroupPageClient";
 import GroupView from "./_components/group-list";
@@ -14,6 +19,13 @@ export default async function GroupPage({ searchParams }: PageProps) {
     const user = await requireAuth();
     const params = await searchParams;
     const selectedGroupId = params.groupId;
+
+    // サービスインスタンスを都度組み立て
+    const groupService = createGroupService({
+        groupRepo: firestoreGroupAdminRepository,
+        userGroupRepo: createUserGroupAdminRepository(getFirestoreAdmin()),
+        userRepo: userAdminRepo,
+    });
 
     // ユーザーが所属するグループ一覧（メンバー情報込み）を取得
     const groupsResult = await groupService.getGroupsWithMembersByUserId(

@@ -1,11 +1,10 @@
-import { getFirestoreAdmin } from "@/firebase/admin";
+
 import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
 import { DBError } from "@/domain/error";
 import { ResultAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 import { handleAdminError } from "@/infra/error-admin";
 
-const db = getFirestoreAdmin();
 
 const toGroup = (
     docId: string,
@@ -19,7 +18,10 @@ const toGroup = (
     };
 };
 
-export const firestoreUserGroupAdminRepository: UserGroupRepository = {
+
+export const createUserGroupAdminRepository = (
+    db: FirebaseFirestore.Firestore
+): UserGroupRepository => ({
     findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
         const userGroupsRef = db
             .collection("users")
@@ -86,4 +88,4 @@ export const firestoreUserGroupAdminRepository: UserGroupRepository = {
             return snapshot.docs.map((doc) => doc.id);
         });
     },
-};
+});

@@ -16,6 +16,30 @@ const toUser = (data: FirebaseFirestore.DocumentData): User => {
 };
 
 export const userAdminRepo: UserRepository = {
+        findByIds: (userIds: string[]): ResultAsync<Map<string, User>, DBError> => {
+            if (userIds.length === 0) {
+                return okAsync(new Map());
+            }
+
+            const promises = userIds.map((uid) =>
+                userAdminRepo.findById(uid).match(
+                    (user) => ({ uid, user }),
+                    () => null,
+                ),
+            );
+
+            return ResultAsync.fromPromise(Promise.all(promises), handleAdminError).map(
+                (results) => {
+                    const userMap = new Map<string, User>();
+                    results.forEach((result) => {
+                        if (result && result.user) {
+                            userMap.set(result.uid, result.user);
+                        }
+                    });
+                    return userMap;
+                },
+            );
+        },
     create: (user) => {
         const docRef = db.collection("users").doc(user.email);
         return ResultAsync.fromPromise(

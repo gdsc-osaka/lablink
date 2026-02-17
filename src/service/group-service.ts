@@ -5,22 +5,19 @@ import {
     CreateGroupDto,
     UserGroup,
     UserGroupRepository,
+    GroupWithMembers,
 } from "@/domain/group";
-import { ServiceError, ServiceLogicError, DBError } from "@/domain/error";
+import type { UserRepository } from "@/domain/user";
+import { ServiceError, ServiceLogicError } from "@/domain/error";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
-import { firestoreUserGroupAdminRepository } from "@/infra/group/user-group-admin-repository";
-import { findUsersByIds } from "@/infra/user/user-admin-repo";
+import { createUserGroupAdminRepository } from "@/infra/group/user-group-admin-repository";
+import { userAdminRepo } from "@/infra/user/user-admin-repo";
+import { getFirestoreAdmin } from "@/firebase/admin";
 
-export interface GroupWithMembers {
-    id: string;
-    name: string;
-    members: Array<{ id: string; name: string }>;
-}
-
-// 依存関係をまとめた型
 interface GroupServiceDeps {
     groupRepo: GroupRepository;
     userGroupRepo: UserGroupRepository;
+    userRepo: UserRepository;
 }
 
 export interface GroupService {
@@ -79,6 +76,7 @@ const validateRequiredId = (
 export const createGroupService = ({
     groupRepo,
     userGroupRepo,
+    userRepo,
 }: GroupServiceDeps): GroupService => ({
     createGroupAndAddOwner: (
         userId: string,
@@ -211,7 +209,7 @@ export const createGroupService = ({
                         );
 
                         // ユーザー情報を一括取得
-                        return findUsersByIds(allUserIds).map((userMap) => {
+                        return userRepo.findByIds(allUserIds).map((userMap) => {
                             return groups.map((group) => {
                                 const groupMemberData = groupMembers.find(
                                     (gm) => gm.groupId === group.id,
@@ -245,10 +243,4 @@ export const createGroupService = ({
             return groupRepo.delete(groupId);
         });
     },
-});
-
-// デフォルトのAdmin Repositoryを使ったインスタンスをexport
-export const groupService = createGroupService({
-    groupRepo: firestoreGroupAdminRepository,
-    userGroupRepo: firestoreUserGroupAdminRepository,
 });
