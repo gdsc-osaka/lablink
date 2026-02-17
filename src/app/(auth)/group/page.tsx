@@ -1,6 +1,7 @@
 import { requireAuth } from "@/lib/auth/server-auth";
-import { groupService } from "@/service/group-service";
+import { groupService, GroupWithMembers } from "@/service/group-service";
 import { Event } from "@/domain/event";
+import { ServiceError } from "@/domain/error";
 import GroupPageClient from "./GroupPageClient";
 import GroupView from "./_components/group-list";
 import EventList from "./_components/event-list";
@@ -16,7 +17,18 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
     // ユーザーが所属するグループ一覧（メンバー情報込み）を取得
     const groupsResult = await groupService.getGroupsWithMembersByUserId(user.uid);
-    const groups = groupsResult.unwrapOr([]);
+    let groups: GroupWithMembers[] = [];
+    let errorMessage: string | null = null;
+    await groupsResult.match(
+        (data: GroupWithMembers[]) => {
+            groups = data;
+            return null;
+        },
+        (error: ServiceError) => {
+            errorMessage = error.message || "グループ情報の取得中にエラーが発生しました。";
+            return null;
+        }
+    );
 
     // 選択されたグループ（デフォルトは最初のグループ）
     const selectedGroup = selectedGroupId
@@ -28,6 +40,11 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
     return (
         <main className="flex min-h-screen bg-white">
+            {errorMessage && (
+                <div className="w-full bg-red-100 text-red-700 p-4 text-center font-semibold">
+                    {errorMessage}
+                </div>
+            )}
             {/* 左端カラム - グループ一覧（クライアントコンポーネント） */}
             <GroupPageClient 
                 groups={groups} 
