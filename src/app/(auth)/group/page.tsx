@@ -30,20 +30,11 @@ export default async function GroupPage({ searchParams }: PageProps) {
     const groupsResult = await groupService.getGroupsWithMembersByUserId(
         user.uid,
     );
-    const { groups, errorMessage } = groupsResult.match(
-        (data: GroupWithMembers[]) => ({
-            groups: data,
-            errorMessage: null,
-        }),
-        (error: ServiceError) => ({
-            groups: [],
-            errorMessage:
-                error.message || "グループ情報の取得中にエラーが発生しました。",
-        }),
-    );
-
     // エラーが発生した場合は専用のエラーUIを表示
-    if (errorMessage) {
+    if (groupsResult.isErr()) {
+        const errorMessage =
+            groupsResult.error.message ||
+            "グループ情報の取得中にエラーが発生しました。";
         return (
             <main className="flex min-h-screen bg-white items-center justify-center p-8">
                 <div className="bg-red-50 border border-red-200 rounded-xl p-8 max-w-md shadow-lg">
@@ -75,6 +66,8 @@ export default async function GroupPage({ searchParams }: PageProps) {
             </main>
         );
     }
+
+    const groups = groupsResult.value;
 
     // グループが存在しない場合の処理
     if (groups.length === 0) {
@@ -113,13 +106,13 @@ export default async function GroupPage({ searchParams }: PageProps) {
         );
     }
 
-    // 選択されたグループ（デフォルトは最初のグループ）
+    // 選択されたグループ（指定がない場合は最初のグループ）
     const selectedGroup = (() => {
         if (selectedGroupId) {
             const found = groups.find((g) => g.id === selectedGroupId);
             if (found) return found;
-            // 無効なgroupIdの場合は最初のグループにフォールバック
-            console.warn(`Group ID not found: ${selectedGroupId}, using first group`);
+            // 無効なgroupIdの場合はundefinedを返す（エラー表示のため）
+            return undefined;
         }
         return groups[0];
     })();
@@ -144,13 +137,59 @@ export default async function GroupPage({ searchParams }: PageProps) {
             </Suspense>
 
             {/* 中央カラム - 選択されたグループのメンバー一覧（サーバーコンポーネント） */}
-            <div className="w-80">
-                <GroupView group={selectedGroup} />
+            <div className="w-80 border-r border-gray-200">
+                <Suspense
+                    fallback={
+                        <div className="h-full flex items-center justify-center bg-white">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    }
+                >
+                    {selectedGroup ? (
+                        <GroupView group={selectedGroup} />
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center p-4 text-center text-gray-500">
+                            <svg
+                                className="w-12 h-12 mb-2 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                            </svg>
+                            <p className="font-medium">グループが見つかりません</p>
+                            <p className="text-sm mt-1">
+                                選択されたグループは存在しないか、アクセス権限がありません。
+                            </p>
+                        </div>
+                    )}
+                </Suspense>
             </div>
 
             {/* 右端カラム - イベント一覧（サーバーコンポーネント） */}
             <div className="flex-1">
-                <EventList events={events} />
+                <Suspense
+                    fallback={
+                        <div className="h-full flex items-center justify-center bg-gray-50">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    }
+                >
+                    {selectedGroup ? (
+                        <EventList events={events} />
+                    ) : (
+                        <div className="h-full flex items-center justify-center bg-gray-50">
+                            <p className="text-gray-400">
+                                グループを選択してください
+                            </p>
+                        </div>
+                    )}
+                </Suspense>
             </div>
         </main>
     );

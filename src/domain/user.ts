@@ -15,7 +15,6 @@ export interface UserRepository {
     update(user: User): ResultAsync<User, DBError>;
 }
 
-
 export const createNewUser = (user: AuthUser): Result<User, never> => {
     const timestamp = Timestamp.now();
     return ok({
