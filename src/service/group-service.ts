@@ -9,12 +9,12 @@ import {
 } from "@/domain/group";
 import type { User, UserRepository } from "@/domain/user";
 import { DBError, ServiceError, ServiceLogicError } from "@/domain/error";
+import { findUsersByIds } from "@/infra/user/user-admin-repo";
 
 interface GroupServiceDeps {
     groupRepo: GroupRepository;
     userGroupRepo: UserGroupRepository;
     userRepo: UserRepository;
-    findUsersByIds: (userIds: string[]) => ResultAsync<Map<string, User>, DBError>;
 }
 
 export interface GroupService {
@@ -74,7 +74,6 @@ export const createGroupService = ({
     groupRepo,
     userGroupRepo,
     userRepo,
-    findUsersByIds,
 }: GroupServiceDeps): GroupService => ({
     createGroupAndAddOwner: (
         userId: string,
@@ -207,8 +206,8 @@ export const createGroupService = ({
                         );
 
                         // ユーザー情報を一括取得
-                        return findUsersByIds(allUserIds).map((userMap) => {
-                            return groups.map((group) => {
+                        return findUsersByIds(allUserIds).andThen((userMap) => {
+                            const groupsWithMembers = groups.map((group) => {
                                 const groupMemberData = groupMembers.find(
                                     (gm) => gm.groupId === group.id,
                                 );
@@ -240,6 +239,7 @@ export const createGroupService = ({
                                     members,
                                 };
                             });
+                            return okAsync(groupsWithMembers);
                         });
                     },
                 );

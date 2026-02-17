@@ -1,10 +1,9 @@
 import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
-import { createUserGroupAdminRepository } from "@/infra/group/user-group-admin-repository";
-import { userAdminRepo, findUsersByIds } from "@/infra/user/user-admin-repo";
+import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
+import { userAdminRepo } from "@/infra/user/user-admin-repo";
 //サービスインスタンスを構築するためにinfraをインポートしていますが、diコンテナを別でつくった方がいいですか？
-import { getFirestoreAdmin } from "@/firebase/admin";
 import { Event } from "@/domain/event";
 import { GroupWithMembers } from "@/domain/group";
 import { ServiceError } from "@/domain/error";
@@ -24,9 +23,8 @@ export default async function GroupPage({ searchParams }: PageProps) {
     // サービスインスタンスを都度組み立て
     const groupService = createGroupService({
         groupRepo: firestoreGroupAdminRepository,
-        userGroupRepo: createUserGroupAdminRepository(getFirestoreAdmin()),
+        userGroupRepo: userGroupAdminRepo,
         userRepo: userAdminRepo,
-        findUsersByIds: findUsersByIds,
     });
 
     // ユーザーが所属するグループ一覧（メンバー情報込み）を取得

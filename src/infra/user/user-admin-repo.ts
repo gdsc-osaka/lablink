@@ -76,6 +76,8 @@ export const findUsersByIds = (
         ),
     );
 
+    // Note: match()は同期値を返すためPromise.allは実際にはrejectしないが、
+    // ResultAsync.fromPromiseのAPI要件によりerror handlerの指定が必要
     return ResultAsync.fromPromise(Promise.all(promises), handleAdminError).map(
         (results) => {
             const userMap = new Map<string, User>();
@@ -88,3 +90,4 @@ export const findUsersByIds = (
         },
     );
 };
+
