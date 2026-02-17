@@ -1,23 +1,10 @@
 import React from "react";
 import Link from "next/link";
-
-//このあたりの型定義はdomain/user.ts実装後変更予定
-// メンバーとグループのデータ型を定義
-export interface Member {
-    id: string;
-    name: string;
-    iconUrl?: string;
-}
-
-export interface Group {
-    id: string;
-    name: string;
-    members: Member[]; // membersフィールドを追加
-}
+import { GroupWithMembers } from "@/domain/group";
 
 // GroupViewコンポーネントのプロパティを定義
 interface GroupViewProps {
-    group: Group;
+    group: GroupWithMembers;
 }
 
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
@@ -28,7 +15,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
             </h2>
             <div className="flex-1 overflow-y-auto space-y-3">
                 {group.members.length > 0 ? (
-                    group.members.map((member: Member) => (
+                    group.members.map((member) => (
                         <div
                             key={member.id}
                             className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm"

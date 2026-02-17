@@ -16,38 +16,6 @@ const toUser = (data: FirebaseFirestore.DocumentData): User => {
 };
 
 export const userAdminRepo: UserRepository = {
-    findByIds: (userIds: string[]): ResultAsync<Map<string, User>, DBError> => {
-        if (userIds.length === 0) {
-            return okAsync(new Map());
-        }
-
-        const promises = userIds.map((uid) =>
-            userAdminRepo.findById(uid).match(
-                (user) => ({ uid, user }),
-                (error) => {
-                    // NotFoundは警告レベル（ユーザー削除済みなど）、それ以外はエラーレベル
-                    if (error.message.includes("not found")) {
-                        console.warn(`User not found: ${uid}`);
-                    } else {
-                        console.error(`Failed to fetch user ${uid}:`, error);
-                    }
-                    return null;
-                },
-            ),
-        );
-
-        return ResultAsync.fromPromise(Promise.all(promises), handleAdminError).map(
-            (results) => {
-                const userMap = new Map<string, User>();
-                results.forEach((result) => {
-                    if (result && result.user) {
-                        userMap.set(result.uid, result.user);
-                    }
-                });
-                return userMap;
-            },
-        );
-    },
     create: (user) => {
         const docRef = db.collection("users").doc(user.email);
         return ResultAsync.fromPromise(

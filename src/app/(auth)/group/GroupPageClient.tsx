@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import GroupListSidebar from "./_components/group-list-sidebar";
-import { Group } from "./_components/group-list";
+import { GroupWithMembers } from "@/domain/group";
 
 interface GroupPageClientProps {
-    groups: Group[];
+    groups: GroupWithMembers[];
     selectedGroupId?: string;
 }
 

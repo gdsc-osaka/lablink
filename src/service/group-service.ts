@@ -7,17 +7,14 @@ import {
     UserGroupRepository,
     GroupWithMembers,
 } from "@/domain/group";
-import type { UserRepository } from "@/domain/user";
-import { ServiceError, ServiceLogicError } from "@/domain/error";
-import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
-import { createUserGroupAdminRepository } from "@/infra/group/user-group-admin-repository";
-import { userAdminRepo } from "@/infra/user/user-admin-repo";
-import { getFirestoreAdmin } from "@/firebase/admin";
+import type { User, UserRepository } from "@/domain/user";
+import { DBError, ServiceError, ServiceLogicError } from "@/domain/error";
 
 interface GroupServiceDeps {
     groupRepo: GroupRepository;
     userGroupRepo: UserGroupRepository;
     userRepo: UserRepository;
+    findUsersByIds: (userIds: string[]) => ResultAsync<Map<string, User>, DBError>;
 }
 
 export interface GroupService {
@@ -77,6 +74,7 @@ export const createGroupService = ({
     groupRepo,
     userGroupRepo,
     userRepo,
+    findUsersByIds,
 }: GroupServiceDeps): GroupService => ({
     createGroupAndAddOwner: (
         userId: string,
@@ -209,7 +207,7 @@ export const createGroupService = ({
                         );
 
                         // ユーザー情報を一括取得
-                        return userRepo.findByIds(allUserIds).map((userMap) => {
+                        return findUsersByIds(allUserIds).map((userMap) => {
                             return groups.map((group) => {
                                 const groupMemberData = groupMembers.find(
                                     (gm) => gm.groupId === group.id,

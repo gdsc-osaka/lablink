@@ -12,9 +12,9 @@ export interface User {
 export interface UserRepository {
     create(user: User): ResultAsync<User, DBError>;
     findById(uid: string): ResultAsync<User, DBError>;
-    findByIds(uids: string[]): ResultAsync<Map<string, User>, DBError>;
     update(user: User): ResultAsync<User, DBError>;
 }
+
 
 export const createNewUser = (user: AuthUser): Result<User, never> => {
     const timestamp = Timestamp.now();
