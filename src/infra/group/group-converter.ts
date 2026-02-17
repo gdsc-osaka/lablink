@@ -42,9 +42,9 @@ export const toGroupFromAdmin = (
 ): Group => {
     return {
         id: docId,
-        name: data.name,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
+        name: data.name || "Unknown Group",
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
     };
 };
 

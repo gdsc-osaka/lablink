@@ -66,12 +66,16 @@ export const findUsersByIds = (
             (user) => ({ uid, user }),
             (error) => {
                 // サービス層でビジネスコンテキストを含めてログ出力するため、ここではサイレント
+                // ただし、NotFound以外のエラー（DB接続エラーなど）は握りつぶさずにthrowする
+                if (!error.message.includes("not found")) {
+                    throw error;
+                }
                 return null;
             },
         ),
     );
 
-    // Note: match()は同期値を返すためPromise.allは実際にはrejectしないが、
+    // Note: match()はPromiseを返すため、Promise.allで待機する必要がある
     // ResultAsync.fromPromiseのAPI要件によりerror handlerの指定が必要
     return ResultAsync.fromPromise(Promise.all(promises), handleAdminError).map(
         (results) => {

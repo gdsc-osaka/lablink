@@ -29,16 +29,16 @@ export default async function GroupPage({ searchParams }: PageProps) {
     const groupsResult = await groupService.getGroupsWithMembersByUserId(
         user.uid,
     );
-    let groups: GroupWithMembers[] = [];
-    let errorMessage: string | null = null;
-    groupsResult.match(
-        (data: GroupWithMembers[]) => {
-            groups = data;
-        },
-        (error: ServiceError) => {
-            errorMessage =
-                error.message || "グループ情報の取得中にエラーが発生しました。";
-        },
+    const { groups, errorMessage } = groupsResult.match(
+        (data: GroupWithMembers[]) => ({
+            groups: data,
+            errorMessage: null,
+        }),
+        (error: ServiceError) => ({
+            groups: [],
+            errorMessage:
+                error.message || "グループ情報の取得中にエラーが発生しました。",
+        }),
     );
 
     // エラーが発生した場合は専用のエラーUIを表示
