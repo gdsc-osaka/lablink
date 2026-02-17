@@ -7,6 +7,15 @@ import {
     UserGroupRepository,
 } from "@/domain/group";
 import { ServiceError, ServiceLogicError, DBError } from "@/domain/error";
+import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
+import { firestoreUserGroupAdminRepository } from "@/infra/group/user-group-admin-repository";
+import { findUsersByIds } from "@/infra/user/user-admin-repo";
+
+export interface GroupWithMembers {
+    id: string;
+    name: string;
+    members: Array<{ id: string; name: string }>;
+}
 
 // 依存関係をまとめた型
 interface GroupServiceDeps {
@@ -37,6 +46,10 @@ export interface GroupService {
     getMemberIdsByGroupId: (
         groupId: string,
     ) => ResultAsync<string[], ServiceError>;
+
+    getGroupsWithMembersByUserId: (
+        userId: string,
+    ) => ResultAsync<GroupWithMembers[], ServiceError>;
 
     deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
 }
@@ -174,9 +187,71 @@ export const createGroupService = ({
         });
     },
 
+    getGroupsWithMembersByUserId: (
+        userId: string,
+    ): ResultAsync<GroupWithMembers[], ServiceError> => {
+        return validateRequiredId(
+            userId,
+            "ユーザーID",
+            "MISSING_USER_ID",
+        ).andThen(() => {
+            return userGroupRepo.findAllByUserId(userId).andThen((groups) => {
+                // 全グループのメンバーIDを取得
+                const memberPromises = groups.map((group) =>
+                    userGroupRepo
+                        .findUserIdsByGroupId(group.id)
+                        .map((ids) => ({ groupId: group.id, memberIds: ids }))
+                );
+
+                return ResultAsync.combine(memberPromises).andThen(
+                    (groupMembers) => {
+                        // 全ユニークなユーザーIDを収集
+                        const allUserIds = Array.from(
+                            new Set(
+                                groupMembers.flatMap((gm) => gm.memberIds)
+                            )
+                        );
+
+                        // ユーザー情報を一括取得
+                        return findUsersByIds(allUserIds).map((userMap) => {
+                            return groups.map((group) => {
+                                const groupMemberData = groupMembers.find(
+                                    (gm) => gm.groupId === group.id
+                                );
+                                const memberIds =
+                                    groupMemberData?.memberIds || [];
+
+                                const members = memberIds.map((id) => {
+                                    const user = userMap.get(id);
+                                    return {
+                                        id,
+                                        name: user?.email || id,
+                                    };
+                                });
+
+                                return {
+                                    id: group.id,
+                                    name: group.name,
+                                    members,
+                                };
+                            });
+                        });
+                    }
+                );
+            });
+        });
+    },
+
     deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
         return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
             return groupRepo.delete(groupId);
         });
     },
 });
+
+// デフォルトのAdmin Repositoryを使ったインスタンスをexport
+export const groupService = createGroupService({
+    groupRepo: firestoreGroupAdminRepository,
+    userGroupRepo: firestoreUserGroupAdminRepository,
+});
+
