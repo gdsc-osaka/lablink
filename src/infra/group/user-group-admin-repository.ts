@@ -1,4 +1,3 @@
-
 import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
 import { DBError } from "@/domain/error";
 import { ResultAsync } from "neverthrow";
