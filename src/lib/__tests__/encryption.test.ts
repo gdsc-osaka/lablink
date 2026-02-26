@@ -3,6 +3,8 @@
  */
 
 import { describe, it, expect, beforeAll } from "vitest";
+
+vi.mock("server-only", () => ({}));
 import {
     encryptToken,
     decryptToken,
