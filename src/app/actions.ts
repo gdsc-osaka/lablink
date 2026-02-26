@@ -45,11 +45,7 @@ export async function suggestSchedule(
 
     if (suggestionResult.isErr()) {
         console.warn("Failed to suggest schedule:", suggestionResult.error);
-        return {
-            success: false,
-            error:
-                "Failed to suggest schedule: " + suggestionResult.error.message,
-        };
+        return { success: false, error: "Failed to suggest schedule" };
     }
 
     return {
