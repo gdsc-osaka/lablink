@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { busyToFreeSlots, TimeRange } from "../calendar";
 
 describe("busyToFreeSlots", () => {
