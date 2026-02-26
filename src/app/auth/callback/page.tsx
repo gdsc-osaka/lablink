@@ -6,7 +6,6 @@ import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { auth, db } from "@/firebase/client";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { Spinner } from "@/components/ui/spinner";
-import { saveRefreshToken } from "@/app/actions";
 
 export default function AuthCallbackPage() {
     const router = useRouter();
@@ -33,7 +32,7 @@ export default function AuthCallbackPage() {
             try {
                 setStatus("トークンを取得中...");
 
-                // 1. API Route経由でトークン交換のみ（client_secretはサーバー側で使用）
+                // 1. API Route経由でトークン交換と永続化（サーバー完結）
                 const tokenResponse = await fetch("/api/auth/exchange-token", {
                     method: "POST",
                     headers: {
@@ -49,7 +48,7 @@ export default function AuthCallbackPage() {
                 }
 
                 const tokens = await tokenResponse.json();
-                const { access_token, refresh_token, id_token } = tokens;
+                const { access_token, id_token } = tokens;
 
                 setStatus("Firebase にログイン中...");
 
@@ -76,24 +75,9 @@ export default function AuthCallbackPage() {
                     { merge: true },
                 );
 
-                // 4. リフレッシュトークンがある場合、Server Action で暗号化してFirestoreに保存
-                if (refresh_token) {
-                    setStatus("リフレッシュトークンを保存中...");
-
-                    // Server Action を呼び出し（Cookie ベース認証）
-                    const result = await saveRefreshToken(refresh_token);
-
-                    if (!result.success) {
-                        console.error(
-                            "Failed to save refresh token:",
-                            result.message,
-                        );
-                    }
-                }
-
                 setStatus("ログイン成功！リダイレクト中...");
 
-                // 5. ホームページにリダイレクト
+                // 4. ホームページにリダイレクト
                 setTimeout(() => {
                     router.push("/");
                 }, 1000);
