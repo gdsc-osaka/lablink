@@ -85,15 +85,26 @@ export const geminiRepo: GenAIRepository = {
                 );
             }
 
-            const parsed = schema.safeParse(JSON.parse(response.text));
-            if (!parsed.success) {
-                return err(
-                    GenAIUnknownError("Invalid response", {
-                        extra: { impl: GEMINI_IMPL, model: GEMINI_MODEL_NAME },
-                    }),
-                );
-            }
+            return Result.fromThrowable(JSON.parse, (): GenAIError => {
+                return GenAIUnknownError("Invalid response", {
+                    extra: { impl: GEMINI_IMPL, model: GEMINI_MODEL_NAME },
+                });
+            })(response.text).andThen(
+                (parsedJson): Result<z.infer<T>, GenAIError> => {
+                    const parsedResult = schema.safeParse(parsedJson);
+                    if (!parsedResult.success) {
+                        return err(
+                            GenAIUnknownError("Invalid response", {
+                                extra: {
+                                    impl: GEMINI_IMPL,
+                                    model: GEMINI_MODEL_NAME,
+                                },
+                            }),
+                        );
+                    }
 
-            return ok(parsed.data);
+                    return ok(parsedResult.data);
+                },
+            );
         }),
 };
