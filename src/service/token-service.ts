@@ -6,7 +6,7 @@ import {
     TokenError,
     TokenRepository,
 } from "@/domain/token";
-import { ResultAsync } from "neverthrow";
+import { Result, ResultAsync } from "neverthrow";
 
 export interface Token extends Omit<EncryptedToken, "encryptedToken"> {
     token: string;
@@ -29,9 +29,13 @@ export const createTokenService = (
     tokenRepository: TokenRepository,
 ): TokenService => ({
     saveToken: (token) =>
-        tokenRepository.add(encryptToken(token as Token)).map(decryptToken),
+        encryptToken(token as Token)
+            .asyncAndThen(tokenRepository.add)
+            .andThen(decryptToken),
     updateToken: (token) =>
-        tokenRepository.update(encryptToken(token as Token)).map(decryptToken),
+        encryptToken(token as Token)
+            .asyncAndThen(tokenRepository.update)
+            .andThen(decryptToken),
     getSavedToken: (userId, serviceType) =>
-        tokenRepository.get(userId, serviceType).map(decryptToken),
+        tokenRepository.get(userId, serviceType).andThen(decryptToken),
 });

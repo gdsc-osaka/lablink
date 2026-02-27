@@ -1,4 +1,4 @@
-import { ResultAsync } from "neverthrow";
+import { Result, ResultAsync } from "neverthrow";
 import { errorBuilder, InferError } from "obj-err";
 import {
     decryptToken as decrypt,
@@ -32,6 +32,16 @@ export const TokenNotFoundError = errorBuilder(
 );
 export type TokenNotFoundError = InferError<typeof TokenNotFoundError>;
 
+export const TokenEncryptionError = errorBuilder(
+    "TokenEncryptionError",
+    z.object({
+        impl: z.string(),
+        userId: z.string(),
+        serviceType: z.string(),
+    }),
+);
+export type TokenEncryptionError = InferError<typeof TokenEncryptionError>;
+
 export const TokenDecryptionError = errorBuilder(
     "TokenDecryptionError",
     z.object({
@@ -54,21 +64,62 @@ export type TokenUnknownError = InferError<typeof TokenUnknownError>;
 
 export type TokenError =
     | TokenNotFoundError
+    | TokenEncryptionError
     | TokenDecryptionError
     | TokenUnknownError;
 
-export const decryptToken = (encryptedToken: EncryptedToken): Token => {
-    return {
+export const decryptToken = (
+    encryptedToken: EncryptedToken,
+): Result<Token, TokenDecryptionError> => {
+    return Result.fromThrowable(decrypt, (error) => {
+        if (error instanceof Error) {
+            return TokenDecryptionError(error.message, {
+                extra: {
+                    impl: encryptedToken.serviceType,
+                    userId: encryptedToken.userId,
+                    serviceType: encryptedToken.serviceType,
+                },
+            });
+        }
+
+        return TokenDecryptionError(String(error), {
+            extra: {
+                impl: encryptedToken.serviceType,
+                userId: encryptedToken.userId,
+                serviceType: encryptedToken.serviceType,
+            },
+        });
+    })(encryptedToken.encryptedToken).map((decryptedToken) => ({
         ...encryptedToken,
-        token: decrypt(encryptedToken.encryptedToken),
-    };
+        token: decryptedToken,
+    }));
 };
 
-export const encryptToken = (token: Token): EncryptedToken => {
-    return {
+export const encryptToken = (
+    token: Token,
+): Result<EncryptedToken, TokenEncryptionError> => {
+    return Result.fromThrowable(decrypt, (error) => {
+        if (error instanceof Error) {
+            return TokenEncryptionError(error.message, {
+                extra: {
+                    impl: token.serviceType,
+                    userId: token.userId,
+                    serviceType: token.serviceType,
+                },
+            });
+        }
+
+        return TokenEncryptionError(String(error), {
+            extra: {
+                impl: token.serviceType,
+                userId: token.userId,
+                serviceType: token.serviceType,
+            },
+        });
+    })(token.token).map((encryptedToken) => ({
         ...token,
-        encryptedToken: encrypt(token.token),
-    };
+        encryptedToken: encryptedToken,
+    }));
 };
 
 export interface TokenRepository {
