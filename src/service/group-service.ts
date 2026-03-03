@@ -55,7 +55,7 @@ const validateRequiredId = (
 ): ResultAsync<void, ServiceError> => {
     if (!value || value.trim() === "") {
         return errAsync(
-            ServiceLogicError("${fieldName}は必須です。", {
+            ServiceLogicError(`${fieldName}は必須です。`, {
                 extra: { code: errorCode },
             }),
         );
