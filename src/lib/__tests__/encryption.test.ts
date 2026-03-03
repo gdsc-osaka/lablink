@@ -30,12 +30,13 @@ describe("Encryption Library", () => {
             const testToken = "1//0gABCDEF123456789-test-refresh-token";
             const encrypted = encryptToken(testToken);
 
-            // 暗号化結果は "iv:encrypted" の形式
+            // 暗号化結果は "iv:encrypted:authTag" の形式
             expect(encrypted).toContain(":");
             const parts = encrypted.split(":");
-            expect(parts).toHaveLength(2);
-            expect(parts[0]).toHaveLength(32); // IV は16バイト = 32文字（hex）
+            expect(parts).toHaveLength(3);
+            expect(parts[0]).toHaveLength(24); // IV は12バイト = 24文字（hex）
             expect(parts[1].length).toBeGreaterThan(0);
+            expect(parts[2]).toHaveLength(32); // AuthTag は16バイト = 32文字（hex）
         });
 
         it("同じトークンでも異なる暗号化結果になる（IV が異なる）", () => {
@@ -74,7 +75,7 @@ describe("Encryption Library", () => {
         });
 
         it("不正なフォーマットの復号化はエラーを投げる", () => {
-            expect(() => decryptToken("invalid:format:data")).toThrow(
+            expect(() => decryptToken("invalid:format:data:extra")).toThrow(
                 "Failed to decrypt token",
             );
         });
