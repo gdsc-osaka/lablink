@@ -175,7 +175,11 @@ export const createGroupService = ({
     },
 
     deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
+        return validateRequiredId(
+            groupId,
+            "グループID",
+            "MISSING_GROUP_ID",
+        ).andThen(() => {
             return groupRepo.delete(groupId);
         });
     },
