@@ -4,6 +4,7 @@ import {
     getDocs,
     getDoc,
     addDoc,
+    setDoc,
     updateDoc,
     deleteDoc,
     query,
@@ -84,6 +85,28 @@ export const firestoreEventRepository: EventRepository = {
         ).map((docRef) => ({
             ...eventData,
             id: docRef.id,
+            created_at: new Date(),
+            updated_at: new Date(),
+        }));
+    },
+
+    save: (groupId: string, event: Event): ResultAsync<Event, DBError> => {
+        const { id, ...eventData } = event;
+        const eventToSave: WithFieldValue<NewEvent> = {
+            ...eventData,
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp(),
+        };
+
+        const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
+            eventConverter,
+        );
+
+        return ResultAsync.fromPromise(
+            setDoc(eventRef, eventToSave),
+            handleFirestoreError,
+        ).map(() => ({
+            ...event,
             created_at: new Date(),
             updated_at: new Date(),
         }));

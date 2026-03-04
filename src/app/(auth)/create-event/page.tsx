@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import type { EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
+import { convertDraftToEvent } from "@/lib/event-to-draft";
+import { createEvent } from "@/app/actions";
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -22,6 +24,13 @@ const timeOfDayInputItems: {
 
 export default function CreateEventPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const groupId = searchParams.get("groupId");
+    const eventId = searchParams.get("eventId");
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // useFormフックをコンポーネント内で呼び出す
     const {
@@ -72,12 +81,59 @@ export default function CreateEventPage() {
     }, [selected, setValue]);
 
     // フォーム送信時の処理
-    const onSubmit: SubmitHandler<EventDraft> = (data: EventDraft) => {
-        console.log(data);
+    const onSubmit: SubmitHandler<EventDraft> = async (data: EventDraft) => {
+        // クエリパラメータの検証
+        if (!groupId || !eventId) {
+            setError("グループIDまたはイベントIDが指定されていません");
+            return;
+        }
 
-        //TODO: create-event のAPIへの送信処理を追加
-        router.push("/ai-suggest");
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            // EventDraftをNewEventに変換
+            const newEvent = convertDraftToEvent(data);
+
+            // サーバーアクションを呼び出してイベントを保存
+            const result = await createEvent(groupId, eventId, newEvent);
+
+            if (result.success) {
+                // 成功時は完了ページに遷移
+                router.push("/complete");
+            } else {
+                // エラー時はメッセージを表示
+                setError(result.error || "イベントの作成に失敗しました");
+            }
+        } catch (err) {
+            console.error("Error creating event:", err);
+            setError("イベントの作成中にエラーが発生しました");
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    // クエリパラメータが不足している場合のエラー表示
+    if (!groupId || !eventId) {
+        return (
+            <main className="min-h-screen bg-white">
+                <div className="w-full mx-auto">
+                    <div className="flex w-full h-25 bg-gray-300">
+                        <h1 className="text-4xl font-bold text-black py-8 ml-10">
+                            新規イベントを作成
+                        </h1>
+                    </div>
+                    <div className="p-8">
+                        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            エラー:
+                            グループIDまたはイベントIDが指定されていません。
+                            正しいURLからアクセスしてください。
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="min-h-screen bg-white">
@@ -284,12 +340,20 @@ export default function CreateEventPage() {
                         )}
                     </div>
 
+                    {/* エラーメッセージ表示 */}
+                    {error && (
+                        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {error}
+                        </div>
+                    )}
+
                     <div className="flex justify-end">
                         <Button
                             type="submit"
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            disabled={isLoading}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            AIのsuggestへ
+                            {isLoading ? "作成中..." : "イベントを作成"}
                         </Button>
                     </div>
                 </form>
