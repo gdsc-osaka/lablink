@@ -212,24 +212,23 @@ export const createGroupService = ({
                                 const memberIds =
                                     groupMemberData?.memberIds || [];
 
-                                const members = memberIds
-                                    .map((id) => {
-                                        const user = userMap.get(id);
-                                        if (!user) {
-                                            console.warn(
-                                                `User not found for ID: ${id} in group ${group.id}`,
-                                            );
-                                            // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
-                                            return {
-                                                id,
-                                                name: "Unknown User",
-                                            };
-                                        }
+                                const members = memberIds.map((id) => {
+                                    const user = userMap.get(id);
+                                    if (!user) {
+                                        console.warn(
+                                            `User not found for ID: ${id} in group ${group.id}`,
+                                        );
+                                        // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
                                         return {
                                             id,
-                                            name: user.email,
+                                            name: "Unknown User",
                                         };
-                                    });
+                                    }
+                                    return {
+                                        id,
+                                        name: user.email,
+                                    };
+                                });
 
                                 return {
                                     id: group.id,

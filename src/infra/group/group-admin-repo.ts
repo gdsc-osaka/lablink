@@ -46,10 +46,10 @@ export const firestoreGroupAdminRepository: GroupRepository = {
 
         const docRef = db.collection("groups").doc(group.id);
         const updateData: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> =
-        {
-            ...group,
-            updatedAt: FieldValue.serverTimestamp(),
-        };
+            {
+                ...group,
+                updatedAt: FieldValue.serverTimestamp(),
+            };
 
         return ResultAsync.fromPromise(
             docRef.update(updateData),

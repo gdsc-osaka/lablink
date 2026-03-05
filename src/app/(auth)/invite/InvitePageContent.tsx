@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import InviteCreateButton from "./InviteCreateButton";
-import { CrossIcon, LinkIcon, CheckIcon, CopyIcon, ArrowLeftIcon } from "./_components/icons";
+import {
+    CrossIcon,
+    LinkIcon,
+    CheckIcon,
+    CopyIcon,
+    ArrowLeftIcon,
+} from "./_components/icons";
 import clsx from "clsx";
 
 type InvitePageContentProps = {
@@ -95,7 +101,7 @@ export default function InvitePageContent({ groupId }: InvitePageContentProps) {
                                     "flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md",
                                     copied
                                         ? "bg-green-500 text-white"
-                                        : "bg-blue-500 hover:bg-blue-600 text-white"
+                                        : "bg-blue-500 hover:bg-blue-600 text-white",
                                 )}
                             >
                                 {copied ? (

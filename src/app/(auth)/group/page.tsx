@@ -8,7 +8,11 @@ import { Event } from "@/domain/event";
 import GroupPageClient from "./GroupPageClient";
 import GroupView from "./_components/group-list";
 import EventList from "./_components/event-list";
-import { ErrorCircleIcon, GroupPeopleIcon, WarningTriangleIcon } from "./_components/icons";
+import {
+    ErrorCircleIcon,
+    GroupPeopleIcon,
+    WarningTriangleIcon,
+} from "./_components/icons";
 
 interface PageProps {
     searchParams: Promise<{ groupId?: string }>;
@@ -125,7 +129,9 @@ export default async function GroupPage({ searchParams }: PageProps) {
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center p-4 text-center text-gray-500">
                             <WarningTriangleIcon className="w-12 h-12 mb-2 text-gray-400" />
-                            <p className="font-medium">グループが見つかりません</p>
+                            <p className="font-medium">
+                                グループが見つかりません
+                            </p>
                             <p className="text-sm mt-1">
                                 選択されたグループは存在しないか、アクセス権限がありません。
                             </p>

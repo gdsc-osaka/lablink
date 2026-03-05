@@ -19,7 +19,9 @@ export const userGroupAdminRepo: UserGroupRepository = {
             userGroupsRef.get(),
             handleAdminError,
         ).map((snapshot) => {
-            return snapshot.docs.map((doc) => toGroupFromAdmin(doc.id, doc.data()));
+            return snapshot.docs.map((doc) =>
+                toGroupFromAdmin(doc.id, doc.data()),
+            );
         });
     },
 
