@@ -10,6 +10,7 @@ import { ServiceError } from "@/domain/error";
 import GroupPageClient from "./GroupPageClient";
 import GroupView from "./_components/group-list";
 import EventList from "./_components/event-list";
+import { ErrorCircleIcon, GroupPeopleIcon, WarningTriangleIcon } from "./_components/icons";
 
 interface PageProps {
     searchParams: Promise<{ groupId?: string }>;
@@ -40,19 +41,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
                 <div className="bg-red-50 border border-red-200 rounded-xl p-8 max-w-md shadow-lg">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                            <svg
-                                className="w-6 h-6 text-red-600"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
+                            <ErrorCircleIcon className="w-6 h-6 text-red-600" />
                         </div>
                         <h2 className="text-xl font-bold text-red-800">
                             エラーが発生しました
@@ -75,19 +64,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
             <main className="flex min-h-screen bg-white items-center justify-center p-8">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 max-w-md shadow-lg text-center">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg
-                            className="w-8 h-8 text-blue-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                        </svg>
+                        <GroupPeopleIcon className="w-8 h-8 text-blue-600" />
                     </div>
                     <h2 className="text-xl font-bold text-blue-800 mb-2">
                         グループがありません
@@ -149,19 +126,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
                         <GroupView group={selectedGroup} />
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center p-4 text-center text-gray-500">
-                            <svg
-                                className="w-12 h-12 mb-2 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                />
-                            </svg>
+                            <WarningTriangleIcon className="w-12 h-12 mb-2 text-gray-400" />
                             <p className="font-medium">グループが見つかりません</p>
                             <p className="text-sm mt-1">
                                 選択されたグループは存在しないか、アクセス権限がありません。

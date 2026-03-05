@@ -18,6 +18,7 @@ export default function GroupPageClient({
 
     const handleGroupSelect = (groupId: string) => {
         // 将来的に他のクエリパラメータ（フィルタ、検索など）を保持する可能性を考慮
+        // router.push(`/group?groupId=${groupId}`);にする？
         const params = new URLSearchParams(searchParams.toString());
         params.set("groupId", groupId);
         router.push(`/group?${params.toString()}`);

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { GroupWithMembers } from "@/domain/group";
+import clsx from "clsx";
 
 interface GroupListSidebarProps {
     groups: GroupWithMembers[];
@@ -20,10 +21,10 @@ const GroupListSidebar: React.FC<GroupListSidebarProps> = ({
                 <div
                     key={group.id}
                     onClick={() => onGroupSelect(group.id)}
-                    className={`p-2 cursor-pointer text-xs text-center hover:bg-blue-100 transition-colors border-b border-gray-300 min-h-[60px] flex items-center justify-center ${selectedGroupId === group.id
+                    className={clsx("p-2 cursor-pointer text-xs text-center hover:bg-blue-100 transition-colors border-b border-gray-300 min-h-[60px] flex items-center justify-center", selectedGroupId === group.id
                         ? "bg-blue-500 text-white font-bold shadow-lg"
                         : "bg-gray-200 text-black hover:text-blue-700"
-                        }`}
+                    )}
                     style={{
                         writingMode: "vertical-rl",
                         textOrientation: "mixed",
