@@ -5,8 +5,6 @@ import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { Suspense } from "react";
 //サービスインスタンスを構築するためにinfraをインポートしていますが、diコンテナを別でつくった方がいいですか？
 import { Event } from "@/domain/event";
-import { GroupWithMembers } from "@/domain/group";
-import { ServiceError } from "@/domain/error";
 import GroupPageClient from "./GroupPageClient";
 import GroupView from "./_components/group-list";
 import EventList from "./_components/event-list";

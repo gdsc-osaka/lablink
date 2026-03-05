@@ -10,6 +10,7 @@ import { User } from "@/domain/user";
 const userConverter: FirestoreDataConverter<User> = {
     toFirestore(user: User): DocumentData {
         return {
+            uid: user.uid,
             email: user.email,
             created_at: toFirestoreTimestamp(user.created_at),
             updated_at: toFirestoreTimestamp(user.updated_at),
@@ -22,11 +23,10 @@ const userConverter: FirestoreDataConverter<User> = {
         const data = snapshot.data(options);
 
         return {
+            uid: snapshot.id,
             email: data.email ?? snapshot.id,
-            // サーバーとクライアントでTimestampの型が違う可能性があるため注意
-            // ここでは簡易的に存在チェックのみを行う
-            created_at: data.created_at || new Date(),
-            updated_at: data.updated_at || new Date(),
+            created_at: data.created_at?.toDate() ?? new Date(),
+            updated_at: data.updated_at?.toDate() ?? new Date(),
         };
     },
 };

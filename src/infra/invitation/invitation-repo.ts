@@ -106,6 +106,9 @@ export const invitationRepo: InvitationRepository = {
                 ) {
                     throw new Error("この招待リンクは既に使用されています");
                 }
+                if (invitationData.expiresAt.toDate() < new Date()) {
+                    throw new Error("この招待リンクは有効期限が切れています");
+                }
 
                 // 3. グループドキュメントを取得
                 const groupDocRef = db.collection("groups").doc(groupId);

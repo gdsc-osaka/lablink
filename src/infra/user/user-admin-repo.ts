@@ -7,22 +7,23 @@ import { Timestamp } from "firebase-admin/firestore";
 
 const db = getFirestoreAdmin();
 
-const toUser = (data: FirebaseFirestore.DocumentData): User => {
+const toUser = (uid: string, data: FirebaseFirestore.DocumentData): User => {
     return {
+        uid,
         email: data.email || "Unknown Email",
-        created_at: data.created_at || Timestamp.now(),
-        updated_at: data.updated_at || Timestamp.now(),
-    } as User;
+        created_at: data.created_at?.toDate() ?? new Date(),
+        updated_at: data.updated_at?.toDate() ?? new Date(),
+    };
 };
 
 export const userAdminRepo: UserRepository = {
     create: (user) => {
-        const docRef = db.collection("users").doc(user.email);
+        const docRef = db.collection("users").doc(user.uid);
         return ResultAsync.fromPromise(
             docRef.set({
                 email: user.email,
-                created_at: user.created_at,
-                updated_at: user.updated_at,
+                created_at: Timestamp.fromDate(user.created_at),
+                updated_at: Timestamp.fromDate(user.updated_at),
             }),
             handleAdminError,
         ).map(() => user);
@@ -33,18 +34,18 @@ export const userAdminRepo: UserRepository = {
         return ResultAsync.fromPromise(docRef.get(), handleAdminError).andThen(
             (snapshot) =>
                 snapshot.exists
-                    ? okAsync(toUser(snapshot.data()!))
+                    ? okAsync(toUser(uid, snapshot.data()!))
                     : errAsync(NotFoundError("User not found")),
         );
     },
 
     update: (user) => {
-        const docRef = db.collection("users").doc(user.email);
+        const docRef = db.collection("users").doc(user.uid);
         return ResultAsync.fromPromise(
             docRef.set(
                 {
                     email: user.email,
-                    updated_at: user.updated_at,
+                    updated_at: Timestamp.fromDate(user.updated_at),
                 },
                 { merge: true },
             ),

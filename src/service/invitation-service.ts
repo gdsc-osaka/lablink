@@ -41,8 +41,12 @@ export function createInvitationService(
                     ExpiredError("招待リンクの有効期限が切れています"),
                 );
             }
-            // 使用済みの場合もエラー
-            if (invitation.usedAt) {
+            if (invitation.status === "declined") {
+                return errAsync(
+                    ExpiredError("この招待リンクは拒否されています"),
+                );
+            }
+            if (invitation.status === "accepted" || invitation.usedAt) {
                 return errAsync(
                     ExpiredError("この招待リンクは既に使用されています"),
                 );
