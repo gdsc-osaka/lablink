@@ -37,6 +37,8 @@ export async function acceptGroupInvitation(
 export async function declineGroupInvitation(
     token: string,
 ): Promise<{ success: boolean; error?: string }> {
+    await requireAuth();
+
     const service = createInvitationService(
         invitationRepo,
         firestoreGroupAdminRepository,
