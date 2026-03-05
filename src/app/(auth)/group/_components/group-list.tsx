@@ -1,34 +1,13 @@
-"use client";
-
 import React from "react";
-import { useRouter } from "next/navigation";
-
-//このあたりの型定義はdomain/user.ts実装後変更予定
-// メンバーとグループのデータ型を定義
-export interface Member {
-    id: string;
-    name: string;
-    iconUrl?: string;
-}
-
-export interface Group {
-    id: string;
-    name: string;
-    members: Member[]; // membersフィールドを追加
-}
+import Link from "next/link";
+import { GroupWithMembers } from "@/domain/group";
 
 // GroupViewコンポーネントのプロパティを定義
 interface GroupViewProps {
-    group: Group;
+    group: GroupWithMembers;
 }
 
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
-    const router = useRouter();
-
-    const handleInviteClick = () => {
-        router.push(`/invite?groupId=${group.id}`);
-    };
-
     return (
         <div className="p-5 bg-gray-100 h-full flex flex-col">
             <h2 className="font-bold text-2xl text-center mb-6 text-black">
@@ -36,7 +15,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
             </h2>
             <div className="flex-1 overflow-y-auto space-y-3">
                 {group.members.length > 0 ? (
-                    group.members.map((member: Member) => (
+                    group.members.map((member) => (
                         <div
                             key={member.id}
                             className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm"
@@ -57,12 +36,12 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                     </p>
                 )}
             </div>
-            <button
-                onClick={handleInviteClick}
-                className="mt-6 py-2.5 px-5 rounded bg-blue-500 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors"
+            <Link
+                href={`/invite?groupId=${group.id}`}
+                className="mt-6 py-2.5 px-5 rounded bg-blue-500 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors text-center"
             >
                 招待
-            </button>
+            </Link>
         </div>
     );
 };

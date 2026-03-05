@@ -23,8 +23,10 @@ const userConverter: FirestoreDataConverter<User> = {
 
         return {
             email: data.email ?? snapshot.id,
-            created_at: data.created_at,
-            updated_at: data.updated_at,
+            // サーバーとクライアントでTimestampの型が違う可能性があるため注意
+            // ここでは簡易的に存在チェックのみを行う
+            created_at: data.created_at || new Date(),
+            updated_at: data.updated_at || new Date(),
         };
     },
 };
