@@ -21,6 +21,8 @@ async function GroupInvitationScreenContent({
 }) {
     const { token } = await searchParams;
 
+    await requireAuth({ token });
+
     if (!token) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-white">
@@ -46,7 +48,10 @@ async function GroupInvitationScreenContent({
     }
 
     // グループ情報の取得
-    const invitationService = createInvitationService(invitationRepo, firestoreGroupAdminRepository);
+    const invitationService = createInvitationService(
+        invitationRepo,
+        firestoreGroupAdminRepository,
+    );
     const result = await invitationService.getGroupByToken(token);
 
     const groupOrError = result.match(
@@ -95,10 +100,11 @@ async function GroupInvitationScreenContent({
     );
 }
 
-export default async function GroupInvitationScreen({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
-    // tokenが存在する場合に、requireAuth()へ渡してログイン時に招待ページへ戻るようにする
-    await requireAuth(await searchParams);
-
+export default async function GroupInvitationScreen({
+    searchParams,
+}: {
+    searchParams: Promise<{ token?: string }>;
+}) {
     return (
         <Suspense
             fallback={

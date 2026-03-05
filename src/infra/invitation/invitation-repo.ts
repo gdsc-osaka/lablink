@@ -67,7 +67,8 @@ export const invitationRepo: InvitationRepository = {
         )
             .map((snapshot) => snapshot.docs.at(0))
             .andThen((doc) => {
-                if (!doc) return errAsync(NotFoundError("Invitation not found"));
+                if (!doc)
+                    return errAsync(NotFoundError("Invitation not found"));
                 return ResultAsync.fromPromise(
                     doc.ref.update({ status: "declined" }),
                     handleAdminError,
@@ -99,7 +100,10 @@ export const invitationRepo: InvitationRepository = {
                 if (invitationData.status === "declined") {
                     throw new Error("この招待リンクは拒否されています");
                 }
-                if (invitationData.status === "accepted" || invitationData.usedAt) {
+                if (
+                    invitationData.status === "accepted" ||
+                    invitationData.usedAt
+                ) {
                     throw new Error("この招待リンクは既に使用されています");
                 }
 

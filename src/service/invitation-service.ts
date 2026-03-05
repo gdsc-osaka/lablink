@@ -2,8 +2,6 @@ import { ResultAsync, okAsync, errAsync } from "neverthrow";
 import { Invitation, InvitationRepository } from "@/domain/invitation";
 import { DBError, ExpiredError, InvitationError } from "@/domain/error";
 import { Group, GroupRepository } from "@/domain/group";
-import { invitationRepo } from "@/infra/invitation/invitation-repo";
-import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 
 export interface InvitationService {
     // 招待を作成
@@ -101,5 +99,3 @@ export function createInvitationService(
         },
     };
 }
-
-

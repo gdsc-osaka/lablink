@@ -4,20 +4,9 @@ import { DBError, NotFoundError, UnknownError } from "@/domain/error";
 import { ResultAsync, err, errAsync, ok } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 import { handleAdminError } from "@/infra/error-admin";
+import { toGroupFromAdmin } from "./group-converter";
 
 const db = getFirestoreAdmin();
-
-const toGroup = (
-    docId: string,
-    data: FirebaseFirestore.DocumentData,
-): Group => {
-    return {
-        id: docId,
-        name: data.name,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-    };
-};
 
 export const firestoreGroupAdminRepository: GroupRepository = {
     findById: (groupId: string): ResultAsync<Group, DBError> => {
@@ -28,7 +17,7 @@ export const firestoreGroupAdminRepository: GroupRepository = {
                 if (!docSnap.exists) {
                     return err(NotFoundError(`Group not found: ${groupId}`));
                 }
-                return ok(toGroup(docSnap.id, docSnap.data()!));
+                return ok(toGroupFromAdmin(docSnap.id, docSnap.data()!));
             },
         );
     },
@@ -57,10 +46,10 @@ export const firestoreGroupAdminRepository: GroupRepository = {
 
         const docRef = db.collection("groups").doc(group.id);
         const updateData: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> =
-            {
-                ...group,
-                updatedAt: FieldValue.serverTimestamp(),
-            };
+        {
+            ...group,
+            updatedAt: FieldValue.serverTimestamp(),
+        };
 
         return ResultAsync.fromPromise(
             docRef.update(updateData),
