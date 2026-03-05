@@ -1,5 +1,6 @@
 // /src/firebase/admin.ts
 import admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 
 function getFirebaseApp(): admin.app.App {
     if (admin.apps.length) {
@@ -17,4 +18,8 @@ function getFirebaseApp(): admin.app.App {
 
 export function getAuthAdmin(): admin.auth.Auth {
     return getFirebaseApp().auth();
+}
+
+export function getFirestoreAdmin(): FirebaseFirestore.Firestore {
+    return getFirestore(getFirebaseApp());
 }
