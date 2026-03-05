@@ -24,7 +24,7 @@ export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
             const response = await acceptGroupInvitation(token);
 
             if (response.success && response.groupId) {
-                router.push(`/group?id=${response.groupId}`);
+                router.push(`/group?groupId=${response.groupId}`);
             } else {
                 setError(response.error || "参加に失敗しました");
                 setIsAccepting(false);
@@ -36,9 +36,22 @@ export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
     };
 
     const handleReject = async () => {
-        setIsAccepting(true); // ボタンを無効化
-        await declineGroupInvitation(token);
-        router.push("/");
+        setIsAccepting(true);
+        setError(null);
+
+        try {
+            const response = await declineGroupInvitation(token);
+
+            if (response.success) {
+                router.push("/");
+            } else {
+                setError(response.error || "拒否処理に失敗しました");
+                setIsAccepting(false);
+            }
+        } catch {
+            setError("予期しないエラーが発生しました");
+            setIsAccepting(false);
+        }
     };
 
     return (
