@@ -6,6 +6,8 @@ import { GenAIError, GenAIRepository } from "@/domain/gen-ai";
 import z from "zod";
 import { createGenAIService } from "./gen-ai-service";
 import { TimeRangeScore } from "@/domain/schedule-calculator";
+import { formatToJST } from "@/lib/date";
+import { ja } from "date-fns/locale";
 
 /**
  * AI が提案する日程候補
@@ -29,30 +31,18 @@ export function generatePrompt(
         .sort((a, b) => b.score - a.score)
         .slice(0, 30) // スコア上位30件
         .map((c, idx) => {
-            const start = new Date(c.timeRange.start);
-            const end = new Date(c.timeRange.end);
+            const start = c.timeRange.start;
+            const end = c.timeRange.end;
 
-            // UTCタイムスタンプに9時間（ミリ秒）を加算してJSTに変換
-            const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
-            const startJST = new Date(start.getTime() + JST_OFFSET_MS);
-            const endJST = new Date(end.getTime() + JST_OFFSET_MS);
+            // 日本時間（JST, Asia/Tokyo）で日付情報を取得
+            const displayDate = formatToJST(start, "yyyy/MM/dd HH:mm");
+            const displayEndDate = formatToJST(end, "yyyy/MM/dd HH:mm");
 
-            // JSTの日時情報を取得（UTCメソッドを使うが、既にJST時刻に変換済み）
-            const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][
-                startJST.getUTCDay()
-            ];
-            const isWeekday =
-                startJST.getUTCDay() >= 1 && startJST.getUTCDay() <= 5;
+            const dayOfWeek = formatToJST(start, "E", { locale: ja }); // 例: "月", "火", ...
+            const isWeekday = ["月", "火", "水", "木", "金"].includes(
+                dayOfWeek,
+            );
             const dayType = isWeekday ? "平日" : "休日";
-
-            // 日本時間の文字列を構築（時刻は0埋めなし）
-            const startHour = startJST.getUTCHours();
-            const startMin = String(startJST.getUTCMinutes()).padStart(2, "0");
-            const endHour = endJST.getUTCHours();
-            const endMin = String(endJST.getUTCMinutes()).padStart(2, "0");
-
-            const displayDate = `${startJST.getUTCFullYear()}/${String(startJST.getUTCMonth() + 1).padStart(2, "0")}/${String(startJST.getUTCDate()).padStart(2, "0")} ${startHour}:${startMin}`;
-            const displayEndDate = `${endJST.getUTCFullYear()}/${String(endJST.getUTCMonth() + 1).padStart(2, "0")}/${String(endJST.getUTCDate()).padStart(2, "0")} ${endHour}:${endMin}`;
 
             // ISO形式の元データも含める（これは絶対に変更しないでほしい）
             return `候補${idx + 1}: ${displayDate}(${dayOfWeek}) 〜 ${displayEndDate} [${dayType}] (必須${c.availableMemberIds.required.length}/${requiredMemberCount}人, スコア${c.score}) [start:${c.timeRange.start.toISOString()}, end:${c.timeRange.end.toISOString()}]`;
