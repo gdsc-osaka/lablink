@@ -11,12 +11,12 @@ const userRef = (id: string) =>
     doc(db, "users", id).withConverter(userConverter);
 
 export const userRepo: UserRepository = {
-    create: (user) =>
+    saveUser: (user) =>
         ResultAsync.fromPromise(
-            setDoc(userRef(user.uid), user),
+            setDoc(userRef(user.uid), user, { merge: true }),
             handleFirestoreError,
         ).map(() => user),
-    findById: (uid) =>
+    getUserByUid: (uid) =>
         ResultAsync.fromPromise(
             getDoc(userRef(uid)),
             handleFirestoreError,
@@ -25,9 +25,4 @@ export const userRepo: UserRepository = {
                 ? okAsync(snapshot.data()!)
                 : errAsync(NotFoundError("User not found")),
         ),
-    update: (user) =>
-        ResultAsync.fromPromise(
-            setDoc(userRef(user.uid), user, { merge: true }),
-            handleFirestoreError,
-        ).map(() => user),
 };

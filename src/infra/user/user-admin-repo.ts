@@ -17,19 +17,22 @@ const toUser = (uid: string, data: FirebaseFirestore.DocumentData): User => {
 };
 
 export const userAdminRepo: UserRepository = {
-    create: (user) => {
+    saveUser: (user) => {
         const docRef = db.collection("users").doc(user.uid);
         return ResultAsync.fromPromise(
-            docRef.set({
-                email: user.email,
-                created_at: Timestamp.fromDate(user.created_at),
-                updated_at: Timestamp.fromDate(user.updated_at),
-            }),
+            docRef.set(
+                {
+                    email: user.email,
+                    created_at: Timestamp.fromDate(user.created_at),
+                    updated_at: Timestamp.fromDate(user.updated_at),
+                },
+                { merge: true },
+            ),
             handleAdminError,
         ).map(() => user);
     },
 
-    findById: (uid) => {
+    getUserByUid: (uid) => {
         const docRef = db.collection("users").doc(uid);
         return ResultAsync.fromPromise(docRef.get(), handleAdminError).andThen(
             (snapshot) =>
@@ -37,20 +40,6 @@ export const userAdminRepo: UserRepository = {
                     ? okAsync(toUser(uid, snapshot.data()!))
                     : errAsync(NotFoundError("User not found")),
         );
-    },
-
-    update: (user) => {
-        const docRef = db.collection("users").doc(user.uid);
-        return ResultAsync.fromPromise(
-            docRef.set(
-                {
-                    email: user.email,
-                    updated_at: Timestamp.fromDate(user.updated_at),
-                },
-                { merge: true },
-            ),
-            handleAdminError,
-        ).map(() => user);
     },
 };
 
@@ -64,7 +53,7 @@ export const findUsersByIds = (
 
     const results = userIds.map((uid) =>
         userAdminRepo
-            .findById(uid)
+            .getUserByUid(uid)
             .map((user) => ({ uid, user }))
             .orElse((error) => {
                 // NotFoundは想定内なのでnull（成功）として扱う

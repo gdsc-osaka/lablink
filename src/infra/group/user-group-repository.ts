@@ -16,7 +16,7 @@ import { DBError } from "@/domain/error";
 import { handleFirestoreError } from "../error";
 
 export const firestoreUserGroupRepository: UserGroupRepository = {
-    findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
+    getGroupsByUserId: (userId: string): ResultAsync<Group[], DBError> => {
         const userGroupsRef = collection(
             db,
             "users",
@@ -76,7 +76,7 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
         ).map(() => undefined);
     },
 
-    findUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
+    getUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
         const groupUsersRef = collection(db, "groups", groupId, "users");
 
         return ResultAsync.fromPromise(

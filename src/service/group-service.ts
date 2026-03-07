@@ -98,19 +98,17 @@ export const createGroupService = ({
                 };
 
                 // グループ作成 -> メンバー追加 をチェーン
-                return groupRepo
-                    .save(newGroup, userId)
-                    .andThen((savedGroup) => {
-                        const membership: UserGroup = {
-                            groupId: savedGroup.id,
-                            userId: userId,
-                            role: "owner",
-                            joinedAt: now,
-                        };
-                        return userGroupRepo
-                            .addMember(membership, savedGroup)
-                            .map(() => savedGroup);
-                    });
+                return groupRepo.saveGroup(newGroup).andThen((savedGroup) => {
+                    const membership: UserGroup = {
+                        groupId: savedGroup.id,
+                        userId: userId,
+                        role: "owner",
+                        joinedAt: now,
+                    };
+                    return userGroupRepo
+                        .addMember(membership, savedGroup)
+                        .map(() => savedGroup);
+                });
             });
     },
 
@@ -123,7 +121,7 @@ export const createGroupService = ({
                 validateRequiredId(groupId, "グループID", "MISSING_IDS"),
             )
             .andThen(() => {
-                return groupRepo.findById(groupId).andThen((group) => {
+                return groupRepo.getGroupById(groupId).andThen((group) => {
                     const membership: UserGroup = {
                         groupId: group.id,
                         userId: userId,
@@ -141,7 +139,7 @@ export const createGroupService = ({
             "グループID",
             "MISSING_GROUP_ID",
         ).andThen(() => {
-            return groupRepo.findById(groupId);
+            return groupRepo.getGroupById(groupId);
         });
     },
 
@@ -154,7 +152,7 @@ export const createGroupService = ({
             "グループID",
             "MISSING_GROUP_ID",
         ).andThen(() => {
-            return groupRepo.update({ id: groupId, ...data });
+            return groupRepo.updateGroup({ id: groupId, ...data });
         });
     },
 
@@ -164,7 +162,7 @@ export const createGroupService = ({
             "ユーザーID",
             "MISSING_USER_ID",
         ).andThen(() => {
-            return userGroupRepo.findAllByUserId(userId);
+            return userGroupRepo.getGroupsByUserId(userId);
         });
     },
 
@@ -176,7 +174,7 @@ export const createGroupService = ({
             "グループID",
             "MISSING_GROUP_ID",
         ).andThen(() => {
-            return userGroupRepo.findUserIdsByGroupId(groupId);
+            return userGroupRepo.getUserIdsByGroupId(groupId);
         });
     },
 
@@ -188,11 +186,11 @@ export const createGroupService = ({
             "ユーザーID",
             "MISSING_USER_ID",
         ).andThen(() => {
-            return userGroupRepo.findAllByUserId(userId).andThen((groups) => {
+            return userGroupRepo.getGroupsByUserId(userId).andThen((groups) => {
                 // 全グループのメンバーIDを取得
                 const memberPromises = groups.map((group) =>
                     userGroupRepo
-                        .findUserIdsByGroupId(group.id)
+                        .getUserIdsByGroupId(group.id)
                         .map((ids) => ({ groupId: group.id, memberIds: ids })),
                 );
 
@@ -246,7 +244,7 @@ export const createGroupService = ({
 
     deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
         return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
-            return groupRepo.delete(groupId);
+            return groupRepo.deleteGroup(groupId);
         });
     },
 });
