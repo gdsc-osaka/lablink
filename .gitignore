@@ -78,3 +78,6 @@ out
 
 # IDEs and editors
 .idea
+
+# Local Firebase export data
+firebase-data/
