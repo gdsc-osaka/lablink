@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MoreHorizontal, User } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { GroupWithMembers } from "@/domain/group";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +43,9 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                                 className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm"
                             >
                                 <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-gray-600" />
+                                    <span className="text-gray-600 text-sm">
+                                        👤
+                                    </span>
                                 </div>
                                 <span className="text-black font-medium flex-1 min-w-0 truncate">
                                     {member.name}
