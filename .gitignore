@@ -78,3 +78,9 @@ out
 
 # IDEs and editors
 .idea
+
+# Firebase Emulator
+firebase-data/
+*.log
+ui-debug.log
+firestore-debug.log
