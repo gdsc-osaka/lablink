@@ -2,17 +2,21 @@ import admin from "firebase-admin";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { config } from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Firebase Admin SDK
-const serviceAccount = JSON.parse(
-    process.env.NEXT_SERVICE_ACCOUNT_JSON || "{}",
-);
+// Load .env.local
+config({ path: path.join(__dirname, "..", ".env.local") });
 
+// Initialize Firebase Admin SDK
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    }),
 });
 
 const db = admin.firestore();
