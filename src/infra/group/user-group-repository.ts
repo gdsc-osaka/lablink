@@ -86,4 +86,24 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
             return snapshot.docs.map((doc) => doc.id);
         });
     },
+
+    removeMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = writeBatch(db);
+
+        // groups/:groupId/users/:userId を削除
+        const groupUserRef = doc(db, "groups", groupId, "users", userId);
+        batch.delete(groupUserRef);
+
+        // users/:userId/groups/:groupId を削除
+        const userGroupRef = doc(db, "users", userId, "groups", groupId);
+        batch.delete(userGroupRef);
+
+        return ResultAsync.fromPromise(
+            batch.commit(),
+            handleFirestoreError,
+        ).map(() => undefined);
+    },
 };
