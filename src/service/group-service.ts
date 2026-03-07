@@ -259,17 +259,9 @@ export const createGroupService = ({
         groupId: string,
         userId: string,
     ): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(
-            groupId,
-            "グループID",
-            "MISSING_GROUP_ID",
-        )
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
             .andThen(() =>
-                validateRequiredId(
-                    userId,
-                    "ユーザーID",
-                    "MISSING_USER_ID",
-                ),
+                validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID"),
             )
             .andThen(() => {
                 return userGroupRepo.removeMember(groupId, userId);

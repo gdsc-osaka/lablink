@@ -37,10 +37,7 @@ interface UserGroupRepository {
     ): ResultAsync<void, DBError>;
     findAllByUserId(userId: string): ResultAsync<Group[], DBError>;
     findUserIdsByGroupId(groupId: string): ResultAsync<string[], DBError>;
-    removeMember(
-        groupId: string,
-        userId: string,
-    ): ResultAsync<void, DBError>;
+    removeMember(groupId: string, userId: string): ResultAsync<void, DBError>;
 }
 
 export type {
