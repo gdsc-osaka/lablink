@@ -45,6 +45,11 @@ export interface GroupService {
     ) => ResultAsync<GroupWithMembers[], ServiceError>;
 
     deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
+
+    removeGroupMember: (
+        groupId: string,
+        userId: string,
+    ) => ResultAsync<void, ServiceError>;
 }
 
 const generateId = (): string => crypto.randomUUID();
@@ -248,5 +253,26 @@ export const createGroupService = ({
         return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
             return groupRepo.delete(groupId);
         });
+    },
+
+    removeGroupMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(
+            groupId,
+            "グループID",
+            "MISSING_GROUP_ID",
+        )
+            .andThen(() =>
+                validateRequiredId(
+                    userId,
+                    "ユーザーID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() => {
+                return userGroupRepo.removeMember(groupId, userId);
+            });
     },
 });

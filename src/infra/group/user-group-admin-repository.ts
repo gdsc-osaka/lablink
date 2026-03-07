@@ -77,4 +77,20 @@ export const userGroupAdminRepo: UserGroupRepository = {
             return snapshot.docs.map((doc) => doc.id);
         });
     },
+
+    removeMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, DBError> => {
+        const groupUserRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(userId);
+
+        return ResultAsync.fromPromise(
+            groupUserRef.delete(),
+            handleAdminError,
+        ).map(() => undefined);
+    },
 };

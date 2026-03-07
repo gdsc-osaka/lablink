@@ -23,9 +23,13 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     const [selectedMemberName, setSelectedMemberName] = useState<string | null>(
         null,
     );
+    const [selectedMemberId, setSelectedMemberId] = useState<string | null>(
+        null,
+    );
 
-    const handleOpenLeaveModal = (memberName: string) => {
+    const handleOpenLeaveModal = (memberName: string, memberId: string) => {
         setSelectedMemberName(memberName);
+        setSelectedMemberId(memberId);
         setIsLeaveModalOpen(true);
     };
 
@@ -66,6 +70,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                                             onSelect={() =>
                                                 handleOpenLeaveModal(
                                                     member.name,
+                                                    member.id,
                                                 )
                                             }
                                         />
@@ -90,6 +95,8 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
             <LeaveMemberDialog
                 open={isLeaveModalOpen}
                 memberName={selectedMemberName}
+                memberId={selectedMemberId}
+                groupId={group.id}
                 onOpenChange={setIsLeaveModalOpen}
             />
         </>
