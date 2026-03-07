@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import React, { useState } from "react";
@@ -74,6 +75,18 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
         handleCloseConfirmModal();
     };
 
+=======
+import React from "react";
+import Link from "next/link";
+import { GroupWithMembers } from "@/domain/group";
+
+// GroupViewコンポーネントのプロパティを定義
+interface GroupViewProps {
+    group: GroupWithMembers;
+}
+
+const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
+>>>>>>> origin/main
     return (
         <div className="p-5 bg-gray-100 h-full flex flex-col">
             <h2 className="font-bold text-2xl text-center mb-6 text-black">
@@ -81,7 +94,11 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
             </h2>
             <div className="flex-1 overflow-y-auto space-y-3">
                 {group.members.length > 0 ? (
+<<<<<<< HEAD
                     group.members.map((member: Member) => (
+=======
+                    group.members.map((member) => (
+>>>>>>> origin/main
                         <div
                             key={member.id}
                             className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm"
@@ -94,6 +111,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                             <span className="text-black font-medium">
                                 {member.name}
                             </span>
+<<<<<<< HEAD
                             <button
                                 type="button"
                                 aria-label="メンバーメニュー"
@@ -104,6 +122,8 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                             >
                                 <span className="text-lg leading-none">⋯</span>
                             </button>
+=======
+>>>>>>> origin/main
                         </div>
                     ))
                 ) : (
@@ -112,6 +132,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                     </p>
                 )}
             </div>
+<<<<<<< HEAD
             <MemberMenuModal
                 isOpen={Boolean(activeMemberId)}
                 position={menuPosition}
@@ -133,6 +154,14 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
             >
                 招待
             </button>
+=======
+            <Link
+                href={`/invite?groupId=${group.id}`}
+                className="mt-6 py-2.5 px-5 rounded bg-blue-500 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors text-center"
+            >
+                招待
+            </Link>
+>>>>>>> origin/main
         </div>
     );
 };

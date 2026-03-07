@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -10,6 +11,15 @@ export default function EventCompletePage() {
     const handleBackToHome = () => {
         router.push("/");
     };
+=======
+import Link from "next/link";
+import { requireAuth } from "@/lib/auth/server-auth";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+
+export default async function EventCompletePage() {
+    await requireAuth();
+>>>>>>> origin/main
 
     return (
         <div className="min-h-screen bg-white">
@@ -36,10 +46,17 @@ export default function EventCompletePage() {
                     </div>
 
                     <Button
+<<<<<<< HEAD
                         onClick={handleBackToHome}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     >
                         ホームに戻る
+=======
+                        asChild
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        <Link href="/">ホームに戻る</Link>
+>>>>>>> origin/main
                     </Button>
                 </div>
             </div>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -63,6 +64,21 @@ function InvitePageContent() {
             setTimeout(() => setCopied(false), 2000);
         }
     };
+=======
+import { Suspense } from "react";
+import { requireAuth } from "@/lib/auth/server-auth";
+import InvitePageContent from "./InvitePageContent";
+
+type PageProps = {
+    searchParams?: Promise<{ groupId?: string }>;
+};
+
+export default async function InvitePage({ searchParams }: PageProps) {
+    await requireAuth();
+
+    const params = await searchParams;
+    const groupId = params?.groupId || null;
+>>>>>>> origin/main
 
     return (
         <main className="min-h-screen bg-white">
@@ -74,6 +90,7 @@ function InvitePageContent() {
                 </div>
                 <div className="flex flex-col w-full bg-white p-8 md:p-12">
                     <div className="max-w-3xl mx-auto w-full">
+<<<<<<< HEAD
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-16">
                                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -236,12 +253,17 @@ export default function InvitePage() {
                         </div>
                         <div className="flex flex-col w-full bg-white p-8 md:p-12">
                             <div className="max-w-3xl mx-auto w-full">
+=======
+                        <Suspense
+                            fallback={
+>>>>>>> origin/main
                                 <div className="flex flex-col items-center justify-center py-16">
                                     <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                                     <p className="text-lg text-gray-600 font-medium">
                                         読み込み中...
                                     </p>
                                 </div>
+<<<<<<< HEAD
                             </div>
                         </div>
                     </div>
@@ -250,5 +272,15 @@ export default function InvitePage() {
         >
             <InvitePageContent />
         </Suspense>
+=======
+                            }
+                        >
+                            <InvitePageContent groupId={groupId} />
+                        </Suspense>
+                    </div>
+                </div>
+            </div>
+        </main>
+>>>>>>> origin/main
     );
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿"use client";
 
 import { useRouter } from "next/navigation";
@@ -78,6 +79,29 @@ export default function CreateEventPage() {
         //TODO: create-event のAPIへの送信処理を追加
         router.push("/ai-suggest");
     };
+=======
+﻿import { requireAuth } from "@/lib/auth/server-auth";
+import CreateEventForm from "./CreateEventForm";
+
+// テスト用の静的ユーザー一覧
+// TODO: UserRepository.findAll() または UserGroupRepository.findUsersByGroupId() を実装したら置き換える
+const MOCK_USERS = [
+    { id: "1", username: "tanigaki kei", email: "tanigaki_kei@example.com" },
+    { id: "2", username: "suyama souta", email: "suyama_souta@example.com" },
+    {
+        id: "3",
+        username: "yoshida kazuya",
+        email: "yoshida_kazuya@example.com",
+    },
+    { id: "4", username: "siomi ayari", email: "siomi_ayari@example.com" },
+    { id: "5", username: "itaya kosuke", email: "itaya_kosuke@example.com" },
+];
+
+export default async function CreateEventPage() {
+    await requireAuth();
+
+    const users = MOCK_USERS;
+>>>>>>> origin/main
 
     return (
         <main className="min-h-screen bg-white">
@@ -87,6 +111,7 @@ export default function CreateEventPage() {
                         新規イベントを作成
                     </h1>
                 </div>
+<<<<<<< HEAD
                 <form
                     onSubmit={handleSubmit(onSubmit)}
                     className="space-y-6 px-15 mt-9"
@@ -293,6 +318,9 @@ export default function CreateEventPage() {
                         </Button>
                     </div>
                 </form>
+=======
+                <CreateEventForm users={users} />
+>>>>>>> origin/main
             </div>
         </main>
     );

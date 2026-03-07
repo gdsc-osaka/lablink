@@ -104,7 +104,12 @@ jobs:
             - name: Create .env.local file
               shell: bash
               run: |
+<<<<<<< HEAD
                   echo "${{ secrets.ENV_LOCAL}}" > .env.local
+=======
+                  echo "${{ secrets.FIREBASE_PUBLIC_CONFIG }}" > .env.local
+                  echo "${{ secrets.FIREBASE_ADMIN_CONFIG }}" >> .env.local
+>>>>>>> origin/main
 
             - name: Build
               run: pnpm build

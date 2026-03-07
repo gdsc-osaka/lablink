@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 
 import { FormEvent, useState } from "react";
@@ -7,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-const CreateGroupPage = () => {
+const CreateGroupClient = () => {
     const [groupName, setGroupName] = useState("");
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -44,13 +43,4 @@ const CreateGroupPage = () => {
     );
 };
 
-export default CreateGroupPage;
-=======
-import { requireAuth } from "@/lib/auth/server-auth";
-import CreateGroupClient from "./CreateGroupClient";
-
-export default async function CreateGroupPage() {
-    await requireAuth();
-    return <CreateGroupClient />;
-}
->>>>>>> origin/main
+export default CreateGroupClient;

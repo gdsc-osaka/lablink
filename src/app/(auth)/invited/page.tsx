@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import React, { useEffect, useState, useMemo, Suspense } from "react";
@@ -95,12 +96,44 @@ const GroupInvitationScreenContent: React.FC = () => {
     }
 
     if (error) {
+=======
+import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { createInvitationService } from "@/service/invitation-service";
+import { invitationRepo } from "@/infra/invitation/invitation-repo";
+import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
+import { requireAuth } from "@/lib/auth/server-auth";
+import { InvitationButtons } from "./InvitationButtons";
+import type { Group } from "@/domain/group";
+import type { InvitationError } from "@/domain/error";
+
+interface PageProps {
+    searchParams: Promise<{ token?: string }>;
+}
+
+async function GroupInvitationScreenContent({
+    searchParams,
+}: {
+    searchParams: Promise<{ token?: string }>;
+}) {
+    const { token } = await searchParams;
+
+    await requireAuth({ token });
+
+    if (!token) {
+>>>>>>> origin/main
         return (
             <div className="flex justify-center items-center min-h-screen bg-white">
                 <Card className="w-[500px] bg-gray-200">
                     <CardHeader className="items-center justify-center text-center">
                         <CardTitle className="text-2xl font-normal text-red-600">
+<<<<<<< HEAD
                             {error}
+=======
+                            招待リンクが無効です
+>>>>>>> origin/main
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -108,9 +141,52 @@ const GroupInvitationScreenContent: React.FC = () => {
                             variant="outline"
                             size="lg"
                             className="w-full"
+<<<<<<< HEAD
                             onClick={() => router.push("/")}
                         >
                             ホームに戻る
+=======
+                            asChild
+                        >
+                            <Link href="/">ホームに戻る</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // グループ情報の取得
+    const invitationService = createInvitationService(
+        invitationRepo,
+        firestoreGroupAdminRepository,
+    );
+    const result = await invitationService.getGroupByToken(token);
+
+    const groupOrError = result.match(
+        (group: Group) => ({ group, error: null }),
+        (err: InvitationError) => ({ group: null, error: err.message }),
+    );
+
+    if (groupOrError.error || !groupOrError.group) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-white">
+                <Card className="w-[500px] bg-gray-200">
+                    <CardHeader className="items-center justify-center text-center">
+                        <CardTitle className="text-2xl font-normal text-red-600">
+                            {groupOrError.error ||
+                                "招待情報を読み込めませんでした"}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            className="w-full"
+                            asChild
+                        >
+                            <Link href="/">ホームに戻る</Link>
+>>>>>>> origin/main
                         </Button>
                     </CardContent>
                 </Card>
@@ -123,6 +199,7 @@ const GroupInvitationScreenContent: React.FC = () => {
             <Card className="w-[500px] bg-gray-200">
                 <CardHeader className="items-center justify-center text-center">
                     <CardTitle className="text-2xl font-normal text-gray-800">
+<<<<<<< HEAD
                         「{group?.name}」 に招待されています
                     </CardTitle>
                 </CardHeader>
@@ -147,13 +224,30 @@ const GroupInvitationScreenContent: React.FC = () => {
                             {isAccepting ? "参加中..." : "参加する"}
                         </Button>
                     </div>
+=======
+                        「{groupOrError.group.name}」 に招待されています
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <InvitationButtons token={token} />
+>>>>>>> origin/main
                 </CardContent>
             </Card>
         </div>
     );
+<<<<<<< HEAD
 };
 
 const GroupInvitationScreen: React.FC = () => {
+=======
+}
+
+export default async function GroupInvitationScreen({
+    searchParams,
+}: {
+    searchParams: Promise<{ token?: string }>;
+}) {
+>>>>>>> origin/main
     return (
         <Suspense
             fallback={
@@ -162,9 +256,16 @@ const GroupInvitationScreen: React.FC = () => {
                 </div>
             }
         >
+<<<<<<< HEAD
             <GroupInvitationScreenContent />
         </Suspense>
     );
 };
 
 export default GroupInvitationScreen;
+=======
+            <GroupInvitationScreenContent searchParams={searchParams} />
+        </Suspense>
+    );
+}
+>>>>>>> origin/main

@@ -10,6 +10,10 @@ import { authRepo } from "@/infra/auth/auth-repo";
 import { auth } from "@/firebase/client";
 import { getIdToken } from "firebase/auth";
 import { createAuthSession } from "@/lib/auth/server-auth";
+<<<<<<< HEAD
+=======
+import { isSafeRedirectUrl } from "@/lib/url";
+>>>>>>> origin/main
 
 const authService = createAuthService(userRepo, authRepo);
 
@@ -32,8 +36,13 @@ export default function LoginPage() {
                 // redirectToが指定されていればそのページへ、なければグループ作成ページへ
                 const redirectTo = searchParams.get("redirectTo");
 
+<<<<<<< HEAD
                 if (redirectTo) {
                     router.push(`/groups/${redirectTo}`);
+=======
+                if (isSafeRedirectUrl(redirectTo)) {
+                    router.push(redirectTo);
+>>>>>>> origin/main
                 } else {
                     router.push("/create-group");
                 }

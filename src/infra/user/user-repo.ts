@@ -13,7 +13,11 @@ const userRef = (id: string) =>
 export const userRepo: UserRepository = {
     create: (user) =>
         ResultAsync.fromPromise(
+<<<<<<< HEAD
             setDoc(userRef(user.email), user),
+=======
+            setDoc(userRef(user.uid), user),
+>>>>>>> origin/main
             handleFirestoreError,
         ).map(() => user),
     findById: (uid) =>
@@ -27,7 +31,11 @@ export const userRepo: UserRepository = {
         ),
     update: (user) =>
         ResultAsync.fromPromise(
+<<<<<<< HEAD
             setDoc(userRef(user.email), user, { merge: true }),
+=======
+            setDoc(userRef(user.uid), user, { merge: true }),
+>>>>>>> origin/main
             handleFirestoreError,
         ).map(() => user),
 };

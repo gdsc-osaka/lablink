@@ -15,6 +15,15 @@ interface UserGroup {
     joinedAt: Date;
 }
 
+<<<<<<< HEAD
+=======
+interface GroupWithMembers {
+    id: string;
+    name: string;
+    members: Array<{ id: string; name: string }>;
+}
+
+>>>>>>> origin/main
 type CreateGroupDto = Omit<Group, "id" | "createdAt" | "updatedAt">;
 
 interface GroupRepository {
@@ -39,4 +48,8 @@ export type {
     CreateGroupDto,
     UserGroup,
     UserGroupRepository,
+<<<<<<< HEAD
+=======
+    GroupWithMembers,
+>>>>>>> origin/main
 };

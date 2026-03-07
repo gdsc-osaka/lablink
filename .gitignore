@@ -77,7 +77,11 @@ out
 /coverage
 
 # IDEs and editors
+<<<<<<< HEAD
 .idea
 
 # Local Firebase export data
 firebase-data/
+=======
+.idea
+>>>>>>> origin/main
