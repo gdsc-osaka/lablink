@@ -18,20 +18,26 @@ const CreateGroupPage = () => {
         event.preventDefault();
         setIsSubmitting(true);
 
-        const result = await createGroupAction(groupName);
+        try {
+            const result = await createGroupAction(groupName);
 
-        if (result.success) {
-            toast.success("グループを作成しました", {
-                description: groupName,
+            if (result.success) {
+                toast.success("グループを作成しました", {
+                    description: groupName,
+                });
+                router.push("/group");
+            } else {
+                toast.error("グループの作成に失敗しました", {
+                    description: result.error,
+                });
+            }
+        } catch {
+            toast.error("予期せぬエラーが発生しました", {
+                description: "時間をおいて再度お試しください。",
             });
-            router.push("/group");
-        } else {
-            toast.error("グループの作成に失敗しました", {
-                description: result.error,
-            });
+        } finally {
+            setIsSubmitting(false);
         }
-
-        setIsSubmitting(false);
     };
 
     return (
