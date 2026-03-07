@@ -12,8 +12,8 @@ importers:
         specifier: ^13.5.0
         version: 13.7.0
       firebase-functions:
-        specifier: ^6.1.0
-        version: 6.6.0(firebase-admin@13.7.0)
+        specifier: ^7.1.0
+        version: 7.1.0(firebase-admin@13.7.0)
     devDependencies:
       '@types/node':
         specifier: ^20.10.0
@@ -443,12 +443,22 @@ packages:
     resolution: {integrity: sha512-o3qS8zCJbApe7aKzkO2Pa380t9cHISqeSd3blqYTtOuUUUua3qZTLwNWgGUOss3td6wbzrZhiHIj3c8+fC046Q==}
     engines: {node: '>=18'}
 
-  firebase-functions@6.6.0:
-    resolution: {integrity: sha512-wwfo6JF+N7HUExVs5gUFgkgVGHDEog9O+qtouh7IuJWk8TBQ+KwXEgRiXbatSj7EbTu3/yYnHuzh3XExbfF6wQ==}
-    engines: {node: '>=14.10.0'}
+  firebase-functions@7.1.0:
+    resolution: {integrity: sha512-rOE4GD8QLyC3I66sJnoADqlOFR/SUOLNOizpQxO7Vj+rPsDSxAADZPRzxBDGoxyGz4ss7PrHwVJ/+SQAdd4qwA==}
+    engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
+      '@apollo/server': ^5.2.0
+      '@as-integrations/express4': ^1.1.2
       firebase-admin: ^11.10.0 || ^12.0.0 || ^13.0.0
+      graphql: ^16.12.0
+    peerDependenciesMeta:
+      '@apollo/server':
+        optional: true
+      '@as-integrations/express4':
+        optional: true
+      graphql:
+        optional: true
 
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
@@ -1534,7 +1544,7 @@ snapshots:
       - encoding
       - supports-color
 
-  firebase-functions@6.6.0(firebase-admin@13.7.0):
+  firebase-functions@7.1.0(firebase-admin@13.7.0):
     dependencies:
       '@types/cors': 2.8.19
       '@types/express': 4.17.25
