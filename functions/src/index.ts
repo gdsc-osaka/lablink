@@ -1,4 +1,5 @@
-import * as functions from "firebase-functions";
+import { onDocumentDeleted } from "firebase-functions/v2/firestore";
+import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
 
 // Firebase Admin SDKを初期化
@@ -12,11 +13,18 @@ const db = admin.firestore();
  * 1. users/:userId/groups/:groupId を削除
  * 2. groups/:groupId/deleted_users/:userId にアーカイブ
  */
-export const onGroupUserDeleted = functions.firestore
-  .document("groups/{groupId}/users/{userId}")
-  .onDelete(async (snap, context) => {
-    const { groupId, userId } = context.params;
-    const deletedUserData = snap.data();
+export const onGroupUserDeleted = onDocumentDeleted(
+  "groups/{groupId}/users/{userId}",
+  async (event) => {
+    const { groupId, userId } = event.params;
+    const deletedUserData = event.data?.data();
+
+    if (!deletedUserData) {
+      logger.warn(
+        `No deleted document data for userId: ${userId}, groupId: ${groupId}`,
+      );
+      return;
+    }
 
     try {
       const batch = db.batch();
@@ -46,14 +54,15 @@ export const onGroupUserDeleted = functions.firestore
       // バッチ処理を実行
       await batch.commit();
 
-      functions.logger.info(
+      logger.info(
         `User ${userId} successfully removed from group ${groupId} and archived.`,
       );
     } catch (error) {
-      functions.logger.error(
+      logger.error(
         `Error processing group user deletion for userId: ${userId}, groupId: ${groupId}`,
         error,
       );
       throw error;
     }
-  });
+  },
+);

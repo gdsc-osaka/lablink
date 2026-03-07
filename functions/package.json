@@ -3,6 +3,8 @@
   "description": "Cloud Functions for lablink",
   "scripts": {
     "build": "tsc",
+    "lint": "tsc --noEmit",
+    "fix": "pnpm run lint",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run serve",
