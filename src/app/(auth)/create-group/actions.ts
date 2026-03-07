@@ -6,10 +6,15 @@ import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import type { ServiceError } from "@/domain/error";
 import { requireAuth } from "@/lib/auth/server-auth";
 
+interface ActionError {
+    message: string;
+    code?: string;
+}
+
 export async function createGroupAction(
     name: string,
 ): Promise<
-    { success: true; groupId: string } | { success: false; error: string }
+    { success: true; groupId: string } | { success: false; error: ActionError }
 > {
     const decodedClaims = await requireAuth();
     const userId = decodedClaims.uid;
@@ -23,6 +28,12 @@ export async function createGroupAction(
 
     return result.match(
         (group) => ({ success: true, groupId: group.id }),
-        (err: ServiceError) => ({ success: false, error: err.message }),
+        (err: ServiceError) => ({
+            success: false,
+            error: {
+                message: err.message,
+                code: "extra" in err ? err.extra?.code : undefined,
+            },
+        }),
     );
 }

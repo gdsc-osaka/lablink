@@ -28,7 +28,7 @@ const CreateGroupPage = () => {
                 router.push("/group");
             } else {
                 toast.error("グループの作成に失敗しました", {
-                    description: result.error,
+                    description: result.error.message,
                 });
             }
         } catch {
