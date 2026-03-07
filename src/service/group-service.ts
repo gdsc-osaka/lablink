@@ -27,9 +27,13 @@ export interface GroupService {
         groupId: string,
     ) => ResultAsync<void, ServiceError>;
 
-    getGroupById: (groupId: string) => ResultAsync<Group, ServiceError>;
+    getGroupById: (
+        userId: string,
+        groupId: string,
+    ) => ResultAsync<Group, ServiceError>;
 
     updateGroupInfo: (
+        userId: string,
         groupId: string,
         data: Partial<Omit<Group, "id" | "createdAt" | "updatedAt">>,
     ) => ResultAsync<Group, ServiceError>;
@@ -37,6 +41,7 @@ export interface GroupService {
     getGroupsByUserId: (userId: string) => ResultAsync<Group[], ServiceError>;
 
     getMemberIdsByGroupId: (
+        userId: string,
         groupId: string,
     ) => ResultAsync<string[], ServiceError>;
 
@@ -44,7 +49,10 @@ export interface GroupService {
         userId: string,
     ) => ResultAsync<GroupWithMembers[], ServiceError>;
 
-    deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
+    deleteGroup: (
+        userId: string,
+        groupId: string,
+    ) => ResultAsync<void, ServiceError>;
 }
 
 const generateId = (): string => crypto.randomUUID();
@@ -69,10 +77,34 @@ const validateRequiredId = (
     return okAsync(undefined);
 };
 
+const createMembershipCheck = (userGroupRepo: UserGroupRepository) => {
+    return (
+        userId: string,
+        groupId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return userGroupRepo
+            .getUserIdsByGroupId(groupId)
+            .andThen((memberIds) => {
+                if (!memberIds.includes(userId)) {
+                    return errAsync(
+                        ServiceLogicError(
+                            "このグループへのアクセス権限がありません。",
+                            { extra: { code: "PERMISSION_DENIED" } },
+                        ),
+                    );
+                }
+                return okAsync(undefined);
+            });
+    };
+};
+
 export const createGroupService = ({
     groupRepo,
     userGroupRepo,
-}: GroupServiceDeps): GroupService => ({
+}: GroupServiceDeps): GroupService => {
+    const verifyMembership = createMembershipCheck(userGroupRepo);
+
+    return {
     createGroupAndAddOwner: (
         userId: string,
         dto: CreateGroupDto,
@@ -133,27 +165,29 @@ export const createGroupService = ({
             });
     },
 
-    getGroupById: (groupId: string): ResultAsync<Group, ServiceError> => {
-        return validateRequiredId(
-            groupId,
-            "グループID",
-            "MISSING_GROUP_ID",
-        ).andThen(() => {
-            return groupRepo.getGroupById(groupId);
-        });
+    getGroupById: (
+        userId: string,
+        groupId: string,
+    ): ResultAsync<Group, ServiceError> => {
+        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+            .andThen(() =>
+                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
+            )
+            .andThen(() => verifyMembership(userId, groupId))
+            .andThen(() => groupRepo.getGroupById(groupId));
     },
 
     updateGroupInfo: (
+        userId: string,
         groupId: string,
         data: Partial<Omit<Group, "id" | "createdAt" | "updatedAt">>,
     ): ResultAsync<Group, ServiceError> => {
-        return validateRequiredId(
-            groupId,
-            "グループID",
-            "MISSING_GROUP_ID",
-        ).andThen(() => {
-            return groupRepo.updateGroup({ id: groupId, ...data });
-        });
+        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+            .andThen(() =>
+                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
+            )
+            .andThen(() => verifyMembership(userId, groupId))
+            .andThen(() => groupRepo.updateGroup({ id: groupId, ...data }));
     },
 
     getGroupsByUserId: (userId: string): ResultAsync<Group[], ServiceError> => {
@@ -167,15 +201,15 @@ export const createGroupService = ({
     },
 
     getMemberIdsByGroupId: (
+        userId: string,
         groupId: string,
     ): ResultAsync<string[], ServiceError> => {
-        return validateRequiredId(
-            groupId,
-            "グループID",
-            "MISSING_GROUP_ID",
-        ).andThen(() => {
-            return userGroupRepo.getUserIdsByGroupId(groupId);
-        });
+        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+            .andThen(() =>
+                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
+            )
+            .andThen(() => verifyMembership(userId, groupId))
+            .andThen(() => userGroupRepo.getUserIdsByGroupId(groupId));
     },
 
     getGroupsWithMembersByUserId: (
@@ -242,9 +276,15 @@ export const createGroupService = ({
         });
     },
 
-    deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
-            return groupRepo.deleteGroup(groupId);
-        });
+    deleteGroup: (
+        userId: string,
+        groupId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+            .andThen(() =>
+                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
+            )
+            .andThen(() => verifyMembership(userId, groupId))
+            .andThen(() => groupRepo.deleteGroup(groupId));
     },
-});
+};};
