@@ -29,14 +29,29 @@ export const eventConverter: FirestoreDataConverter<Event> = {
         options: SnapshotOptions,
     ): Event {
         const data = snapshot.data(options);
+        const toDateOrUndefined = (value: unknown): Date | undefined => {
+            if (
+                value &&
+                typeof value === "object" &&
+                "toDate" in value &&
+                typeof (value as { toDate?: unknown }).toDate === "function"
+            ) {
+                return (value as { toDate: () => Date }).toDate();
+            }
+            if (value instanceof Date) {
+                return value;
+            }
+            return undefined;
+        };
+
         return {
             id: snapshot.id,
             title: data.title,
             description: data.description,
             begin_at: data.begin_at,
             end_at: data.end_at,
-            created_at: data.created_at.toDate(),
-            updated_at: data.updated_at.toDate(),
+            created_at: toDateOrUndefined(data.created_at),
+            updated_at: toDateOrUndefined(data.updated_at),
         };
     },
 };

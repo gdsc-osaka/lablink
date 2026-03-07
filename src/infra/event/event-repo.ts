@@ -6,8 +6,6 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
-    query,
-    orderBy,
     serverTimestamp,
     WithFieldValue,
 } from "firebase/firestore";
@@ -44,20 +42,16 @@ export const firestoreEventRepository: EventRepository = {
             groupId,
             "events",
         ).withConverter(eventConverter);
-        const q = query(eventsRef, orderBy("created_at", "desc"));
 
         return ResultAsync.fromPromise(
-            getDocs(q),
+            getDocs(eventsRef),
             handleFirestoreError,
-        ).andThen((querySnapshot) => {
+        ).map((querySnapshot) => {
             const events: Event[] = [];
             querySnapshot.forEach((doc) => {
                 events.push(doc.data());
             });
-            if (events.length === 0) {
-                return err(NotFoundError("No events found"));
-            }
-            return ok(events);
+            return events;
         });
     },
 

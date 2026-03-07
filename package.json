@@ -11,7 +11,8 @@
         "test": "vitest",
         "test:watch": "vitest --watch",
         "test:coverage": "vitest --coverage",
-        "seed": "tsx scripts/seed-firestore.ts"
+        "seed": "tsx scripts/seed-firestore.ts",
+        "seed:user": "tsx scripts/create-user-groups.ts"
     },
     "dependencies": {
         "@date-fns/tz": "^1.4.1",

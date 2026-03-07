@@ -10,6 +10,30 @@ import { firestoreUserGroupRepository } from "@/infra/group/user-group-repositor
 import { firestoreEventRepository } from "@/infra/event/event-repo";
 import type { Group as DomainGroup } from "@/domain/group";
 
+const describeError = (err: unknown): Record<string, unknown> => {
+    if (err instanceof Error) {
+        return {
+            name: err.name,
+            message: err.message,
+            stack: err.stack,
+        };
+    }
+    if (typeof err === "object" && err !== null) {
+        const ownProps = Object.getOwnPropertyNames(err);
+        const extracted = ownProps.reduce<Record<string, unknown>>((acc, key) => {
+            acc[key] = (err as Record<string, unknown>)[key];
+            return acc;
+        }, {});
+
+        return {
+            ...extracted,
+            constructorName: (err as { constructor?: { name?: string } }).constructor
+                ?.name,
+        };
+    }
+    return { value: err };
+};
+
 const GroupPage = () => {
     const { user, loading } = useAuth();
     const [groups, setGroups] = useState<DomainGroup[]>([]);
@@ -28,7 +52,10 @@ const GroupPage = () => {
                 const groupsResult = await firestoreUserGroupRepository
                     .findAllByUserId(user.uid)
                     .mapErr((err) => {
-                        console.error("グループ取得エラー:", err);
+                        console.error(
+                            "グループ取得エラー:",
+                            describeError(err),
+                        );
                         return err;
                     });
 
@@ -43,7 +70,10 @@ const GroupPage = () => {
                         }
                     },
                     (err) =>
-                        console.error("グループ取得に失敗しました:", err),
+                        console.error(
+                            "グループ取得に失敗しました:",
+                            describeError(err),
+                        ),
                 );
             } catch (error) {
                 console.error("エラーが発生しました:", error);
@@ -64,14 +94,28 @@ const GroupPage = () => {
                 const eventsResult = await firestoreEventRepository
                     .findAll(selectedGroupId)
                     .mapErr((err) => {
-                        console.error("イベント取得エラー:", err);
+                        console.error(
+                            "イベント取得エラー:",
+                            {
+                                ...describeError(err),
+                                selectedGroupId,
+                                userId: user?.uid,
+                            },
+                        );
                         return err;
                     });
 
                 eventsResult.match(
                     (fetchedEvents) => setEvents(fetchedEvents),
                     (err) =>
-                        console.error("イベント取得に失敗しました:", err),
+                        console.error(
+                            "イベント取得に失敗しました:",
+                            {
+                                ...describeError(err),
+                                selectedGroupId,
+                                userId: user?.uid,
+                            },
+                        ),
                 );
             } catch (error) {
                 console.error("エラーが発生しました:", error);
@@ -79,7 +123,7 @@ const GroupPage = () => {
         };
 
         fetchEvents();
-    }, [selectedGroupId, isLoadingData]);
+    }, [selectedGroupId, isLoadingData, user?.uid]);
 
     const selectedGroup =
         groups.find((group) => group.id === selectedGroupId) || groups[0];
@@ -99,11 +143,23 @@ const GroupPage = () => {
                     <p>読み込み中...</p>
                 </div>
             ) : groups.length === 0 ? (
-                <div className="flex items-center justify-center w-full">
-                    <p>グループがありません</p>
+                <div className="flex flex-col items-center justify-center w-full p-8">
+                    <p className="text-lg mb-4">グループがありません</p>
+                    <div className="bg-gray-100 p-4 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-2">デバッグ情報:</p>
+                        <p className="text-sm font-mono">
+                            User ID: <span className="font-bold text-blue-600">{user?.uid}</span>
+                        </p>
+                        <p className="text-sm font-mono">
+                            Email: {user?.email}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Firestoreパス: /users/{user?.uid}/groups/
+                        </p>
+                    </div>
                 </div>
             ) : (
-                <>UI
+                <>
                     {/* 左端カラム - グループ一覧 */}
                     <GroupListSidebar
                         groups={groups.map((g) => ({ ...g, members: [] }))}
