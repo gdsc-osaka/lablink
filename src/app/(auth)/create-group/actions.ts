@@ -8,7 +8,9 @@ import { requireAuth } from "@/lib/auth/server-auth";
 
 export async function createGroupAction(
     name: string,
-): Promise<{ success: true; groupId: string } | { success: false; error: string }> {
+): Promise<
+    { success: true; groupId: string } | { success: false; error: string }
+> {
     const decodedClaims = await requireAuth();
     const userId = decodedClaims.uid;
 
