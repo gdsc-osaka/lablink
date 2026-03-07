@@ -1,4 +1,9 @@
-import { doc, getDoc, runTransaction, serverTimestamp } from "firebase/firestore";
+import {
+    doc,
+    getDoc,
+    runTransaction,
+    serverTimestamp,
+} from "firebase/firestore";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 
 import { UserRepository } from "@/domain/user";

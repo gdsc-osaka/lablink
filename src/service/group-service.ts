@@ -105,186 +105,227 @@ export const createGroupService = ({
     const verifyMembership = createMembershipCheck(userGroupRepo);
 
     return {
-    createGroupAndAddOwner: (
-        userId: string,
-        dto: CreateGroupDto,
-    ): ResultAsync<Group, ServiceError> => {
-        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
-            .andThen(() =>
-                validateRequiredId(
-                    dto.name,
-                    "グループ名",
-                    "INVALID_GROUP_NAME",
-                ),
-            )
+        createGroupAndAddOwner: (
+            userId: string,
+            dto: CreateGroupDto,
+        ): ResultAsync<Group, ServiceError> => {
+            return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+                .andThen(() =>
+                    validateRequiredId(
+                        dto.name,
+                        "グループ名",
+                        "INVALID_GROUP_NAME",
+                    ),
+                )
 
-            .andThen(() => {
-                const newGroupId = generateId();
-                const now = new Date();
+                .andThen(() => {
+                    const newGroupId = generateId();
+                    const now = new Date();
 
-                const newGroup: Group = {
-                    id: newGroupId,
-                    name: dto.name,
-                    createdAt: now,
-                    updatedAt: now,
-                };
-
-                // グループ作成 -> メンバー追加 をチェーン
-                return groupRepo.saveGroup(newGroup).andThen((savedGroup) => {
-                    const membership: UserGroup = {
-                        groupId: savedGroup.id,
-                        userId: userId,
-                        role: "owner",
-                        joinedAt: now,
+                    const newGroup: Group = {
+                        id: newGroupId,
+                        name: dto.name,
+                        createdAt: now,
+                        updatedAt: now,
                     };
-                    return userGroupRepo
-                        .addMember(membership, savedGroup)
-                        .map(() => savedGroup);
+
+                    // グループ作成 -> メンバー追加 をチェーン
+                    return groupRepo
+                        .saveGroup(newGroup)
+                        .andThen((savedGroup) => {
+                            const membership: UserGroup = {
+                                groupId: savedGroup.id,
+                                userId: userId,
+                                role: "owner",
+                                joinedAt: now,
+                            };
+                            return userGroupRepo
+                                .addMember(membership, savedGroup)
+                                .map(() => savedGroup);
+                        });
                 });
-            });
-    },
+        },
 
-    addGroupMember: (
-        userId: string,
-        groupId: string,
-    ): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(userId, "ユーザーID", "MISSING_IDS")
-            .andThen(() =>
-                validateRequiredId(groupId, "グループID", "MISSING_IDS"),
-            )
-            .andThen(() => {
-                return groupRepo.getGroupById(groupId).andThen((group) => {
-                    const membership: UserGroup = {
-                        groupId: group.id,
-                        userId: userId,
-                        role: "member",
-                        joinedAt: new Date(),
-                    };
-                    return userGroupRepo.addMember(membership, group);
+        addGroupMember: (
+            userId: string,
+            groupId: string,
+        ): ResultAsync<void, ServiceError> => {
+            return validateRequiredId(userId, "ユーザーID", "MISSING_IDS")
+                .andThen(() =>
+                    validateRequiredId(groupId, "グループID", "MISSING_IDS"),
+                )
+                .andThen(() => {
+                    return groupRepo.getGroupById(groupId).andThen((group) => {
+                        const membership: UserGroup = {
+                            groupId: group.id,
+                            userId: userId,
+                            role: "member",
+                            joinedAt: new Date(),
+                        };
+                        return userGroupRepo.addMember(membership, group);
+                    });
                 });
+        },
+
+        getGroupById: (
+            userId: string,
+            groupId: string,
+        ): ResultAsync<Group, ServiceError> => {
+            return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+                .andThen(() =>
+                    validateRequiredId(
+                        groupId,
+                        "グループID",
+                        "MISSING_GROUP_ID",
+                    ),
+                )
+                .andThen(() => verifyMembership(userId, groupId))
+                .andThen(() => groupRepo.getGroupById(groupId));
+        },
+
+        updateGroupInfo: (
+            userId: string,
+            groupId: string,
+            data: Partial<Omit<Group, "id" | "createdAt" | "updatedAt">>,
+        ): ResultAsync<Group, ServiceError> => {
+            return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+                .andThen(() =>
+                    validateRequiredId(
+                        groupId,
+                        "グループID",
+                        "MISSING_GROUP_ID",
+                    ),
+                )
+                .andThen(() => verifyMembership(userId, groupId))
+                .andThen(() => groupRepo.updateGroup({ id: groupId, ...data }));
+        },
+
+        getGroupsByUserId: (
+            userId: string,
+        ): ResultAsync<Group[], ServiceError> => {
+            return validateRequiredId(
+                userId,
+                "ユーザーID",
+                "MISSING_USER_ID",
+            ).andThen(() => {
+                return userGroupRepo.getGroupsByUserId(userId);
             });
-    },
+        },
 
-    getGroupById: (
-        userId: string,
-        groupId: string,
-    ): ResultAsync<Group, ServiceError> => {
-        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
-            .andThen(() =>
-                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
-            )
-            .andThen(() => verifyMembership(userId, groupId))
-            .andThen(() => groupRepo.getGroupById(groupId));
-    },
+        getMemberIdsByGroupId: (
+            userId: string,
+            groupId: string,
+        ): ResultAsync<string[], ServiceError> => {
+            return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+                .andThen(() =>
+                    validateRequiredId(
+                        groupId,
+                        "グループID",
+                        "MISSING_GROUP_ID",
+                    ),
+                )
+                .andThen(() => verifyMembership(userId, groupId))
+                .andThen(() => userGroupRepo.getUserIdsByGroupId(groupId));
+        },
 
-    updateGroupInfo: (
-        userId: string,
-        groupId: string,
-        data: Partial<Omit<Group, "id" | "createdAt" | "updatedAt">>,
-    ): ResultAsync<Group, ServiceError> => {
-        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
-            .andThen(() =>
-                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
-            )
-            .andThen(() => verifyMembership(userId, groupId))
-            .andThen(() => groupRepo.updateGroup({ id: groupId, ...data }));
-    },
-
-    getGroupsByUserId: (userId: string): ResultAsync<Group[], ServiceError> => {
-        return validateRequiredId(
-            userId,
-            "ユーザーID",
-            "MISSING_USER_ID",
-        ).andThen(() => {
-            return userGroupRepo.getGroupsByUserId(userId);
-        });
-    },
-
-    getMemberIdsByGroupId: (
-        userId: string,
-        groupId: string,
-    ): ResultAsync<string[], ServiceError> => {
-        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
-            .andThen(() =>
-                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
-            )
-            .andThen(() => verifyMembership(userId, groupId))
-            .andThen(() => userGroupRepo.getUserIdsByGroupId(groupId));
-    },
-
-    getGroupsWithMembersByUserId: (
-        userId: string,
-    ): ResultAsync<GroupWithMembers[], ServiceError> => {
-        return validateRequiredId(
-            userId,
-            "ユーザーID",
-            "MISSING_USER_ID",
-        ).andThen(() => {
-            return userGroupRepo.getGroupsByUserId(userId).andThen((groups) => {
-                // 全グループのメンバーIDを取得
-                const memberPromises = groups.map((group) =>
-                    userGroupRepo
-                        .getUserIdsByGroupId(group.id)
-                        .map((ids) => ({ groupId: group.id, memberIds: ids })),
-                );
-
-                return ResultAsync.combine(memberPromises).andThen(
-                    (groupMembers) => {
-                        // 全ユニークなユーザーIDを収集
-                        const allUserIds = Array.from(
-                            new Set(groupMembers.flatMap((gm) => gm.memberIds)),
+        getGroupsWithMembersByUserId: (
+            userId: string,
+        ): ResultAsync<GroupWithMembers[], ServiceError> => {
+            return validateRequiredId(
+                userId,
+                "ユーザーID",
+                "MISSING_USER_ID",
+            ).andThen(() => {
+                return userGroupRepo
+                    .getGroupsByUserId(userId)
+                    .andThen((groups) => {
+                        // 全グループのメンバーIDを取得
+                        const memberPromises = groups.map((group) =>
+                            userGroupRepo
+                                .getUserIdsByGroupId(group.id)
+                                .map((ids) => ({
+                                    groupId: group.id,
+                                    memberIds: ids,
+                                })),
                         );
 
-                        // ユーザー情報を一括取得
-                        return findUsersByIds(allUserIds).andThen((userMap) => {
-                            const groupsWithMembers = groups.map((group) => {
-                                const groupMemberData = groupMembers.find(
-                                    (gm) => gm.groupId === group.id,
+                        return ResultAsync.combine(memberPromises).andThen(
+                            (groupMembers) => {
+                                // 全ユニークなユーザーIDを収集
+                                const allUserIds = Array.from(
+                                    new Set(
+                                        groupMembers.flatMap(
+                                            (gm) => gm.memberIds,
+                                        ),
+                                    ),
                                 );
-                                const memberIds =
-                                    groupMemberData?.memberIds || [];
 
-                                const members = memberIds.map((id) => {
-                                    const user = userMap.get(id);
-                                    if (!user) {
-                                        console.warn(
-                                            `User not found for ID: ${id} in group ${group.id}`,
+                                // ユーザー情報を一括取得
+                                return findUsersByIds(allUserIds).andThen(
+                                    (userMap) => {
+                                        const groupsWithMembers = groups.map(
+                                            (group) => {
+                                                const groupMemberData =
+                                                    groupMembers.find(
+                                                        (gm) =>
+                                                            gm.groupId ===
+                                                            group.id,
+                                                    );
+                                                const memberIds =
+                                                    groupMemberData?.memberIds ||
+                                                    [];
+
+                                                const members = memberIds.map(
+                                                    (id) => {
+                                                        const user =
+                                                            userMap.get(id);
+                                                        if (!user) {
+                                                            console.warn(
+                                                                `User not found for ID: ${id} in group ${group.id}`,
+                                                            );
+                                                            // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
+                                                            return {
+                                                                id,
+                                                                name: "Unknown User",
+                                                            };
+                                                        }
+                                                        return {
+                                                            id,
+                                                            name: user.email,
+                                                        };
+                                                    },
+                                                );
+
+                                                return {
+                                                    id: group.id,
+                                                    name: group.name,
+                                                    members,
+                                                };
+                                            },
                                         );
-                                        // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
-                                        return {
-                                            id,
-                                            name: "Unknown User",
-                                        };
-                                    }
-                                    return {
-                                        id,
-                                        name: user.email,
-                                    };
-                                });
-
-                                return {
-                                    id: group.id,
-                                    name: group.name,
-                                    members,
-                                };
-                            });
-                            return okAsync(groupsWithMembers);
-                        });
-                    },
-                );
+                                        return okAsync(groupsWithMembers);
+                                    },
+                                );
+                            },
+                        );
+                    });
             });
-        });
-    },
+        },
 
-    deleteGroup: (
-        userId: string,
-        groupId: string,
-    ): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
-            .andThen(() =>
-                validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID"),
-            )
-            .andThen(() => verifyMembership(userId, groupId))
-            .andThen(() => groupRepo.deleteGroup(groupId));
-    },
-};};
+        deleteGroup: (
+            userId: string,
+            groupId: string,
+        ): ResultAsync<void, ServiceError> => {
+            return validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID")
+                .andThen(() =>
+                    validateRequiredId(
+                        groupId,
+                        "グループID",
+                        "MISSING_GROUP_ID",
+                    ),
+                )
+                .andThen(() => verifyMembership(userId, groupId))
+                .andThen(() => groupRepo.deleteGroup(groupId));
+        },
+    };
+};
