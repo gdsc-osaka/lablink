@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 
 import { UserRepository } from "@/domain/user";
@@ -13,7 +13,23 @@ const userRef = (id: string) =>
 export const userRepo: UserRepository = {
     saveUser: (user) =>
         ResultAsync.fromPromise(
-            setDoc(userRef(user.uid), user, { merge: true }),
+            runTransaction(db, async (transaction) => {
+                const docRef = userRef(user.uid);
+                const snapshot = await transaction.get(docRef);
+
+                if (snapshot.exists()) {
+                    transaction.update(doc(db, "users", user.uid), {
+                        email: user.email,
+                        updated_at: serverTimestamp(),
+                    });
+                } else {
+                    transaction.set(doc(db, "users", user.uid), {
+                        email: user.email,
+                        created_at: serverTimestamp(),
+                        updated_at: serverTimestamp(),
+                    });
+                }
+            }),
             handleFirestoreError,
         ).map(() => user),
     getUserByUid: (uid) =>
