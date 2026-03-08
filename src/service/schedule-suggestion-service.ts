@@ -126,13 +126,16 @@ export const createScheduleSuggestionService = (
                 .generateStructured(
                     generatePrompt(scores, description, requiredMemberCount),
                     z.object({
-                        suggestions: z.array(
-                            z.object({
-                                start: z.iso.datetime(),
-                                end: z.iso.datetime(),
-                                reason: z.string(),
-                            }),
-                        ),
+                        suggestions: z
+                            .array(
+                                z.object({
+                                    start: z.iso.datetime(),
+                                    end: z.iso.datetime(),
+                                    reason: z.string(),
+                                }),
+                            )
+                            .min(1)
+                            .max(3),
                     }),
                     /* retryCount */ 2,
                 )
