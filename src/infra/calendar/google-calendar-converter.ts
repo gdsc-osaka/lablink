@@ -13,7 +13,7 @@ const CALENDAR_IMPL = "google-calendar";
 
 export type GoogleCalendarErrorResponse = {
     error: {
-        errors: (calendar_v3.Schema$Error & {
+        errors?: (calendar_v3.Schema$Error & {
             message: string;
             locationType: string;
             location: string;
@@ -52,7 +52,7 @@ export const toCalendarError = (
                 },
             });
         case 403:
-            switch (data.error.errors[0].domain) {
+            switch (data.error.errors?.at(0)?.domain) {
                 case "usageLimits":
                     return CalendarTooManyRequestsError(data.error.message, {
                         extra: {
