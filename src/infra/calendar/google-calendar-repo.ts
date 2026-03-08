@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import { CalendarRepository } from "@/domain/calendar";
+import { CalendarRepository, TimeRange } from "@/domain/calendar";
 import { ResultAsync } from "neverthrow";
 import { GaxiosError } from "gaxios";
 import {
@@ -47,14 +47,20 @@ export const googleCalendarRepository: CalendarRepository = {
                 userId,
                 timeRanges: calendarIds.flatMap(
                     (calendarId) =>
-                        response.data.calendars?.[calendarId]?.busy?.map(
-                            (slot) => {
-                                return {
-                                    start: new Date(slot.start!),
-                                    end: new Date(slot.end!),
-                                };
-                            },
-                        ) || [],
+                        response.data.calendars?.[calendarId]?.busy
+                            ?.filter(
+                                (
+                                    slot,
+                                ): slot is { start: string; end: string } =>
+                                    typeof slot.start === "string" &&
+                                    typeof slot.end === "string",
+                            )
+                            .map(
+                                (slot): TimeRange => ({
+                                    start: new Date(slot.start),
+                                    end: new Date(slot.end),
+                                }),
+                            ) || [],
                 ),
             })),
 };
