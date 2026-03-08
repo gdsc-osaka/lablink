@@ -5,7 +5,7 @@ import {
 } from "@/domain/gen-ai";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 import { ApiError, GoogleGenAI } from "@google/genai";
-import { z } from "zod";
+import * as z from "zod";
 import { finishReasonToGenAIError, toGenAIError } from "./gemini-converter";
 
 export const GEMINI_IMPL = "gemini";

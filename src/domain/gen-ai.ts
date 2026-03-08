@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import { z } from "zod";
+import * as z from "zod";
 import { errorBuilder, InferError } from "obj-err";
 
 export const GenAIUnauthenticatedError = errorBuilder(

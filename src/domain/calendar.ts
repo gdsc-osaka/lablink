@@ -2,7 +2,7 @@ import { ResultAsync } from "neverthrow";
 import { compareAsc, isAfter, isBefore, max } from "date-fns";
 import { TokenError, TokenRepository } from "./token";
 import { errorBuilder, InferError } from "obj-err";
-import z from "zod";
+import * as z from "zod";
 
 export interface TimeRange {
     start: Date;

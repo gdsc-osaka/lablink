@@ -4,7 +4,7 @@ import {
     decryptToken as decrypt,
     encryptToken as encrypt,
 } from "@/lib/encryption";
-import z from "zod";
+import * as z from "zod";
 
 export const supportedExternalServices = ["google"] as const;
 export type ExternalServiceType = (typeof supportedExternalServices)[number];

@@ -1,6 +1,6 @@
 import { ResultAsync } from "neverthrow";
 import { GenAIError, GenAIRepository } from "@/domain/gen-ai";
-import z from "zod";
+import * as z from "zod";
 
 export interface GenAIService {
     /**

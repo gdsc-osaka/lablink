@@ -3,7 +3,7 @@ import "server-only";
 import { ResultAsync } from "neverthrow";
 import { CalendarError, TimeRange } from "@/domain/calendar";
 import { GenAIError, GenAIRepository } from "@/domain/gen-ai";
-import z from "zod";
+import * as z from "zod";
 import { createGenAIService } from "./gen-ai-service";
 import { TimeRangeScore } from "@/domain/schedule-calculator";
 import { formatToJST } from "@/lib/date";
