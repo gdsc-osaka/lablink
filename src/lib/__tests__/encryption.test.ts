@@ -83,6 +83,26 @@ describe("Encryption Library", () => {
         it("不正なデータの復号化はエラーを投げる", () => {
             expect(() => decryptToken("invalid_data_without_colon")).toThrow();
         });
+
+        it("改ざんされた暗号文は復号に失敗する", () => {
+            const token = "1//0gABCDEF123456789-test-refresh-token";
+            const encrypted = encryptToken(token);
+            const [iv, ciphertext, tag] = encrypted.split(":");
+            // 暗号文の末尾4文字(2バイト)を改ざん
+            const tampered = `${iv}:${ciphertext.slice(0, -4)}ffff:${tag}`;
+
+            expect(() => decryptToken(tampered)).toThrow();
+        });
+
+        it("改ざんされた認証タグは復号に失敗する", () => {
+            const token = "1//0gABCDEF123456789-test-refresh-token";
+            const encrypted = encryptToken(token);
+            const [iv, ciphertext] = encrypted.split(":");
+            // 認証タグをすべて "00" の16バイト(32文字)に改ざん
+            const tampered = `${iv}:${ciphertext}:${"00".repeat(16)}`;
+
+            expect(() => decryptToken(tampered)).toThrow();
+        });
     });
 
     describe("暗号化・復号化のラウンドトリップテスト", () => {
