@@ -1,10 +1,10 @@
-import { toTimestamp } from "@/lib/date";
-import { EncryptedToken, Token } from "@/domain/token";
+import { EncryptedToken } from "@/domain/token";
 import {
     DocumentData,
     FieldValue,
     FirestoreDataConverter,
     QueryDocumentSnapshot,
+    Timestamp,
     WithFieldValue,
 } from "firebase-admin/firestore";
 
@@ -15,11 +15,15 @@ export const tokenConverter: FirestoreDataConverter<EncryptedToken> = {
         return {
             userId: modelObject.userId,
             encryptedToken: modelObject.encryptedToken,
-            createdAt: toTimestamp(modelObject.createdAt),
+            createdAt:
+                modelObject.createdAt instanceof Date
+                    ? Timestamp.fromDate(modelObject.createdAt)
+                    : modelObject.createdAt,
             updatedAt: FieldValue.serverTimestamp(),
-            expiresAt: modelObject.expiresAt
-                ? toTimestamp(modelObject.expiresAt)
-                : null,
+            expiresAt:
+                modelObject.expiresAt instanceof Date
+                    ? Timestamp.fromDate(modelObject.expiresAt)
+                    : (modelObject.expiresAt ?? null),
             serviceType: modelObject.serviceType,
         };
     },
