@@ -32,7 +32,7 @@ export const createTokenService = (
         const now = new Date();
         const fullToken: Token = { ...token, createdAt: now, updatedAt: now };
         return encryptToken(fullToken)
-            .asyncAndThen(tokenRepository.add)
+            .asyncAndThen(tokenRepository.upsert)
             .andThen(decryptToken);
     },
     updateToken: (token) => {

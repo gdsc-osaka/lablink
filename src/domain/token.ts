@@ -123,7 +123,7 @@ export const encryptToken = (
 };
 
 export interface TokenRepository {
-    add(
+    upsert(
         token: Omit<EncryptedToken, "createdAt" | "updatedAt">,
     ): ResultAsync<EncryptedToken, TokenError>;
     update(

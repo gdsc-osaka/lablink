@@ -22,7 +22,7 @@ const tokenCollection = (userId: string) =>
         .withConverter(tokenConverter);
 
 export const googleTokenRepository: TokenRepository = {
-    add: (token) =>
+    upsert: (token) =>
         ResultAsync.fromPromise(
             tokenCollection(token.userId).doc(token.serviceType).set({
                 userId: token.userId,
