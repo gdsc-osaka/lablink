@@ -79,7 +79,7 @@ export const geminiRepo: GenAIRepository = {
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
-                    responseSchema: schema.toJSONSchema(),
+                    responseSchema: z.toJSONSchema(schema),
                 },
             }),
             (error) => {
