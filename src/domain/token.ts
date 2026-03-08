@@ -89,10 +89,13 @@ export const decryptToken = (
                 serviceType: encryptedToken.serviceType,
             },
         });
-    })(encryptedToken.encryptedToken).map((decryptedToken) => ({
-        ...encryptedToken,
-        token: decryptedToken,
-    }));
+    })(encryptedToken.encryptedToken).map((decryptedToken) => {
+        const { encryptedToken: _encryptedToken, ...rest } = encryptedToken;
+        return {
+            ...rest,
+            token: decryptedToken,
+        };
+    });
 };
 
 export const encryptToken = (
@@ -116,10 +119,13 @@ export const encryptToken = (
                 serviceType: token.serviceType,
             },
         });
-    })(token.token).map((encryptedToken) => ({
-        ...token,
-        encryptedToken: encryptedToken,
-    }));
+    })(token.token).map((encryptedToken) => {
+        const { token: _token, ...rest } = token;
+        return {
+            ...rest,
+            encryptedToken,
+        };
+    });
 };
 
 export interface TokenRepository {
