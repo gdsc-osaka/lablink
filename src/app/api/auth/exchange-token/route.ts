@@ -70,14 +70,6 @@ export async function POST(request: NextRequest) {
 
         // リフレッシュトークンが存在する場合はサーバー側の一時Cookieに保存する
         // FirestoreへのDB保存は、フロントエンド側でFirebase Authログイン完了後に専用エンドポイントを呼んで行うように遅延させる
-        if (tokens.refresh_token) {
-            request.cookies.set(
-                "temp_google_refresh_token",
-                tokens.refresh_token,
-            );
-            // ※ NextRequest では request.cookies.set を使って response の cookies に直接反映させることは通常できません。
-            // 応答の NextResponse にセットする必要があります。
-        }
 
         const response = NextResponse.json({
             access_token: tokens.access_token,
