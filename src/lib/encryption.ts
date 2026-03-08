@@ -70,7 +70,7 @@ export function encryptToken(plainText: string): string {
 /**
  * トークンを復号化
  *
- * @param encryptedText "iv:encrypted:authTag" 形式（または後方互換で "iv:encrypted"）の暗号化文字列
+ * @param encryptedText "iv:encrypted:authTag" 形式の暗号化文字列
  * @returns 復号化されたテキスト（リフレッシュトークン）
  *
  * @example
