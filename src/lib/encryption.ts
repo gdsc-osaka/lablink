@@ -84,16 +84,16 @@ export function decryptToken(encryptedText: string): string {
 
     const key = getEncryptionKey();
 
+    // IV と暗号化データ（および認証タグ）を分離
+    const parts = encryptedText.split(":");
+
+    if (parts.length !== 3) {
+        throw new Error(
+            'Invalid encrypted token format. Expected format: "iv:encrypted:authTag"',
+        );
+    }
+
     try {
-        // IV と暗号化データ（および認証タグ）を分離
-        const parts = encryptedText.split(":");
-
-        if (parts.length !== 3) {
-            throw new Error(
-                'Invalid encrypted token format. Expected format: "iv:encrypted:authTag"',
-            );
-        }
-
         const iv = Buffer.from(parts[0], "hex");
         const encrypted = parts[1];
         const authTag = Buffer.from(parts[2], "hex");

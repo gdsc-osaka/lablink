@@ -76,7 +76,7 @@ describe("Encryption Library", () => {
 
         it("不正なフォーマットの復号化はエラーを投げる", () => {
             expect(() => decryptToken("invalid:format:data:extra")).toThrow(
-                "Failed to decrypt token",
+                'Invalid encrypted token format. Expected format: "iv:encrypted:authTag"',
             );
         });
 
