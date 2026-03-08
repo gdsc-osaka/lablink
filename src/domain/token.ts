@@ -98,7 +98,7 @@ export const decryptToken = (
 export const encryptToken = (
     token: Token,
 ): Result<EncryptedToken, TokenEncryptionError> => {
-    return Result.fromThrowable(decrypt, (error) => {
+    return Result.fromThrowable(encrypt, (error) => {
         if (error instanceof Error) {
             return TokenEncryptionError(error.message, {
                 extra: {
