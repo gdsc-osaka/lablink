@@ -20,7 +20,10 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
 
     const handleSignIn = async () => {
-        const result = await authService.signInWithGoogle();
+        const state = crypto.randomUUID();
+        sessionStorage.setItem("oauth_state", state);
+
+        const result = await authService.signInWithGoogle(state);
 
         result.match(
             async () => {
