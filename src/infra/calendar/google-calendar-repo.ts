@@ -6,8 +6,7 @@ import {
     GoogleCalendarErrorResponse,
     toCalendarError,
 } from "./google-calendar-converter";
-import { createTokenService } from "@/service/token-service";
-import { Token } from "@/domain/token";
+import { decryptToken, Token } from "@/domain/token";
 
 const initCalendar = (token: Token) => {
     const oauth2Client = new google.auth.OAuth2(
@@ -23,8 +22,9 @@ export const googleCalendarRepository: CalendarRepository = {
      * Calendar API を利用してユーザーの空き時間を取得する
      */
     fetchBusySlots: (userId, calendarIds, timeMin, timeMax, tokenRepository) =>
-        createTokenService(tokenRepository)
-            .getSavedToken(userId, "google")
+        tokenRepository
+            .get(userId, "google")
+            .andThen(decryptToken)
             .map(initCalendar)
             .andThen((calendar) =>
                 ResultAsync.fromPromise(
