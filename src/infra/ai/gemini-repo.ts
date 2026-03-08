@@ -1,34 +1,42 @@
 import {
     GenAIError,
     GenAIRepository,
+    GenAIUnauthenticatedError,
     GenAIUnknownError,
 } from "@/domain/gen-ai";
-import { err, ok, Result, ResultAsync } from "neverthrow";
+import { err, errAsync, ok, Result, ResultAsync } from "neverthrow";
 import { ApiError, GoogleGenAI } from "@google/genai";
 import * as z from "zod";
 import { finishReasonToGenAIError, toGenAIError } from "./gemini-converter";
 
 export const GEMINI_IMPL = "gemini";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-if (!GEMINI_API_KEY) {
-    throw new Error(
-        "GEMINI_API_KEY environment variable is not set. " +
-            "Google Gemini client cannot be initialized. " +
-            "Please configure GEMINI_API_KEY in your environment.",
-    );
-}
-
-const ai = new GoogleGenAI({
-    apiKey: GEMINI_API_KEY,
-});
+const getAiClient = (): Result<GoogleGenAI, GenAIUnauthenticatedError> => {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+        return err(
+            GenAIUnauthenticatedError(
+                "GEMINI_API_KEY environment variable is not set. Google Gemini client cannot be initialized.",
+                {
+                    extra: {
+                        impl: GEMINI_IMPL,
+                    },
+                },
+            ),
+        );
+    }
+    return ok(new GoogleGenAI({ apiKey: GEMINI_API_KEY }));
+};
 
 const GEMINI_MODEL_NAME = "gemini-3-flash-preview";
 
 export const geminiRepo: GenAIRepository = {
-    generateText: (prompt) =>
-        ResultAsync.fromPromise(
+    generateText: (prompt) => {
+        const aiResult = getAiClient();
+        if (aiResult.isErr()) return errAsync(aiResult.error);
+        const ai = aiResult.value;
+
+        return ResultAsync.fromPromise(
             ai.models.generateContent({
                 model: GEMINI_MODEL_NAME,
                 contents: prompt,
@@ -67,13 +75,18 @@ export const geminiRepo: GenAIRepository = {
             }
 
             return ok(response.text);
-        }),
+        });
+    },
 
     generateStructured: <T extends z.ZodType>(
         prompt: string,
         schema: T,
-    ): ResultAsync<z.infer<T>, GenAIError> =>
-        ResultAsync.fromPromise(
+    ): ResultAsync<z.infer<T>, GenAIError> => {
+        const aiResult = getAiClient();
+        if (aiResult.isErr()) return errAsync(aiResult.error);
+        const ai = aiResult.value;
+
+        return ResultAsync.fromPromise(
             ai.models.generateContent({
                 model: GEMINI_MODEL_NAME,
                 contents: prompt,
@@ -136,5 +149,6 @@ export const geminiRepo: GenAIRepository = {
                     return ok(parsedResult.data);
                 },
             );
-        }),
+        });
+    },
 };
