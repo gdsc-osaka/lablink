@@ -44,7 +44,7 @@ export const createCalculateFreeTimeService = (
                 members.map((user) =>
                     calendarService.fetchFreeSlots(
                         user.uid,
-                        [user.uid], // TODO: 暫定的にメインのカレンダーのみ取得
+                        [user.email], // TODO: 暫定的にメインのカレンダーのみ取得
                         scheduleRange.start,
                         scheduleRange.end,
                     ),
