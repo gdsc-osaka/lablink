@@ -49,6 +49,22 @@ export const createSlots = (
     durationMinutes: number,
     intervalMinutes: number,
 ): TimeRange[] => {
+    if (durationMinutes <= 0) {
+        throw new RangeError(
+            `durationMinutes must be strictly positive, but got ${durationMinutes}`,
+        );
+    }
+    if (intervalMinutes <= 0) {
+        throw new RangeError(
+            `intervalMinutes must be strictly positive, but got ${intervalMinutes}`,
+        );
+    }
+    if (timeRange.start >= timeRange.end) {
+        throw new RangeError(
+            `timeRange.start (${timeRange.start.toISOString()}) must be strictly before timeRange.end (${timeRange.end.toISOString()})`,
+        );
+    }
+
     const slots: TimeRange[] = [];
     const slotDurationMs = durationMinutes * 60 * 1000;
     const slotIntervalMs = intervalMinutes * 60 * 1000;
