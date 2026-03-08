@@ -34,8 +34,18 @@ export const geminiRepo: GenAIRepository = {
                 contents: prompt,
             }),
             (error) => {
-                const _error = error as ApiError;
-                return toGenAIError(_error, GEMINI_MODEL_NAME);
+                if (error instanceof ApiError) {
+                    return toGenAIError(error, GEMINI_MODEL_NAME);
+                }
+                return GenAIUnknownError(
+                    error instanceof Error ? error.message : String(error),
+                    {
+                        extra: {
+                            impl: GEMINI_IMPL,
+                            model: GEMINI_MODEL_NAME,
+                        },
+                    },
+                );
             },
         ).andThen((response) => {
             if (!response.text) {
@@ -73,8 +83,18 @@ export const geminiRepo: GenAIRepository = {
                 },
             }),
             (error) => {
-                const _error = error as ApiError;
-                return toGenAIError(_error, GEMINI_MODEL_NAME);
+                if (error instanceof ApiError) {
+                    return toGenAIError(error, GEMINI_MODEL_NAME);
+                }
+                return GenAIUnknownError(
+                    error instanceof Error ? error.message : String(error),
+                    {
+                        extra: {
+                            impl: GEMINI_IMPL,
+                            model: GEMINI_MODEL_NAME,
+                        },
+                    },
+                );
             },
         ).andThen((response): Result<z.infer<T>, GenAIError> => {
             if (!response.text) {
