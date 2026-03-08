@@ -5,14 +5,14 @@ import {
     TokenRepository,
     TokenUnknownError,
 } from "@/domain/token";
-import { getDbAdmin } from "@/firebase/admin";
+import { getFirestoreAdmin } from "@/firebase/admin";
 import { tokenConverter } from "./google-token-converter";
 import { err, ok, ResultAsync } from "neverthrow";
 import { FirebaseFirestoreError } from "firebase-admin/firestore";
 
 const GOOGLE_TOKEN_IMPL = "google-token";
 
-const dbAdmin = getDbAdmin();
+const dbAdmin = getFirestoreAdmin();
 
 const tokenCollection = (userId: string) =>
     dbAdmin

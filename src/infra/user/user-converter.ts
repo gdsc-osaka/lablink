@@ -9,14 +9,12 @@ import { User } from "@/domain/user";
 
 const userConverter: FirestoreDataConverter<User> = {
     toFirestore(user: User): DocumentData {
-        const result: DocumentData = {
-            id: user.id,
+        return {
+            uid: user.uid,
             email: user.email,
             created_at: toFirestoreTimestamp(user.created_at),
             updated_at: toFirestoreTimestamp(user.updated_at),
         };
-
-        return result;
     },
     fromFirestore(
         snapshot: QueryDocumentSnapshot,
@@ -25,10 +23,10 @@ const userConverter: FirestoreDataConverter<User> = {
         const data = snapshot.data(options);
 
         return {
-            id: data.id ?? snapshot.id,
+            uid: snapshot.id,
             email: data.email ?? snapshot.id,
-            created_at: data.created_at,
-            updated_at: data.updated_at,
+            created_at: data.created_at?.toDate() ?? new Date(),
+            updated_at: data.updated_at?.toDate() ?? new Date(),
         };
     },
 };

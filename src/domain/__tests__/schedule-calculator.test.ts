@@ -48,11 +48,11 @@ describe("calculateTimeRangeScores", () => {
 
         const members: EventMember[] = [
             {
-                id: "user1",
+                uid: "user1",
                 isRequired: true,
             } as EventMember,
             {
-                id: "user2",
+                uid: "user2",
                 isRequired: false,
             } as EventMember,
         ];
@@ -111,13 +111,13 @@ describe("calculateTimeRangeScores", () => {
         const durationMinutes = 60;
         const members: EventMember[] = [
             {
-                id: "user1",
+                uid: "user1",
                 isRequired: true,
-            } as unknown as EventMember,
+            } as EventMember,
             {
-                id: "user2",
+                uid: "user2",
                 isRequired: false,
-            } as unknown as EventMember,
+            } as EventMember,
         ];
         const memberAvailability: UserTimeRanges[] = [
             {

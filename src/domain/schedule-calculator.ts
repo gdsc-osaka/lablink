@@ -102,7 +102,7 @@ export const calculateTimeRangeScores = (
 
     for (const availability of memberAvailability) {
         const userFreeSlots = availability.timeRanges;
-        const member = members.find((m) => m.id === availability.userId);
+        const member = members.find((m) => m.uid === availability.userId);
         if (!member) continue;
 
         for (const slot of slots) {
@@ -120,10 +120,10 @@ export const calculateTimeRangeScores = (
 
             if (isAvailable) {
                 if (member.isRequired) {
-                    slot.availableMemberIds.required.push(member.id);
+                    slot.availableMemberIds.required.push(member.uid);
                     slot.score += MEMBER_REQUIRED_SCORE;
                 } else {
-                    slot.availableMemberIds.optional.push(member.id);
+                    slot.availableMemberIds.optional.push(member.uid);
                     slot.score += MEMBER_OPTIONAL_SCORE;
                 }
             }

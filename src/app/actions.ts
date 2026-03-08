@@ -10,6 +10,7 @@ import { TimeRange } from "@/domain/calendar";
 import { geminiRepo } from "@/infra/ai/gemini-repo";
 import { createCalculateFreeTimeService } from "@/service/calculate-free-time-service";
 import { EventMember, TimeRangeScore } from "@/domain/schedule-calculator";
+import { requireAuth } from "@/lib/auth/server-auth";
 
 export type Result<T, E> =
     | { success: true; data: T }
@@ -32,6 +33,8 @@ export async function calculateFreeTime(
     eventDurationMinutes: number,
     members: EventMember[],
 ): Promise<Result<TimeRangeScore[], string>> {
+    await requireAuth();
+
     const calculateService = createCalculateFreeTimeService(
         calendarRepository,
         tokenRepository,
@@ -67,6 +70,8 @@ export async function suggestSchedule(
     scores: TimeRangeScore[],
     requiredMemberCount: number,
 ): Promise<Result<ScheduleSuggestion[], string>> {
+    await requireAuth();
+
     const suggestionService = createScheduleSuggestionService(geminiRepo);
 
     const suggestionResult = await suggestionService.suggestSchedule(
