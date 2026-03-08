@@ -54,10 +54,13 @@ export async function POST(request: NextRequest) {
 
         if (!tokenResponse.ok) {
             const errorText = await tokenResponse.text();
+            console.error(
+                "Failed to exchange authorization code with OAuth provider:",
+                errorText,
+            );
             return NextResponse.json(
                 {
                     error: "Failed to exchange authorization code",
-                    details: errorText,
                 },
                 { status: 500 },
             );
@@ -65,52 +68,36 @@ export async function POST(request: NextRequest) {
 
         const tokens = await tokenResponse.json();
 
-        // 取得した ID Token を検証してユーザーの UID を取得する
-        if (!tokens.id_token) {
-            return NextResponse.json(
-                { error: "No ID token returned from Google" },
-                { status: 400 },
-            );
-        }
-
-        let decodedToken;
-        try {
-            decodedToken = await authAdmin.verifyIdToken(tokens.id_token);
-        } catch (verifyError) {
-            console.error("Failed to verify ID token:", verifyError);
-            return NextResponse.json(
-                { error: "Invalid ID token" },
-                { status: 401 },
-            );
-        }
-
-        const userId = decodedToken.uid;
-
-        // リフレッシュトークンが存在する場合はサーバー側（Firestore）で直接保存する
+        // リフレッシュトークンが存在する場合はサーバー側の一時Cookieに保存する
+        // FirestoreへのDB保存は、フロントエンド側でFirebase Authログイン完了後に専用エンドポイントを呼んで行うように遅延させる
         if (tokens.refresh_token) {
-            const tokenSaveResult = await tokenService.saveToken({
-                userId,
-                token: tokens.refresh_token,
-                serviceType: "google",
-                expiresAt: null,
-            });
-
-            if (tokenSaveResult.isErr()) {
-                console.warn(
-                    "Failed to save refresh token:",
-                    tokenSaveResult.error,
-                );
-                // 保存に失敗しても、認証自体は成功しているので処理を継続する（必要に応じてエラーにしても良い）
-            }
+            request.cookies.set(
+                "temp_google_refresh_token",
+                tokens.refresh_token,
+            );
+            // ※ NextRequest では request.cookies.set を使って response の cookies に直接反映させることは通常できません。
+            // 応答の NextResponse にセットする必要があります。
         }
 
-        // トークン情報をクライアントに返す
-        // セキュリティのため、リフレッシュトークンは絶対にブラウザに返してはならない
-        return NextResponse.json({
+        const response = NextResponse.json({
             access_token: tokens.access_token,
             id_token: tokens.id_token, // Firebaseにログインするためフロントに返す必要がある
             expires_in: tokens.expires_in,
         });
+
+        if (tokens.refresh_token) {
+            response.cookies.set({
+                name: "temp_google_refresh_token",
+                value: tokens.refresh_token,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/",
+                maxAge: 60 * 10, // 10 minutes
+            });
+        }
+
+        return response;
     } catch (error) {
         console.error("Token exchange endpoint error:", error);
         return NextResponse.json(

@@ -28,14 +28,19 @@ export interface TokenService {
 export const createTokenService = (
     tokenRepository: TokenRepository,
 ): TokenService => ({
-    saveToken: (token) =>
-        encryptToken(token as Token)
+    saveToken: (token) => {
+        const now = new Date();
+        const fullToken: Token = { ...token, createdAt: now, updatedAt: now };
+        return encryptToken(fullToken)
             .asyncAndThen(tokenRepository.add)
-            .andThen(decryptToken),
-    updateToken: (token) =>
-        encryptToken(token as Token)
+            .andThen(decryptToken);
+    },
+    updateToken: (token) => {
+        const fullToken: Token = { ...token, updatedAt: new Date() } as Token;
+        return encryptToken(fullToken)
             .asyncAndThen(tokenRepository.update)
-            .andThen(decryptToken),
+            .andThen(decryptToken);
+    },
     getSavedToken: (userId, serviceType) =>
         tokenRepository.get(userId, serviceType).andThen(decryptToken),
 });

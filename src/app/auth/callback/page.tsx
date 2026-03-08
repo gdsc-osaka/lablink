@@ -1,21 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { auth, db } from "@/firebase/client";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { Spinner } from "@/components/ui/spinner";
+import { userRepo } from "@/infra/user/user-repo";
+import { createNewUser } from "@/domain/user";
 
 export default function AuthCallbackPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [status, setStatus] = useState("処理中...");
+    const exchangeAttempted = useRef(false);
 
     useEffect(() => {
+        let isMounted = true;
+
         const handleCallback = async () => {
+            if (exchangeAttempted.current) {
+                return;
+            }
+
             const code = searchParams.get("code");
             const error = searchParams.get("error");
+            const state = searchParams.get("state");
 
             // エラーハンドリング
             if (error) {
@@ -29,8 +39,18 @@ export default function AuthCallbackPage() {
                 return;
             }
 
+            // State の検証（Login CSRF 対策）
+            const savedState = sessionStorage.getItem("oauth_state");
+            if (!state || !savedState || state !== savedState) {
+                console.error("OAuth state mismatch or missing");
+                router.push("/signin?error=invalid_state");
+                return;
+            }
+
+            exchangeAttempted.current = true;
+
             try {
-                setStatus("トークンを取得中...");
+                if (isMounted) setStatus("トークンを取得中...");
 
                 // 1. API Route経由でトークン交換と永続化（サーバー完結）
                 const tokenResponse = await fetch("/api/auth/exchange-token", {
@@ -50,7 +70,13 @@ export default function AuthCallbackPage() {
                 const tokens = await tokenResponse.json();
                 const { access_token, id_token } = tokens;
 
-                setStatus("Firebase にログイン中...");
+                if (!id_token) {
+                    throw new Error(
+                        "ID token not received from OAuth provider",
+                    );
+                }
+
+                if (isMounted) setStatus("Firebase にログイン中...");
 
                 // 2. Firebase Auth にログイン（ID Token を使用）
                 const credential = GoogleAuthProvider.credential(
@@ -63,36 +89,59 @@ export default function AuthCallbackPage() {
                 );
                 const user = userCredential.user;
 
-                // 3. ユーザー基本情報を保存（トークン以外）
-                const userRef = doc(db, "users", user.uid);
-                await setDoc(
-                    userRef,
+                if (isMounted) setStatus("セッションを同期中...");
+
+                // 2.5 リフレッシュトークンの永続化（Cookie -> DB）
+                const syncResponse = await fetch(
+                    "/api/auth/sync-google-token",
                     {
-                        email: user.email,
-                        updated_at: Timestamp.now(),
-                        created_at: Timestamp.now(),
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${await user.getIdToken()}`,
+                        },
                     },
-                    { merge: true },
                 );
 
-                setStatus("ログイン成功！リダイレクト中...");
+                if (!syncResponse.ok) {
+                    console.warn(
+                        "Failed to sync refresh token, but ignoring to continue login flow",
+                    );
+                }
+
+                // 3. ユーザー基本情報を保存（初回のみ）
+                const existingUserResult = await userRepo.findById(user.uid);
+                if (existingUserResult.isErr()) {
+                    const newUserResult = createNewUser(user);
+                    if (newUserResult.isOk()) {
+                        await userRepo.create(newUserResult.value);
+                    }
+                }
+
+                if (isMounted) setStatus("ログイン成功！リダイレクト中...");
 
                 // 4. ホームページにリダイレクト
                 setTimeout(() => {
-                    router.push("/");
+                    if (isMounted) router.push("/");
                 }, 1000);
             } catch (err) {
                 console.error("OAuth callback error:", err);
-                setStatus(
-                    `エラー: ${err instanceof Error ? err.message : "不明なエラー"}`,
-                );
-                setTimeout(() => {
-                    router.push("/signin?error=authentication_failed");
-                }, 2000);
+                if (isMounted) {
+                    setStatus(
+                        `エラー: ${err instanceof Error ? err.message : "不明なエラー"}`,
+                    );
+                    setTimeout(() => {
+                        if (isMounted)
+                            router.push("/signin?error=authentication_failed");
+                    }, 2000);
+                }
             }
         };
 
         handleCallback();
+
+        return () => {
+            isMounted = false;
+        };
     }, [searchParams, router]);
 
     return (

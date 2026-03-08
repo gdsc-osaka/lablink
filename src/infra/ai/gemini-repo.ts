@@ -10,8 +10,18 @@ import { finishReasonToGenAIError, toGenAIError } from "./gemini-converter";
 
 export const GEMINI_IMPL = "gemini";
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+if (!GEMINI_API_KEY) {
+    throw new Error(
+        "GEMINI_API_KEY environment variable is not set. " +
+            "Google Gemini client cannot be initialized. " +
+            "Please configure GEMINI_API_KEY in your environment.",
+    );
+}
+
 const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: GEMINI_API_KEY,
 });
 
 const GEMINI_MODEL_NAME = "gemini-3-flash-preview";
