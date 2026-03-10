@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthAdmin } from "@/firebase/admin";
-import { createTokenService } from "@/service/token-service";
-import { googleTokenRepository } from "@/infra/token/google-token-repo";
-
-const authAdmin = getAuthAdmin();
-const tokenService = createTokenService(googleTokenRepository);
+import { createServerAuthRepo } from "@/infra/auth/server-auth-repo";
 
 /**
  * Google OAuthのauthorization codeをaccess token/refresh tokenに交換
@@ -34,39 +29,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Authorization Code を Access Token と Refresh Token に交換
-        const tokenResponse = await fetch(
-            "https://oauth2.googleapis.com/token",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({
-                    code,
-                    client_id: clientId,
-                    client_secret: clientSecret,
-                    redirect_uri: `${request.nextUrl.origin}/auth/callback`,
-                    grant_type: "authorization_code",
-                }),
-            },
+        // googleapis の OAuth2Client を通じて Authorization Code をトークンに交換
+        const authRepo = createServerAuthRepo(clientId, clientSecret);
+        const tokens = await authRepo.exchangeAuthCode(
+            code,
+            `${request.nextUrl.origin}/auth/callback`,
         );
-
-        if (!tokenResponse.ok) {
-            const errorText = await tokenResponse.text();
-            console.error(
-                "Failed to exchange authorization code with OAuth provider:",
-                errorText,
-            );
-            return NextResponse.json(
-                {
-                    error: "Failed to exchange authorization code",
-                },
-                { status: 500 },
-            );
-        }
-
-        const tokens = await tokenResponse.json();
 
         // リフレッシュトークンが存在する場合はサーバー側の一時Cookieに保存する
         // FirestoreへのDB保存は、フロントエンド側でFirebase Authログイン完了後に専用エンドポイントを呼んで行うように遅延させる
