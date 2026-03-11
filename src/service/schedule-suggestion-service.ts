@@ -28,8 +28,8 @@ export function generatePrompt(
     requiredMemberCount: number,
 ): string {
     const candidatesText = candidates
+        .toSorted((a, b) => b.score - a.score)
         .slice(0, 30) // スコア上位30件
-        .sort((a, b) => b.score - a.score)
         .map((c, idx) => {
             const start = c.timeRange.start;
             const end = c.timeRange.end;
