@@ -1,3 +1,5 @@
+import "server-only";
+
 import { google } from "googleapis";
 import { CalendarRepository, TimeRange } from "@/domain/calendar";
 import { ResultAsync } from "neverthrow";

@@ -1,3 +1,5 @@
+import "server-only";
+
 import { NextRequest, NextResponse } from "next/server";
 import { createServerAuthRepo } from "@/infra/auth/server-auth-repo";
 import { getBaseUrl } from "@/lib/server-url";
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
 
         // googleapis の OAuth2Client を通じて Authorization Code をトークンに交換
         const authRepo = createServerAuthRepo(clientId, clientSecret);
-const baseUrl = await getBaseUrl();
+        const baseUrl = await getBaseUrl();
         const tokens = await authRepo.exchangeAuthCode(
             code,
             `${baseUrl}/auth/callback`,
