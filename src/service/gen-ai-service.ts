@@ -1,4 +1,4 @@
-import { ResultAsync } from "neverthrow";
+import { ResultAsync, errAsync } from "neverthrow";
 import { GenAIError, GenAIRepository } from "@/domain/gen-ai";
 import * as z from "zod";
 
@@ -36,12 +36,7 @@ export const createGenAIService = (
             genAIRepository
                 .generateText(prompt)
                 .orElse((error) =>
-                    remaining > 0
-                        ? attempt(remaining - 1)
-                        : ResultAsync.fromPromise(
-                              Promise.reject(error),
-                              () => error,
-                          ),
+                    remaining > 0 ? attempt(remaining - 1) : errAsync(error),
                 );
         return attempt(retryCount);
     },
@@ -55,12 +50,7 @@ export const createGenAIService = (
             genAIRepository
                 .generateStructured(prompt, schema)
                 .orElse((error) =>
-                    remaining > 0
-                        ? attempt(remaining - 1)
-                        : ResultAsync.fromPromise(
-                              Promise.reject(error),
-                              () => error,
-                          ),
+                    remaining > 0 ? attempt(remaining - 1) : errAsync(error),
                 );
         return attempt(retryCount);
     },
