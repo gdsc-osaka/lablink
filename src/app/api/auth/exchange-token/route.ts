@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerAuthRepo } from "@/infra/auth/server-auth-repo";
+import { getBaseUrl } from "@/lib/server-url";
 
 /**
  * Google OAuthのauthorization codeをaccess token/refresh tokenに交換
@@ -31,9 +32,10 @@ export async function POST(request: NextRequest) {
 
         // googleapis の OAuth2Client を通じて Authorization Code をトークンに交換
         const authRepo = createServerAuthRepo(clientId, clientSecret);
+const baseUrl = await getBaseUrl();
         const tokens = await authRepo.exchangeAuthCode(
             code,
-            `${request.nextUrl.origin}/auth/callback`,
+            `${baseUrl}/auth/callback`,
         );
 
         // リフレッシュトークンが存在する場合はサーバー側の一時Cookieに保存する

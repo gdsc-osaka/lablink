@@ -1,6 +1,7 @@
 "use server";
 
 import { google } from "googleapis";
+import { getBaseUrl } from "@/lib/server-url";
 
 export async function generateAuthUrl(state: string) {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -12,7 +13,8 @@ export async function generateAuthUrl(state: string) {
         );
     }
 
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback`;
+    const baseUrl = await getBaseUrl();
+    const redirectUri = `${baseUrl}/auth/callback`;
 
     const oauth2Client = new google.auth.OAuth2(
         clientId,
