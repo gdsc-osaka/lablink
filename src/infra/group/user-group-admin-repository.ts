@@ -9,7 +9,7 @@ import { toGroupFromAdmin } from "./group-converter";
 const db = getFirestoreAdmin();
 
 export const userGroupAdminRepo: UserGroupRepository = {
-    findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
+    getGroupsByUserId: (userId: string): ResultAsync<Group[], DBError> => {
         const userGroupsRef = db
             .collection("users")
             .doc(userId)
@@ -64,7 +64,7 @@ export const userGroupAdminRepo: UserGroupRepository = {
         );
     },
 
-    findUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
+    getUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
         const groupUsersRef = db
             .collection("groups")
             .doc(groupId)
