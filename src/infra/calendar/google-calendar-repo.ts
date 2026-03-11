@@ -1,8 +1,12 @@
 import "server-only";
 
 import { google } from "googleapis";
-import { CalendarRepository, TimeRange } from "@/domain/calendar";
-import { ResultAsync } from "neverthrow";
+import {
+    CalendarRepository,
+    TimeRange,
+    CalendarUnauthenticatedError,
+} from "@/domain/calendar";
+import { ResultAsync, err, ok } from "neverthrow";
 import { GaxiosError } from "gaxios";
 import {
     GoogleCalendarErrorResponse,
@@ -10,13 +14,27 @@ import {
 } from "./google-calendar-converter";
 import { decryptToken, Token } from "@/domain/token";
 
-const initCalendar = (token: Token) => {
-    const oauth2Client = new google.auth.OAuth2(
-        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-    );
+const initCalendar = (userId: string, token: Token) => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        return err(
+            CalendarUnauthenticatedError(
+                "Server configuration error: Google OAuth credentials are missing",
+                {
+                    extra: {
+                        userId,
+                        impl: "Server configuration error",
+                    },
+                },
+            ),
+        );
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
     oauth2Client.setCredentials({ refresh_token: token.token });
-    return google.calendar({ version: "v3", auth: oauth2Client });
+    return ok(google.calendar({ version: "v3", auth: oauth2Client }));
 };
 
 export const googleCalendarRepository: CalendarRepository = {
@@ -27,7 +45,7 @@ export const googleCalendarRepository: CalendarRepository = {
         tokenRepository
             .get(userId, "google")
             .andThen(decryptToken)
-            .map(initCalendar)
+            .andThen((token) => initCalendar(userId, token))
             .andThen((calendar) =>
                 ResultAsync.fromPromise(
                     calendar.freebusy.query({
