@@ -1,3 +1,6 @@
+import { DBError } from "./error";
+import { ResultAsync } from "neverthrow";
+
 interface Group {
     id: string;
     name: string;
@@ -12,19 +15,28 @@ interface UserGroup {
     joinedAt: Date;
 }
 
+interface GroupWithMembers {
+    id: string;
+    name: string;
+    members: Array<{ id: string; name: string }>;
+}
+
 type CreateGroupDto = Omit<Group, "id" | "createdAt" | "updatedAt">;
 
 interface GroupRepository {
-    findById(groupId: string): Promise<Group | null>;
-    save(group: Group, userId: string): Promise<Group>;
-    update(group: Partial<Group>): Promise<Group>;
-    delete(groupId: string): Promise<void>;
+    findById(groupId: string): ResultAsync<Group, DBError>;
+    save(group: Group, userId: string): ResultAsync<Group, DBError>;
+    update(group: Partial<Group>): ResultAsync<Group, DBError>;
+    delete(groupId: string): ResultAsync<void, DBError>;
 }
 
 interface UserGroupRepository {
-    addMember(membership: UserGroup, groupData: Group): Promise<void>;
-    findAllByUserId(userId: string): Promise<Group[]>;
-    findUserIdsByGroupId(groupId: string): Promise<string[]>;
+    addMember(
+        membership: UserGroup,
+        groupData: Group,
+    ): ResultAsync<void, DBError>;
+    findAllByUserId(userId: string): ResultAsync<Group[], DBError>;
+    findUserIdsByGroupId(groupId: string): ResultAsync<string[], DBError>;
 }
 
 export type {
@@ -33,4 +45,5 @@ export type {
     CreateGroupDto,
     UserGroup,
     UserGroupRepository,
+    GroupWithMembers,
 };

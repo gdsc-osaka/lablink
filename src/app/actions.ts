@@ -4,6 +4,7 @@ import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
 // import { callGeminiAPI } from '@/lib/gemini'; // 将来的にGemini APIを呼び出す関数
+import { requireAuth } from "@/lib/auth/server-auth";
 
 // APIからの戻り値の型
 interface TimeSlot {
@@ -22,6 +23,8 @@ export async function getCommonAvailability(
     timeMin: string,
     timeMax: string,
 ): Promise<CommonAvailabilityResponse> {
+    await requireAuth();
+
     if (!accessToken) {
         throw new Error("Access token is required.");
     }
