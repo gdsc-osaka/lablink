@@ -41,6 +41,7 @@ export default function AuthCallbackPage() {
             const savedState = sessionStorage.getItem("oauth_state");
             if (!state || !savedState || state !== savedState) {
                 console.error("OAuth state mismatch or missing");
+                sessionStorage.removeItem("oauth_state");
                 router.push("/signin?error=invalid_state");
                 return;
             }
@@ -56,7 +57,7 @@ export default function AuthCallbackPage() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ code }),
+                    body: JSON.stringify({ code, state }),
                 });
 
                 if (!tokenResponse.ok) {
@@ -128,12 +129,14 @@ export default function AuthCallbackPage() {
                         router.push("/group");
                     }
                     sessionStorage.removeItem("oauth_redirect_to");
+                    sessionStorage.removeItem("oauth_state");
                 }, 1000);
             } catch (err) {
                 console.error("OAuth callback error:", err);
                 setStatus(
                     `エラー: ${err instanceof Error ? err.message : "不明なエラー"}`,
                 );
+                sessionStorage.removeItem("oauth_state");
                 setTimeout(() => {
                     router.push("/signin?error=authentication_failed");
                 }, 2000);

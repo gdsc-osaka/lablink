@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { google } from "googleapis";
 import { getBaseUrl } from "@/lib/server-url";
 
@@ -12,6 +13,15 @@ export async function generateAuthUrl(state: string) {
             "Google Client ID or Secret is not configured in environment variables.",
         );
     }
+
+    const cookieStore = await cookies();
+    cookieStore.set("oauth_state", state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 10, // 10 minutes
+    });
 
     const baseUrl = await getBaseUrl();
     const redirectUri = `${baseUrl}/auth/callback`;
