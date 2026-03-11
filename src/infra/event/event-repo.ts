@@ -19,7 +19,7 @@ import { handleFirestoreError } from "@/infra/error";
 import { DBError, NotFoundError } from "@/domain/error";
 
 export const firestoreEventRepository: EventRepository = {
-    getEventByGroupAndEventId: (
+    getNewEventByGroupAndEventId: (
         groupId: string,
         eventId: string,
     ): ResultAsync<Event, DBError> => {
@@ -44,7 +44,7 @@ export const firestoreEventRepository: EventRepository = {
         });
     },
 
-    getEventsByGroupId: (groupId: string): ResultAsync<Event[], DBError> => {
+    getNewEventsByGroupId: (groupId: string): ResultAsync<Event[], DBError> => {
         const eventsRef = collection(
             db,
             "groups",
@@ -68,7 +68,7 @@ export const firestoreEventRepository: EventRepository = {
         });
     },
 
-    createEvent: (
+    createNewEvent: (
         groupId: string,
         eventData: NewEvent,
     ): ResultAsync<Event, DBError> => {
@@ -96,7 +96,7 @@ export const firestoreEventRepository: EventRepository = {
         }));
     },
 
-    updateEvent: (
+    updateNewEvent: (
         groupId: string,
         eventData: Event,
     ): ResultAsync<Event, DBError> => {
@@ -122,11 +122,11 @@ export const firestoreEventRepository: EventRepository = {
             updateDoc(eventRef, updatePayload),
             handleFirestoreError,
         ).andThen(() =>
-            firestoreEventRepository.getEventByGroupAndEventId(groupId, id),
+            firestoreEventRepository.getNewEventByGroupAndEventId(groupId, id),
         );
     },
 
-    deleteEvent: (
+    deleteNewEvent: (
         groupId: string,
         eventId: string,
     ): ResultAsync<void, DBError> => {
