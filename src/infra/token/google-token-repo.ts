@@ -8,7 +8,7 @@ import {
 import { getFirestoreAdmin } from "@/firebase/admin";
 import { tokenConverter } from "./google-token-converter";
 import { err, ok, ResultAsync } from "neverthrow";
-import { FirebaseFirestoreError } from "firebase-admin/firestore";
+import { FirebaseFirestoreError, FieldValue } from "firebase-admin/firestore";
 
 const GOOGLE_TOKEN_IMPL = "google-token";
 
@@ -29,7 +29,7 @@ export const googleTokenRepository: TokenRepository = {
                 encryptedToken: token.encryptedToken,
                 serviceType: token.serviceType,
                 createdAt: new Date(),
-                updatedAt: new Date(),
+                updatedAt: FieldValue.serverTimestamp(),
                 expiresAt: token.expiresAt,
             }),
             (error) => {
@@ -60,7 +60,7 @@ export const googleTokenRepository: TokenRepository = {
                 encryptedToken: token.encryptedToken,
                 serviceType: token.serviceType,
                 createdAt: token.createdAt,
-                updatedAt: new Date(),
+                updatedAt: FieldValue.serverTimestamp(),
                 expiresAt: token.expiresAt,
             }),
             (error) => {
