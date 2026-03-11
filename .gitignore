@@ -78,3 +78,9 @@ out
 
 # IDEs and editors
 .idea
+
+# Firebase Functions
+functions/lib/
+functions/node_modules/
+functions/.env*
+.firebase/
