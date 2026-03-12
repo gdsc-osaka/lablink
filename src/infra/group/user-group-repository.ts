@@ -20,7 +20,7 @@ import {
 } from "@/domain/group";
 import { UnknownError } from "@/domain/error";
 import { UserGroupIndexData } from "./group-repo";
-import { ok, okAsync, errAsync, ResultAsync } from "neverthrow";
+import { okAsync, errAsync, ResultAsync } from "neverthrow";
 import { DBError } from "@/domain/error";
 import { handleFirestoreError } from "../error";
 

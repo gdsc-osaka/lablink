@@ -261,7 +261,7 @@ export const createGroupService = ({
     },
 
     deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID").andThen(() => {
             return groupRepo.delete(groupId);
         });
     },
@@ -364,7 +364,16 @@ export const createGroupService = ({
             .andThen(() =>
                 validateRequiredId(newOwnerId, "移譲先ユーザーID", "MISSING_USER_ID"),
             )
-            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
+            .andThen(() => {
+                if (currentOwnerId === newOwnerId) {
+                    return errAsync(
+                        ServiceLogicError("移譲先は自分以外のユーザーを指定してください", {
+                            extra: { code: "INVALID_ARGUMENT" },
+                        }),
+                    );
+                }
+                return userGroupRepo.findMembersWithRoles(groupId);
+            })
             .andThen((members) => {
                 const currentOwner = members.find(
                     (m) => m.userId === currentOwnerId,
