@@ -1,4 +1,5 @@
-﻿"use client";
+﻿import { requireAuth } from "@/lib/auth/server-auth";
+import CreateEventForm from "./CreateEventForm";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -16,11 +17,11 @@ const timeOfDayInputItems: {
     value: EventTimeOfDay;
     label: string;
 }[] = [
-    { value: "morning", label: "朝（8:00~12:00ごろ）" },
-    { value: "noon", label: "昼（12:00~15:00ごろ）" },
-    { value: "evening", label: "夕（15:00~18:00ごろ）" },
-    { value: "night", label: "夜（18:00~22:00ごろ）" },
-];
+        { value: "morning", label: "朝（8:00~12:00ごろ）" },
+        { value: "noon", label: "昼（12:00~15:00ごろ）" },
+        { value: "evening", label: "夕（15:00~18:00ごろ）" },
+        { value: "night", label: "夜（18:00~22:00ごろ）" },
+    ];
 
 export default function CreateEventPage() {
     const router = useRouter();
