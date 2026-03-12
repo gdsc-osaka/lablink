@@ -1,6 +1,8 @@
 import { DBError } from "./error";
 import { ResultAsync } from "neverthrow";
 
+type GroupRole = "owner" | "admin" | "member";
+
 interface Group {
     id: string;
     name: string;
@@ -11,14 +13,19 @@ interface Group {
 interface UserGroup {
     groupId: string;
     userId: string;
-    role: "owner" | "member";
+    role: GroupRole;
     joinedAt: Date;
+}
+
+interface GroupMemberWithRole {
+    userId: string;
+    role: GroupRole;
 }
 
 interface GroupWithMembers {
     id: string;
     name: string;
-    members: Array<{ id: string; name: string }>;
+    members: Array<{ id: string; name: string; role: GroupRole }>;
 }
 
 type CreateGroupDto = Omit<Group, "id" | "createdAt" | "updatedAt">;
@@ -37,13 +44,24 @@ interface UserGroupRepository {
     ): ResultAsync<void, DBError>;
     findAllByUserId(userId: string): ResultAsync<Group[], DBError>;
     findUserIdsByGroupId(groupId: string): ResultAsync<string[], DBError>;
+    findMembersWithRoles(
+        groupId: string,
+    ): ResultAsync<GroupMemberWithRole[], DBError>;
+    removeMember(groupId: string, userId: string): ResultAsync<void, DBError>;
+    updateMemberRole(
+        groupId: string,
+        userId: string,
+        role: GroupRole,
+    ): ResultAsync<void, DBError>;
 }
 
 export type {
     Group,
+    GroupRole,
     GroupRepository,
     CreateGroupDto,
     UserGroup,
+    GroupMemberWithRole,
     UserGroupRepository,
     GroupWithMembers,
 };

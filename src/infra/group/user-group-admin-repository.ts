@@ -1,4 +1,10 @@
-import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
+import {
+    UserGroup,
+    UserGroupRepository,
+    Group,
+    GroupMemberWithRole,
+    GroupRole,
+} from "@/domain/group";
 import { DBError } from "@/domain/error";
 import { ResultAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
@@ -76,5 +82,67 @@ export const userGroupAdminRepo: UserGroupRepository = {
         ).map((snapshot) => {
             return snapshot.docs.map((doc) => doc.id);
         });
+    },
+
+    findMembersWithRoles: (
+        groupId: string,
+    ): ResultAsync<GroupMemberWithRole[], DBError> => {
+        const groupUsersRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users");
+
+        return ResultAsync.fromPromise(
+            groupUsersRef.get(),
+            handleAdminError,
+        ).map((snapshot) => {
+            return snapshot.docs.map((doc) => ({
+                userId: doc.id,
+                role: (doc.data().role ?? "member") as GroupRole,
+            }));
+        });
+    },
+
+    removeMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = db.batch();
+
+        const groupUserRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(userId);
+
+        const userGroupRef = db
+            .collection("users")
+            .doc(userId)
+            .collection("groups")
+            .doc(groupId);
+
+        batch.delete(groupUserRef);
+        batch.delete(userGroupRef);
+
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
+    },
+
+    updateMemberRole: (
+        groupId: string,
+        userId: string,
+        role: GroupRole,
+    ): ResultAsync<void, DBError> => {
+        const groupUserRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(userId);
+
+        return ResultAsync.fromPromise(
+            groupUserRef.update({ role }),
+            handleAdminError,
+        ).map(() => undefined);
     },
 };
