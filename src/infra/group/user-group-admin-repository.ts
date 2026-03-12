@@ -99,16 +99,16 @@ export const userGroupAdminRepo: UserGroupRepository = {
             handleAdminError,
         ).andThen((snapshot) => {
             const members: GroupMemberWithRole[] = [];
-            for (const doc of snapshot.docs) {
-                const role = doc.data().role;
+            for (const memberDoc of snapshot.docs) {
+                const role = memberDoc.data().role;
                 if (!isGroupRole(role)) {
                     return errAsync(
                         UnknownError(
-                            `Invalid role "${role}" for user ${doc.id} in group ${groupId}`,
+                            `Invalid role "${role}" for user ${memberDoc.id} in group ${groupId}`,
                         ),
                     );
                 }
-                members.push({ userId: doc.id, role });
+                members.push({ userId: memberDoc.id, role });
             }
             return okAsync(members);
         });

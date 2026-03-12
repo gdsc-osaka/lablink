@@ -5,7 +5,6 @@ import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { isGroupRole } from "@/domain/group";
-import type { GroupRole } from "@/domain/group";
 
 const groupService = createGroupService({
     groupRepo: firestoreGroupAdminRepository,
