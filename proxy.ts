@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 認証が必要なルート
-const protectedRoutes = [
-    "/group",
-    "/ai-suggest",
-    "/complete",
-    "/create-event",
-    "/create-group",
-    "/edit-event",
-    "/invite",
-    "/invited",
-];
-
-// 公開ルート
+// 公開ルート（これら以外はすべてログイン必須とする）
 const publicRoutes = ["/", "/login"];
 
 // 楽観的チェックのみ行う
@@ -20,11 +8,10 @@ export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const sessionCookie = request.cookies.get("session");
 
-    // 保護されたルート + セッションクッキーなし → /login へリダイレクト
-    const isProtectedRoute = protectedRoutes.some((route) =>
-        pathname.startsWith(route),
-    );
-    if (isProtectedRoute && !sessionCookie) {
+    const isPublicRoute = publicRoutes.includes(pathname);
+
+    // 公開ルートではなく、かつセッションクッキーがない → /login へリダイレクト
+    if (!isPublicRoute && !sessionCookie) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
 
