@@ -121,7 +121,6 @@ export const invitationRepo: InvitationRepository = {
                 const groupData = groupSnap.data() as {
                     createdAt: Timestamp | Date;
                     updatedAt: Timestamp | Date;
-                    [key: string]: any;
                 };
                 if (!groupData) {
                     throw new Error("グループが見つかりません");

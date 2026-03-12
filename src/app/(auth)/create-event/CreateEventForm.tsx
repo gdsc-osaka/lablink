@@ -44,7 +44,7 @@ export default function CreateEventForm({ users }: Props) {
         [users],
     );
     const results = useMemo(
-        () => (query ? fuse.search(query).map((r: any) => r.item) : []),
+        () => (query ? fuse.search(query).map((r) => r.item) : []),
         [query, fuse],
     );
     useEffect(() => {
