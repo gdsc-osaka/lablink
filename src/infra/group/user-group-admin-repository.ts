@@ -1,6 +1,14 @@
-import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
+import {
+    UserGroup,
+    UserGroupRepository,
+    Group,
+    GroupMemberWithRole,
+    GroupRole,
+    isGroupRole,
+} from "@/domain/group";
+import { UnknownError } from "@/domain/error";
 import { DBError } from "@/domain/error";
-import { ResultAsync } from "neverthrow";
+import { ResultAsync, okAsync, errAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 import { handleAdminError } from "@/infra/error-admin";
 import { getFirestoreAdmin } from "@/firebase/admin";
@@ -76,5 +84,103 @@ export const userGroupAdminRepo: UserGroupRepository = {
         ).map((snapshot) => {
             return snapshot.docs.map((doc) => doc.id);
         });
+    },
+
+    findMembersWithRoles: (
+        groupId: string,
+    ): ResultAsync<GroupMemberWithRole[], DBError> => {
+        const groupUsersRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users");
+
+        return ResultAsync.fromPromise(
+            groupUsersRef.get(),
+            handleAdminError,
+        ).andThen((snapshot) => {
+            const members: GroupMemberWithRole[] = [];
+            for (const memberDoc of snapshot.docs) {
+                const role = memberDoc.data().role;
+                if (!isGroupRole(role)) {
+                    return errAsync(
+                        UnknownError(
+                            `Invalid role "${role}" for user ${memberDoc.id} in group ${groupId}`,
+                        ),
+                    );
+                }
+                members.push({ userId: memberDoc.id, role });
+            }
+            return okAsync(members);
+        });
+    },
+
+    removeMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = db.batch();
+
+        const groupUserRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(userId);
+
+        const userGroupRef = db
+            .collection("users")
+            .doc(userId)
+            .collection("groups")
+            .doc(groupId);
+
+        batch.delete(groupUserRef);
+        batch.delete(userGroupRef);
+
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
+    },
+
+    updateMemberRole: (
+        groupId: string,
+        userId: string,
+        role: Exclude<GroupRole, "owner">,
+    ): ResultAsync<void, DBError> => {
+        const groupUserRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(userId);
+
+        return ResultAsync.fromPromise(
+            groupUserRef.update({ role }),
+            handleAdminError,
+        ).map(() => undefined);
+    },
+
+    transferOwnership: (
+        groupId: string,
+        fromUserId: string,
+        toUserId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = db.batch();
+
+        const fromRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(fromUserId);
+
+        const toRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(toUserId);
+
+        batch.update(toRef, { role: "owner" });
+        batch.update(fromRef, { role: "admin" });
+
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
     },
 };

@@ -1,6 +1,7 @@
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import {
     Group,
+    GroupRole,
     GroupRepository,
     CreateGroupDto,
     UserGroup,
@@ -44,7 +45,29 @@ export interface GroupService {
         userId: string,
     ) => ResultAsync<GroupWithMembers[], ServiceError>;
 
-    deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
+    deleteGroup: (
+        groupId: string,
+        requesterId: string,
+    ) => ResultAsync<void, ServiceError>;
+
+    removeMember: (
+        groupId: string,
+        requesterId: string,
+        targetUserId: string,
+    ) => ResultAsync<void, ServiceError>;
+
+    changeMemberRole: (
+        groupId: string,
+        requesterId: string,
+        targetUserId: string,
+        newRole: Exclude<GroupRole, "owner">,
+    ) => ResultAsync<void, ServiceError>;
+
+    transferOwnership: (
+        groupId: string,
+        currentOwnerId: string,
+        newOwnerId: string,
+    ) => ResultAsync<void, ServiceError>;
 }
 
 const generateId = (): string => crypto.randomUUID();
@@ -189,18 +212,22 @@ export const createGroupService = ({
             "MISSING_USER_ID",
         ).andThen(() => {
             return userGroupRepo.findAllByUserId(userId).andThen((groups) => {
-                // 全グループのメンバーIDを取得
+                // 全グループのメンバー（ロール付き）を取得
                 const memberPromises = groups.map((group) =>
                     userGroupRepo
-                        .findUserIdsByGroupId(group.id)
-                        .map((ids) => ({ groupId: group.id, memberIds: ids })),
+                        .findMembersWithRoles(group.id)
+                        .map((members) => ({ groupId: group.id, members })),
                 );
 
                 return ResultAsync.combine(memberPromises).andThen(
                     (groupMembers) => {
                         // 全ユニークなユーザーIDを収集
                         const allUserIds = Array.from(
-                            new Set(groupMembers.flatMap((gm) => gm.memberIds)),
+                            new Set(
+                                groupMembers.flatMap((gm) =>
+                                    gm.members.map((m) => m.userId),
+                                ),
+                            ),
                         );
 
                         // ユーザー情報を一括取得
@@ -209,25 +236,21 @@ export const createGroupService = ({
                                 const groupMemberData = groupMembers.find(
                                     (gm) => gm.groupId === group.id,
                                 );
-                                const memberIds =
-                                    groupMemberData?.memberIds || [];
-
-                                const members = memberIds.map((id) => {
+                                const members = (
+                                    groupMemberData?.members ?? []
+                                ).map(({ userId: id, role }) => {
                                     const user = userMap.get(id);
                                     if (!user) {
                                         console.warn(
                                             `User not found for ID: ${id} in group ${group.id}`,
                                         );
-                                        // ユーザーが見つからない場合でも、メンバーリストの不整合を防ぐためにプレースホルダーを返す
                                         return {
                                             id,
                                             name: "Unknown User",
+                                            role,
                                         };
                                     }
-                                    return {
-                                        id,
-                                        name: user.email,
-                                    };
+                                    return { id, name: user.email, role };
                                 });
 
                                 return {
@@ -244,9 +267,215 @@ export const createGroupService = ({
         });
     },
 
-    deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
-            return groupRepo.delete(groupId);
-        });
+    deleteGroup: (
+        groupId: string,
+        requesterId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(
+                    requesterId,
+                    "リクエスターID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
+            .andThen((members) => {
+                const requester = members.find((m) => m.userId === requesterId);
+                if (!requester || requester.role !== "owner") {
+                    return errAsync(
+                        ServiceLogicError(
+                            "グループを削除できるのはオーナーのみです",
+                            {
+                                extra: { code: "FORBIDDEN" },
+                            },
+                        ),
+                    );
+                }
+                return groupRepo.delete(groupId);
+            });
+    },
+
+    removeMember: (
+        groupId: string,
+        requesterId: string,
+        targetUserId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(
+                    requesterId,
+                    "リクエスターID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() =>
+                validateRequiredId(
+                    targetUserId,
+                    "対象ユーザーID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
+            .andThen((members) => {
+                const requester = members.find((m) => m.userId === requesterId);
+                if (!requester) {
+                    return errAsync(
+                        ServiceLogicError("グループに所属していません", {
+                            extra: { code: "FORBIDDEN" },
+                        }),
+                    );
+                }
+                const isSelf = requesterId === targetUserId;
+                if (!isSelf && requester.role === "member") {
+                    return errAsync(
+                        ServiceLogicError(
+                            "他のメンバーを退会させる権限がありません",
+                            {
+                                extra: { code: "FORBIDDEN" },
+                            },
+                        ),
+                    );
+                }
+                const target = members.find((m) => m.userId === targetUserId);
+                if (!target) {
+                    return errAsync(
+                        ServiceLogicError("対象ユーザーが見つかりません", {
+                            extra: { code: "NOT_FOUND" },
+                        }),
+                    );
+                }
+                // owner は owner を退会させられない
+                if (target.role === "owner") {
+                    return errAsync(
+                        ServiceLogicError(
+                            "オーナーを退会させることはできません",
+                            {
+                                extra: { code: "FORBIDDEN" },
+                            },
+                        ),
+                    );
+                }
+                return userGroupRepo.removeMember(groupId, targetUserId);
+            });
+    },
+
+    changeMemberRole: (
+        groupId: string,
+        requesterId: string,
+        targetUserId: string,
+        newRole: Exclude<GroupRole, "owner">,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(
+                    requesterId,
+                    "リクエスターID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() =>
+                validateRequiredId(
+                    targetUserId,
+                    "対象ユーザーID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
+            .andThen((members) => {
+                const requester = members.find((m) => m.userId === requesterId);
+                // ロール変更は owner のみ
+                if (!requester || requester.role !== "owner") {
+                    return errAsync(
+                        ServiceLogicError("ロール変更権限がありません", {
+                            extra: { code: "FORBIDDEN" },
+                        }),
+                    );
+                }
+                const target = members.find((m) => m.userId === targetUserId);
+                if (!target) {
+                    return errAsync(
+                        ServiceLogicError("対象ユーザーが見つかりません", {
+                            extra: { code: "NOT_FOUND" },
+                        }),
+                    );
+                }
+                // owner のロールは変更不可（owner が不在になることを防ぐ）
+                if (target.role === "owner") {
+                    return errAsync(
+                        ServiceLogicError("ownerのロールは変更できません", {
+                            extra: { code: "FORBIDDEN" },
+                        }),
+                    );
+                }
+                return userGroupRepo.updateMemberRole(
+                    groupId,
+                    targetUserId,
+                    newRole,
+                );
+            });
+    },
+
+    transferOwnership: (
+        groupId: string,
+        currentOwnerId: string,
+        newOwnerId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(
+                    currentOwnerId,
+                    "現ownerID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() =>
+                validateRequiredId(
+                    newOwnerId,
+                    "移譲先ユーザーID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() => {
+                if (currentOwnerId === newOwnerId) {
+                    return errAsync(
+                        ServiceLogicError(
+                            "移譲先は自分以外のユーザーを指定してください",
+                            {
+                                extra: { code: "INVALID_ARGUMENT" },
+                            },
+                        ),
+                    );
+                }
+                return userGroupRepo.findMembersWithRoles(groupId);
+            })
+            .andThen((members) => {
+                const currentOwner = members.find(
+                    (m) => m.userId === currentOwnerId,
+                );
+                if (!currentOwner || currentOwner.role !== "owner") {
+                    return errAsync(
+                        ServiceLogicError("owner権限がありません", {
+                            extra: { code: "FORBIDDEN" },
+                        }),
+                    );
+                }
+                const newOwner = members.find((m) => m.userId === newOwnerId);
+                if (!newOwner) {
+                    return errAsync(
+                        ServiceLogicError(
+                            "移譲先のユーザーがグループに存在しません",
+                            {
+                                extra: { code: "NOT_FOUND" },
+                            },
+                        ),
+                    );
+                }
+                return userGroupRepo.transferOwnership(
+                    groupId,
+                    currentOwnerId,
+                    newOwnerId,
+                );
+            });
     },
 });

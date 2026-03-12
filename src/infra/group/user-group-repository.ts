@@ -3,15 +3,24 @@ import {
     collection,
     getDocs,
     writeBatch,
+    updateDoc,
     serverTimestamp,
     Timestamp,
     WithFieldValue,
 } from "firebase/firestore";
 import { db } from "@/firebase/client";
 import { groupConverter } from "./group-converter";
-import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
+import {
+    UserGroup,
+    UserGroupRepository,
+    Group,
+    GroupMemberWithRole,
+    GroupRole,
+    isGroupRole,
+} from "@/domain/group";
+import { UnknownError } from "@/domain/error";
 import { UserGroupIndexData } from "./group-repo";
-import { ok, ResultAsync } from "neverthrow";
+import { okAsync, errAsync, ResultAsync } from "neverthrow";
 import { DBError } from "@/domain/error";
 import { handleFirestoreError } from "../error";
 
@@ -85,5 +94,80 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
         ).map((snapshot) => {
             return snapshot.docs.map((doc) => doc.id);
         });
+    },
+
+    findMembersWithRoles: (
+        groupId: string,
+    ): ResultAsync<GroupMemberWithRole[], DBError> => {
+        const groupUsersRef = collection(db, "groups", groupId, "users");
+
+        return ResultAsync.fromPromise(
+            getDocs(groupUsersRef),
+            handleFirestoreError,
+        ).andThen((snapshot) => {
+            const members: GroupMemberWithRole[] = [];
+            for (const memberDoc of snapshot.docs) {
+                const role = memberDoc.data().role;
+                if (!isGroupRole(role)) {
+                    return errAsync(
+                        UnknownError(
+                            `Invalid role "${role}" for user ${memberDoc.id} in group ${groupId}`,
+                        ),
+                    );
+                }
+                members.push({ userId: memberDoc.id, role });
+            }
+            return okAsync(members);
+        });
+    },
+
+    removeMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = writeBatch(db);
+
+        const groupUserRef = doc(db, "groups", groupId, "users", userId);
+        const userGroupRef = doc(db, "users", userId, "groups", groupId);
+
+        batch.delete(groupUserRef);
+        batch.delete(userGroupRef);
+
+        return ResultAsync.fromPromise(
+            batch.commit(),
+            handleFirestoreError,
+        ).map(() => undefined);
+    },
+
+    updateMemberRole: (
+        groupId: string,
+        userId: string,
+        role: Exclude<GroupRole, "owner">,
+    ): ResultAsync<void, DBError> => {
+        const groupUserRef = doc(db, "groups", groupId, "users", userId);
+
+        return ResultAsync.fromPromise(
+            updateDoc(groupUserRef, { role }),
+            handleFirestoreError,
+        ).map(() => undefined);
+    },
+
+    transferOwnership: (
+        groupId: string,
+        fromUserId: string,
+        toUserId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = writeBatch(db);
+
+        const fromRef = doc(db, "groups", groupId, "users", fromUserId);
+        const toRef = doc(db, "groups", groupId, "users", toUserId);
+
+        batch.update(toRef, { role: "owner" });
+        batch.update(fromRef, { role: "admin" });
+
+        return ResultAsync.fromPromise(
+            batch.commit(),
+            handleFirestoreError,
+        ).map(() => undefined);
     },
 };
