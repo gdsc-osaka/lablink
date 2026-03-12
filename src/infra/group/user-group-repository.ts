@@ -16,9 +16,11 @@ import {
     Group,
     GroupMemberWithRole,
     GroupRole,
+    isGroupRole,
 } from "@/domain/group";
+import { UnknownError } from "@/domain/error";
 import { UserGroupIndexData } from "./group-repo";
-import { ok, ResultAsync } from "neverthrow";
+import { ok, okAsync, errAsync, ResultAsync } from "neverthrow";
 import { DBError } from "@/domain/error";
 import { handleFirestoreError } from "../error";
 
@@ -102,11 +104,20 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
         return ResultAsync.fromPromise(
             getDocs(groupUsersRef),
             handleFirestoreError,
-        ).map((snapshot) => {
-            return snapshot.docs.map((doc) => ({
-                userId: doc.id,
-                role: (doc.data().role ?? "member") as GroupRole,
-            }));
+        ).andThen((snapshot) => {
+            const members: GroupMemberWithRole[] = [];
+            for (const doc of snapshot.docs) {
+                const role = doc.data().role;
+                if (!isGroupRole(role)) {
+                    return errAsync(
+                        UnknownError(
+                            `Invalid role "${role}" for user ${doc.id} in group ${groupId}`,
+                        ),
+                    );
+                }
+                members.push({ userId: doc.id, role });
+            }
+            return okAsync(members);
         });
     },
 

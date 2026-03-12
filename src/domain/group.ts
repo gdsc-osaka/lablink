@@ -1,7 +1,11 @@
 import { DBError } from "./error";
 import { ResultAsync } from "neverthrow";
 
-type GroupRole = "owner" | "admin" | "member";
+const groupRoles = ["owner", "admin", "member"] as const;
+type GroupRole = (typeof groupRoles)[number];
+
+const isGroupRole = (value: unknown): value is GroupRole =>
+    groupRoles.includes(value as GroupRole);
 
 interface Group {
     id: string;
@@ -55,6 +59,7 @@ interface UserGroupRepository {
     ): ResultAsync<void, DBError>;
 }
 
+export { groupRoles, isGroupRole };
 export type {
     Group,
     GroupRole,
