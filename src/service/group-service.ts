@@ -281,9 +281,7 @@ export const createGroupService = ({
             )
             .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
             .andThen((members) => {
-                const requester = members.find(
-                    (m) => m.userId === requesterId,
-                );
+                const requester = members.find((m) => m.userId === requesterId);
                 if (!requester || requester.role !== "owner") {
                     return errAsync(
                         ServiceLogicError(
