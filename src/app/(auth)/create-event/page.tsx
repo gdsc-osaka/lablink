@@ -1,3 +1,4 @@
+import { requireAuth } from "@/lib/auth/server-auth";
 import CreateEventForm from "./CreateEventForm";
 
 // TODO: 実際のユーザー一覧取得に置き換える
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default async function CreateEventPage({ searchParams }: Props) {
+    await requireAuth();
     const { groupId } = await searchParams;
 
     if (!groupId) {

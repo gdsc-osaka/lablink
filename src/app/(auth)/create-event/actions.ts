@@ -4,7 +4,6 @@ import { requireAuth } from "@/lib/auth/server-auth";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { firestoreEventAdminRepository } from "@/infra/event/event-admin-repo";
 import type { NewEvent } from "@/domain/event";
-import type { ServiceError } from "@/domain/error";
 
 export async function createEventAction(
     groupId: string,

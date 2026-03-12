@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase/firestore";
 import { Event, EventDraft, EventTimeOfDay, NewEvent } from "@/domain/event";
 
 /**
@@ -16,9 +15,9 @@ export function convertEventToDraft(event: Event): EventDraft {
 /**
  * 開始時刻と終了時刻から所要時間を計算
  */
-function calculateDuration(beginAt: Timestamp, endAt: Timestamp): string {
-    const beginDate = beginAt.toDate();
-    const endDate = endAt.toDate();
+function calculateDuration(beginAt: Date, endAt: Date): string {
+    const beginDate = beginAt;
+    const endDate = endAt;
     const diffMs = endDate.getTime() - beginDate.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
@@ -38,8 +37,8 @@ function calculateDuration(beginAt: Timestamp, endAt: Timestamp): string {
 /**
  * 開始時刻から時間帯を判定
  */
-function determineTimeOfDay(beginAt: Timestamp): EventTimeOfDay[] {
-    const date = beginAt.toDate();
+function determineTimeOfDay(beginAt: Date): EventTimeOfDay[] {
+    const date = beginAt;
     const hour = date.getHours();
 
     if (hour >= 8 && hour < 12) {
@@ -81,8 +80,8 @@ export function convertDraftToEvent(draft: EventDraft): NewEvent {
     return {
         title: draft.title,
         description: draft.description,
-        begin_at: Timestamp.fromDate(tomorrow),
-        end_at: Timestamp.fromDate(endDate),
+        begin_at: tomorrow,
+        end_at: endDate,
     };
 }
 

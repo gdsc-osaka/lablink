@@ -20,8 +20,8 @@ export const firestoreEventAdminRepository = {
         const docData = {
             title: eventData.title,
             description: eventData.description,
-            begin_at: eventData.begin_at.toDate(),
-            end_at: eventData.end_at.toDate(),
+            begin_at: eventData.begin_at,
+            end_at: eventData.end_at,
             created_at: FieldValue.serverTimestamp(),
             updated_at: FieldValue.serverTimestamp(),
         };

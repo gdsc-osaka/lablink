@@ -72,12 +72,8 @@ export const firestoreEventRepository: EventRepository = {
             updated_at: serverTimestamp(),
         };
 
-        const eventsRef = collection(
-            db,
-            "groups",
-            groupId,
-            "events",
-        ).withConverter(eventConverter);
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventsRef = collection(db, "groups", groupId, "events");
 
         return ResultAsync.fromPromise(
             addDoc(eventsRef, event),
@@ -98,9 +94,8 @@ export const firestoreEventRepository: EventRepository = {
             updated_at: serverTimestamp(),
         };
 
-        const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
-            eventConverter,
-        );
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventRef = doc(db, "groups", groupId, "events", id);
 
         return ResultAsync.fromPromise(
             setDoc(eventRef, eventToSave),
@@ -125,9 +120,8 @@ export const firestoreEventRepository: EventRepository = {
             );
         }
 
-        const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
-            eventConverter,
-        );
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventRef = doc(db, "groups", groupId, "events", id);
 
         const updatePayload: WithFieldValue<Partial<Event>> = {
             ...updateData,
