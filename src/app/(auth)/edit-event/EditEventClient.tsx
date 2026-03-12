@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
+import { useForm, SubmitHandler } from "react-hook-form";
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -25,20 +26,27 @@ const EditEventPage = () => {
     const searchParams = useSearchParams();
     const eventId = searchParams.get("id");
 
-    // フォーム用のイベントデータを管理するstate
-    const [eventData, setEventData] = useState<EventDraft>({
-        title: "",
-        duration: "",
-        timeOfDayCandidate: [],
-        description: "",
-    });
-
     // 元のEventデータを管理するstate
     const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
 
-    // イベントデータを取得する関数
-    if (eventId) {
-        // サンプルデータ（実際のアプリではAPIから取得）
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<EventDraft>({
+        defaultValues: {
+            title: "",
+            duration: "",
+            timeOfDayCandidate: [],
+            description: "",
+        },
+    });
+
+    // イベントデータを取得してフォームにセットする
+    useEffect(() => {
+        if (!eventId) return;
+
         const sampleEvents: Event[] = [
             {
                 id: "101",
@@ -65,37 +73,13 @@ const EditEventPage = () => {
         const event = sampleEvents.find((e) => e.id === eventId);
         if (event) {
             setOriginalEvent(event);
-            // EventからEventDraftに変換（計算された値を使用）
             const draft = convertEventToDraft(event);
-            setEventData(draft);
+            reset(draft);
         }
-    }
+    }, [eventId, reset]);
 
-    // 入力値の変更をハンドルする関数
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        const { name, value } = e.target;
-        setEventData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
-
-    // チェックボックスの変更をハンドルする関数
-    const handleCheckboxChange = (value: EventTimeOfDay) => {
-        setEventData((prevData) => ({
-            ...prevData,
-            timeOfDayCandidate: prevData.timeOfDayCandidate.includes(value)
-                ? prevData.timeOfDayCandidate.filter((item) => item !== value)
-                : [...prevData.timeOfDayCandidate, value],
-        }));
-    };
-
-    // フォーム送信をハンドルする関数
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log("Event Updated:", eventData);
+    const onSubmit: SubmitHandler<EventDraft> = (data) => {
+        console.log("Event Updated:", data);
         // ここでAPIへの更新処理などを行う
     };
 
@@ -119,7 +103,10 @@ const EditEventPage = () => {
                     </h1>
                 </div>
                 {/* フォーム */}
-                <form onSubmit={handleSubmit} className="space-y-6 px-15 mt-9">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-6 px-15 mt-9"
+                >
                     <div>
                         <Label
                             htmlFor="title"
@@ -130,12 +117,17 @@ const EditEventPage = () => {
                         <Input
                             type="text"
                             id="title"
-                            name="title"
-                            value={eventData.title}
                             placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
-                            onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                            {...register("title", {
+                                required: "タイトルは必須です",
+                            })}
                         />
+                        {errors.title && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.title.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -148,12 +140,17 @@ const EditEventPage = () => {
                         <Input
                             type="text"
                             id="duration"
-                            name="duration"
-                            value={eventData.duration}
                             placeholder="イベントの所要時間 (例: 30分、2時間)"
-                            onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                            {...register("duration", {
+                                required: "所要時間は必須です",
+                            })}
                         />
+                        {errors.duration && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.duration.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -169,12 +166,11 @@ const EditEventPage = () => {
                                     <Input
                                         type="checkbox"
                                         id={item.value}
-                                        checked={eventData.timeOfDayCandidate.includes(
-                                            item.value,
-                                        )}
-                                        onChange={() =>
-                                            handleCheckboxChange(item.value)
-                                        }
+                                        value={item.value}
+                                        {...register("timeOfDayCandidate", {
+                                            required:
+                                                "時間帯を少なくとも1つ選択してください",
+                                        })}
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
                                     <Label
@@ -186,6 +182,11 @@ const EditEventPage = () => {
                                 </div>
                             ))}
                         </div>
+                        {errors.timeOfDayCandidate && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.timeOfDayCandidate.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -197,13 +198,18 @@ const EditEventPage = () => {
                         </Label>
                         <Textarea
                             id="details"
-                            name="description"
                             rows={4}
-                            value={eventData.description}
                             placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-                            onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                            {...register("description", {
+                                required: "イベントの詳細は必須です",
+                            })}
                         />
+                        {errors.description && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.description.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* ボタンエリア */}
@@ -216,14 +222,23 @@ const EditEventPage = () => {
                             イベントを削除
                         </Button>
 
-                        <Link href="/ai-suggest">
+                        <div className="flex items-center gap-3">
                             <Button
-                                type="button"
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                type="submit"
+                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                             >
-                                AIのsuggestへ
+                                保存
                             </Button>
-                        </Link>
+
+                            <Link href="/ai-suggest">
+                                <Button
+                                    type="button"
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                >
+                                    AIのsuggestへ
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
                 </form>
             </div>
