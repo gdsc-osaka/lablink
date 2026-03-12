@@ -13,6 +13,7 @@ import {
     toCalendarError,
 } from "./google-calendar-converter";
 import { getFirestoreAdmin } from "@/firebase/admin";
+import { decryptToken } from "@/lib/encryption";
 
 const initCalendar = (userId: string, refreshToken: string) => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -47,7 +48,21 @@ const getRefreshToken = async (userId: string): Promise<string | null> => {
         .get();
 
     if (snapshot.empty) return null;
-    return (snapshot.docs[0].data().refresh_token as string) || null;
+
+    const encryptedToken = snapshot.docs[0].data().refresh_token as string;
+    if (!encryptedToken) return null;
+
+    try {
+        // 暗号化フォーマット (iv:encrypted:authTag) に合致するか簡易チェック
+        if (encryptedToken.split(":").length === 3) {
+            return decryptToken(encryptedToken);
+        }
+        // 古い平文データ等との互換性（フォールバックが必要な場合）
+        return encryptedToken;
+    } catch (e) {
+        console.error("Failed to decrypt refresh token:", e);
+        return null;
+    }
 };
 
 export const googleCalendarRepository: CalendarRepository = {
@@ -56,9 +71,12 @@ export const googleCalendarRepository: CalendarRepository = {
      */
     fetchBusySlots: (userId, calendarIds, timeMin, timeMax) =>
         ResultAsync.fromPromise(getRefreshToken(userId), (error) =>
-            CalendarUnauthenticatedError("Failed to fetch refresh token from DB", {
-                extra: { userId, impl: String(error) },
-            }),
+            CalendarUnauthenticatedError(
+                "Failed to fetch refresh token from DB",
+                {
+                    extra: { userId, impl: String(error) },
+                },
+            ),
         )
             .andThen((token) =>
                 token
