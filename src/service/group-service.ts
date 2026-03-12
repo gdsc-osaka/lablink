@@ -281,9 +281,17 @@ export const createGroupService = ({
             .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
             .andThen((members) => {
                 const requester = members.find((m) => m.userId === requesterId);
-                if (!requester || requester.role === "member") {
+                if (!requester) {
                     return errAsync(
-                        ServiceLogicError("メンバーの退会権限がありません", {
+                        ServiceLogicError("グループに所属していません", {
+                            extra: { code: "FORBIDDEN" },
+                        }),
+                    );
+                }
+                const isSelf = requesterId === targetUserId;
+                if (!isSelf && requester.role === "member") {
+                    return errAsync(
+                        ServiceLogicError("他のメンバーを退会させる権限がありません", {
                             extra: { code: "FORBIDDEN" },
                         }),
                     );
