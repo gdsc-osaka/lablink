@@ -14,11 +14,7 @@ interface PageProps {
     searchParams: Promise<{ token?: string }>;
 }
 
-async function GroupInvitationScreenContent({
-    searchParams,
-}: {
-    searchParams: Promise<{ token?: string }>;
-}) {
+async function GroupInvitationScreenContent({ searchParams }: PageProps) {
     const { token } = await searchParams;
 
     await requireAuth({ token });

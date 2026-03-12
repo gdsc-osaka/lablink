@@ -32,7 +32,7 @@ export default function InviteCreateButton({
             } else {
                 onError(result.error);
             }
-        } catch (error) {
+        } catch {
             onError("予期せぬエラーが発生しました");
         } finally {
             setIsLoading(false);
