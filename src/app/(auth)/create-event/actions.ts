@@ -8,7 +8,9 @@ import type { NewEvent } from "@/domain/event";
 export async function createEventAction(
     groupId: string,
     eventData: NewEvent,
-): Promise<{ success: true; eventId: string } | { success: false; error: string }> {
+): Promise<
+    { success: true; eventId: string } | { success: false; error: string }
+> {
     const decodedClaims = await requireAuth();
     const userId = decodedClaims.uid;
 
@@ -17,7 +19,10 @@ export async function createEventAction(
             await userGroupAdminRepo.findUserIdsByGroupId(groupId);
 
         if (memberIdsResult.isErr()) {
-            return { success: false, error: "グループ情報の取得に失敗しました" };
+            return {
+                success: false,
+                error: "グループ情報の取得に失敗しました",
+            };
         }
 
         if (!memberIdsResult.value.includes(userId)) {
@@ -37,9 +42,11 @@ export async function createEventAction(
             (err) => ({ success: false, error: err.message }),
         );
     } catch (error) {
-        const message =
-            error instanceof Error ? error.message : String(error);
+        const message = error instanceof Error ? error.message : String(error);
         console.error("Failed to create event:", message);
-        return { success: false, error: "イベントの作成中にエラーが発生しました" };
+        return {
+            success: false,
+            error: "イベントの作成中にエラーが発生しました",
+        };
     }
 }

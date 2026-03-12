@@ -29,7 +29,8 @@ export default async function CreateEventPage({ searchParams }: Props) {
                     </div>
                     <div className="p-8">
                         <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                            エラー: グループIDが指定されていません。正しいURLからアクセスしてください。
+                            エラー:
+                            グループIDが指定されていません。正しいURLからアクセスしてください。
                         </div>
                     </div>
                 </div>
