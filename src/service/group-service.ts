@@ -45,7 +45,10 @@ export interface GroupService {
         userId: string,
     ) => ResultAsync<GroupWithMembers[], ServiceError>;
 
-    deleteGroup: (groupId: string) => ResultAsync<void, ServiceError>;
+    deleteGroup: (
+        groupId: string,
+        requesterId: string,
+    ) => ResultAsync<void, ServiceError>;
 
     removeMember: (
         groupId: string,
@@ -264,14 +267,35 @@ export const createGroupService = ({
         });
     },
 
-    deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(
-            groupId,
-            "グループID",
-            "MISSING_GROUP_ID",
-        ).andThen(() => {
-            return groupRepo.delete(groupId);
-        });
+    deleteGroup: (
+        groupId: string,
+        requesterId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(
+                    requesterId,
+                    "リクエスターID",
+                    "MISSING_USER_ID",
+                ),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
+            .andThen((members) => {
+                const requester = members.find(
+                    (m) => m.userId === requesterId,
+                );
+                if (!requester || requester.role !== "owner") {
+                    return errAsync(
+                        ServiceLogicError(
+                            "グループを削除できるのはオーナーのみです",
+                            {
+                                extra: { code: "FORBIDDEN" },
+                            },
+                        ),
+                    );
+                }
+                return groupRepo.delete(groupId);
+            });
     },
 
     removeMember: (
