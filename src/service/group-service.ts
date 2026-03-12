@@ -271,8 +271,14 @@ export const createGroupService = ({
         requesterId: string,
         targetUserId: string,
     ): ResultAsync<void, ServiceError> => {
-        return userGroupRepo
-            .findMembersWithRoles(groupId)
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(requesterId, "リクエスターID", "MISSING_USER_ID"),
+            )
+            .andThen(() =>
+                validateRequiredId(targetUserId, "対象ユーザーID", "MISSING_USER_ID"),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
             .andThen((members) => {
                 const requester = members.find((m) => m.userId === requesterId);
                 if (!requester || requester.role === "member") {
@@ -308,8 +314,14 @@ export const createGroupService = ({
         targetUserId: string,
         newRole: Exclude<GroupRole, "owner">,
     ): ResultAsync<void, ServiceError> => {
-        return userGroupRepo
-            .findMembersWithRoles(groupId)
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(requesterId, "リクエスターID", "MISSING_USER_ID"),
+            )
+            .andThen(() =>
+                validateRequiredId(targetUserId, "対象ユーザーID", "MISSING_USER_ID"),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
             .andThen((members) => {
                 const requester = members.find((m) => m.userId === requesterId);
                 // ロール変更は owner のみ
@@ -345,8 +357,14 @@ export const createGroupService = ({
         currentOwnerId: string,
         newOwnerId: string,
     ): ResultAsync<void, ServiceError> => {
-        return userGroupRepo
-            .findMembersWithRoles(groupId)
+        return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+            .andThen(() =>
+                validateRequiredId(currentOwnerId, "現ownerID", "MISSING_USER_ID"),
+            )
+            .andThen(() =>
+                validateRequiredId(newOwnerId, "移譲先ユーザーID", "MISSING_USER_ID"),
+            )
+            .andThen(() => userGroupRepo.findMembersWithRoles(groupId))
             .andThen((members) => {
                 const currentOwner = members.find(
                     (m) => m.userId === currentOwnerId,
