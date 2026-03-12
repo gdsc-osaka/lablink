@@ -50,3 +50,22 @@ export async function changeMemberRoleAction(
         (err) => ({ success: false, error: err.message }),
     );
 }
+
+export async function transferOwnershipAction(
+    groupId: string,
+    newOwnerId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+    const decodedClaims = await requireAuth();
+    const currentOwnerId = decodedClaims.uid;
+
+    const result = await groupService.transferOwnership(
+        groupId,
+        currentOwnerId,
+        newOwnerId,
+    );
+
+    return result.match(
+        () => ({ success: true as const }),
+        (err) => ({ success: false, error: err.message }),
+    );
+}

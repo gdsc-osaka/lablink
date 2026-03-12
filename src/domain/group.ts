@@ -55,7 +55,12 @@ interface UserGroupRepository {
     updateMemberRole(
         groupId: string,
         userId: string,
-        role: GroupRole,
+        role: Exclude<GroupRole, "owner">,
+    ): ResultAsync<void, DBError>;
+    transferOwnership(
+        groupId: string,
+        fromUserId: string,
+        toUserId: string,
     ): ResultAsync<void, DBError>;
 }
 

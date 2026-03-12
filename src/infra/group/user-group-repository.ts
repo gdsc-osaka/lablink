@@ -142,12 +142,31 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
     updateMemberRole: (
         groupId: string,
         userId: string,
-        role: GroupRole,
+        role: Exclude<GroupRole, "owner">,
     ): ResultAsync<void, DBError> => {
         const groupUserRef = doc(db, "groups", groupId, "users", userId);
 
         return ResultAsync.fromPromise(
             updateDoc(groupUserRef, { role }),
+            handleFirestoreError,
+        ).map(() => undefined);
+    },
+
+    transferOwnership: (
+        groupId: string,
+        fromUserId: string,
+        toUserId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = writeBatch(db);
+
+        const fromRef = doc(db, "groups", groupId, "users", fromUserId);
+        const toRef = doc(db, "groups", groupId, "users", toUserId);
+
+        batch.update(toRef, { role: "owner" });
+        batch.update(fromRef, { role: "admin" });
+
+        return ResultAsync.fromPromise(
+            batch.commit(),
             handleFirestoreError,
         ).map(() => undefined);
     },

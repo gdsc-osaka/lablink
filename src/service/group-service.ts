@@ -57,7 +57,13 @@ export interface GroupService {
         groupId: string,
         requesterId: string,
         targetUserId: string,
-        newRole: GroupRole,
+        newRole: Exclude<GroupRole, "owner">,
+    ) => ResultAsync<void, ServiceError>;
+
+    transferOwnership: (
+        groupId: string,
+        currentOwnerId: string,
+        newOwnerId: string,
     ) => ResultAsync<void, ServiceError>;
 }
 
@@ -300,7 +306,7 @@ export const createGroupService = ({
         groupId: string,
         requesterId: string,
         targetUserId: string,
-        newRole: GroupRole,
+        newRole: Exclude<GroupRole, "owner">,
     ): ResultAsync<void, ServiceError> => {
         return userGroupRepo
             .findMembersWithRoles(groupId)
@@ -322,15 +328,49 @@ export const createGroupService = ({
                         }),
                     );
                 }
-                // owner ロールへの変更は禁止（owner 移譲は別途設計が必要）
-                if (newRole === "owner") {
+                // owner のロールは変更不可（owner が不在になることを防ぐ）
+                if (target.role === "owner") {
                     return errAsync(
-                        ServiceLogicError("ownerロールへの変更はできません", {
+                        ServiceLogicError("ownerのロールは変更できません", {
                             extra: { code: "FORBIDDEN" },
                         }),
                     );
                 }
                 return userGroupRepo.updateMemberRole(groupId, targetUserId, newRole);
+            });
+    },
+
+    transferOwnership: (
+        groupId: string,
+        currentOwnerId: string,
+        newOwnerId: string,
+    ): ResultAsync<void, ServiceError> => {
+        return userGroupRepo
+            .findMembersWithRoles(groupId)
+            .andThen((members) => {
+                const currentOwner = members.find(
+                    (m) => m.userId === currentOwnerId,
+                );
+                if (!currentOwner || currentOwner.role !== "owner") {
+                    return errAsync(
+                        ServiceLogicError("owner権限がありません", {
+                            extra: { code: "FORBIDDEN" },
+                        }),
+                    );
+                }
+                const newOwner = members.find((m) => m.userId === newOwnerId);
+                if (!newOwner) {
+                    return errAsync(
+                        ServiceLogicError("移譲先のユーザーがグループに存在しません", {
+                            extra: { code: "NOT_FOUND" },
+                        }),
+                    );
+                }
+                return userGroupRepo.transferOwnership(
+                    groupId,
+                    currentOwnerId,
+                    newOwnerId,
+                );
             });
     },
 });

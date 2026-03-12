@@ -143,7 +143,7 @@ export const userGroupAdminRepo: UserGroupRepository = {
     updateMemberRole: (
         groupId: string,
         userId: string,
-        role: GroupRole,
+        role: Exclude<GroupRole, "owner">,
     ): ResultAsync<void, DBError> => {
         const groupUserRef = db
             .collection("groups")
@@ -155,5 +155,32 @@ export const userGroupAdminRepo: UserGroupRepository = {
             groupUserRef.update({ role }),
             handleAdminError,
         ).map(() => undefined);
+    },
+
+    transferOwnership: (
+        groupId: string,
+        fromUserId: string,
+        toUserId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = db.batch();
+
+        const fromRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(fromUserId);
+
+        const toRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("users")
+            .doc(toUserId);
+
+        batch.update(toRef, { role: "owner" });
+        batch.update(fromRef, { role: "admin" });
+
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
     },
 };
