@@ -1,4 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import authConfig from "./src/auth.config";
+import { NextResponse } from "next/server";
+
+export const { auth: middleware } = NextAuth(authConfig);
 
 // 認証が必要なルート
 const protectedRoutes = [
@@ -12,29 +16,26 @@ const protectedRoutes = [
     "/invited",
 ];
 
-// 公開ルート
-const publicRoutes = ["/", "/login"];
+export default middleware((req) => {
+    const { pathname } = req.nextUrl;
+    const session = req.auth;
 
-// 楽観的チェックのみ行う
-export function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl;
-    const sessionCookie = request.cookies.get("session");
-
-    // 保護されたルート + セッションクッキーなし → /login へリダイレクト
+    // 保護されたルート + セッションなし → /login へリダイレクト
     const isProtectedRoute = protectedRoutes.some((route) =>
         pathname.startsWith(route),
     );
-    if (isProtectedRoute && !sessionCookie) {
-        return NextResponse.redirect(new URL("/login", request.url));
+
+    if (isProtectedRoute && !session) {
+        return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    // ログインページ + セッションクッキーあり → /group へリダイレクト
-    if (pathname === "/login" && sessionCookie) {
-        return NextResponse.redirect(new URL("/group", request.url));
+    // ログインページ + セッションあり → /group へリダイレクト
+    if (pathname === "/login" && session) {
+        return NextResponse.redirect(new URL("/group", req.url));
     }
 
     return NextResponse.next();
-}
+});
 
 export const config = {
     matcher: [

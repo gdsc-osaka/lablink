@@ -12,9 +12,9 @@ import {
     GoogleCalendarErrorResponse,
     toCalendarError,
 } from "./google-calendar-converter";
-import { decryptToken, Token } from "@/domain/token";
+import { getFirestoreAdmin } from "@/firebase/admin";
 
-const initCalendar = (userId: string, token: Token) => {
+const initCalendar = (userId: string, refreshToken: string) => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -33,18 +33,43 @@ const initCalendar = (userId: string, token: Token) => {
     }
 
     const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
-    oauth2Client.setCredentials({ refresh_token: token.token });
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
     return ok(google.calendar({ version: "v3", auth: oauth2Client }));
+};
+
+const getRefreshToken = async (userId: string): Promise<string | null> => {
+    const db = getFirestoreAdmin();
+    const snapshot = await db
+        .collection("accounts")
+        .where("userId", "==", userId)
+        .where("provider", "==", "google")
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) return null;
+    return (snapshot.docs[0].data().refresh_token as string) || null;
 };
 
 export const googleCalendarRepository: CalendarRepository = {
     /**
      * Calendar API を利用してユーザーの空き時間を取得する
      */
-    fetchBusySlots: (userId, calendarIds, timeMin, timeMax, tokenRepository) =>
-        tokenRepository
-            .get(userId, "google")
-            .andThen(decryptToken)
+    fetchBusySlots: (userId, calendarIds, timeMin, timeMax) =>
+        ResultAsync.fromPromise(getRefreshToken(userId), (error) =>
+            CalendarUnauthenticatedError("Failed to fetch refresh token from DB", {
+                extra: { userId, impl: String(error) },
+            }),
+        )
+            .andThen((token) =>
+                token
+                    ? ok(token)
+                    : err(
+                          CalendarUnauthenticatedError(
+                              "No refresh token found for user",
+                              { extra: { userId, impl: "getRefreshToken" } },
+                          ),
+                      ),
+            )
             .andThen((token) => initCalendar(userId, token))
             .andThen((calendar) =>
                 ResultAsync.fromPromise(

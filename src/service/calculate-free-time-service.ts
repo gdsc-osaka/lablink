@@ -6,7 +6,6 @@ import {
     CalendarRepository,
     TimeRange,
 } from "@/domain/calendar";
-import { TokenRepository } from "@/domain/token";
 import { createCalendarService } from "./calendar-service";
 import {
     calculateTimeRangeScores,
@@ -31,12 +30,8 @@ export interface CalculateFreeTimeService {
 
 export const createCalculateFreeTimeService = (
     calendarRepository: CalendarRepository,
-    tokenRepository: TokenRepository,
 ): CalculateFreeTimeService => {
-    const calendarService = createCalendarService(
-        calendarRepository,
-        tokenRepository,
-    );
+    const calendarService = createCalendarService(calendarRepository);
 
     return {
         calculateFreeTime: (scheduleRange, eventDurationMinutes, members) =>

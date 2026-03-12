@@ -4,24 +4,24 @@ import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { generateAuthUrl } from "./actions";
+import { loginWithGoogle } from "./actions";
+import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LoginPage() {
     const searchParams = useSearchParams();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSignIn = async () => {
-        const state = crypto.randomUUID();
-        sessionStorage.setItem("oauth_state", state);
-
+        setIsLoading(true);
         const redirectTo = searchParams.get("redirectTo");
-        if (redirectTo) {
-            sessionStorage.setItem("oauth_redirect_to", redirectTo);
-        } else {
-            sessionStorage.removeItem("oauth_redirect_to");
+        try {
+            await loginWithGoogle(redirectTo);
+        } catch (e) {
+            // Next.js redirect throws an error, so we shouldn't unset isLoading here if it's redirecting
+            console.error("Login Error", e);
+            setIsLoading(false);
         }
-
-        const authUrl = await generateAuthUrl(state);
-        window.location.href = authUrl;
     };
 
     return (
@@ -39,8 +39,12 @@ export default function LoginPage() {
                     </Label>
                     <Button
                         onClick={handleSignIn}
+                        disabled={isLoading}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out flex items-center justify-center w-full"
                     >
+                        {isLoading ? (
+                            <Spinner className="mr-2 h-4 w-4 text-white" />
+                        ) : null}
                         Googleでログイン
                     </Button>
                 </div>

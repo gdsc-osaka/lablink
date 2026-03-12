@@ -1,7 +1,6 @@
 "use server";
 
 import { googleCalendarRepository } from "@/infra/calendar/google-calendar-repo";
-import { googleTokenRepository } from "@/infra/token/google-token-repo";
 import {
     createScheduleSuggestionService,
     ScheduleSuggestion,
@@ -18,8 +17,6 @@ export type Result<T, E> =
 
 const calendarRepository = googleCalendarRepository;
 
-const tokenRepository = googleTokenRepository;
-
 /**
  * メンバーの共通の空き時間を計算する
  *
@@ -35,10 +32,7 @@ export async function calculateFreeTime(
 ): Promise<Result<TimeRangeScore[], string>> {
     await requireAuth();
 
-    const calculateService = createCalculateFreeTimeService(
-        calendarRepository,
-        tokenRepository,
-    );
+    const calculateService = createCalculateFreeTimeService(calendarRepository);
 
     const calcResult = await calculateService.calculateFreeTime(
         scheduleRange,

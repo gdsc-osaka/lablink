@@ -1,6 +1,5 @@
 import { busyToFreeSlots, TimeRange, UserTimeRanges } from "@/domain/calendar";
 import { CalendarError, CalendarRepository } from "@/domain/calendar";
-import { TokenRepository } from "@/domain/token";
 import { ResultAsync } from "neverthrow";
 
 export interface CalendarService {
@@ -20,17 +19,10 @@ export interface CalendarService {
 
 export const createCalendarService = (
     calendarRepository: CalendarRepository,
-    tokenRepository: TokenRepository,
 ): CalendarService => ({
     fetchFreeSlots: (userId, calendarIds, timeMin, timeMax) =>
         calendarRepository
-            .fetchBusySlots(
-                userId,
-                calendarIds,
-                timeMin,
-                timeMax,
-                tokenRepository,
-            )
+            .fetchBusySlots(userId, calendarIds, timeMin, timeMax)
             .map((busySlots) => ({
                 userId: busySlots.userId,
                 timeRanges: busyToFreeSlots(
@@ -47,7 +39,6 @@ export const createCalendarService = (
                 user.calendarIds,
                 timeMin,
                 timeMax,
-                tokenRepository,
             ),
         );
 

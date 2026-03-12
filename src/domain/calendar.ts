@@ -1,6 +1,5 @@
 import { ResultAsync } from "neverthrow";
 import { compareAsc, isAfter, isBefore, max } from "date-fns";
-import { TokenError, TokenRepository } from "./token";
 import { errorBuilder, InferError } from "obj-err";
 import * as z from "zod";
 
@@ -73,7 +72,6 @@ export type CalendarError =
     | CalendarPermissionDeniedError
     | CalendarUnauthenticatedError
     | CalendarTooManyRequestsError
-    | TokenError
     | CalendarUnknownError;
 
 /**
@@ -144,6 +142,5 @@ export interface CalendarRepository {
         calendarIds: string[],
         timeMin: Date,
         timeMax: Date,
-        tokenRepository: TokenRepository,
     ): ResultAsync<UserTimeRanges, CalendarError>;
 }
