@@ -5,12 +5,9 @@ import {
     ExternalServiceType,
     TokenError,
     TokenRepository,
+    Token,
 } from "@/domain/token";
-import { Result, ResultAsync } from "neverthrow";
-
-export interface Token extends Omit<EncryptedToken, "encryptedToken"> {
-    token: string;
-}
+import { ResultAsync } from "neverthrow";
 
 export interface TokenService {
     saveToken: (
