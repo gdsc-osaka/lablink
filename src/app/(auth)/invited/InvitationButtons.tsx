@@ -29,7 +29,7 @@ export const InvitationButtons: React.FC<InvitationButtonsProps> = ({
                 setError(response.error || "参加に失敗しました");
                 setIsAccepting(false);
             }
-        } catch (error) {
+        } catch {
             setError("予期しないエラーが発生しました");
             setIsAccepting(false);
         }

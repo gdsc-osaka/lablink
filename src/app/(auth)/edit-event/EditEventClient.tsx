@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
@@ -10,6 +10,35 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
+
+const sampleEvents: Event[] = [
+    {
+        id: "101",
+        title: "交流会",
+        description:
+            "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
+        begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
+        end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
+        created_at: new Date(),
+        updated_at: new Date(),
+    },
+    {
+        id: "102",
+        title: "ミーティング",
+        description: "外部進学した留学生のためにたこ焼きパーティーをする",
+        begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
+        end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
+        created_at: new Date(),
+        updated_at: new Date(),
+    },
+];
+
+const emptyDraft: EventDraft = {
+    title: "",
+    duration: "",
+    timeOfDayCandidate: [],
+    description: "",
+};
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -25,50 +54,23 @@ const EditEventPage = () => {
     const searchParams = useSearchParams();
     const eventId = searchParams.get("id");
 
+    const originalEvent = useMemo(
+        () => sampleEvents.find((e) => e.id === eventId) ?? null,
+        [eventId],
+    );
+
     // フォーム用のイベントデータを管理するstate
-    const [eventData, setEventData] = useState<EventDraft>({
-        title: "",
-        duration: "",
-        timeOfDayCandidate: [],
-        description: "",
-    });
+    const [eventData, setEventData] = useState<EventDraft>(() =>
+        originalEvent ? convertEventToDraft(originalEvent) : emptyDraft,
+    );
 
-    // 元のEventデータを管理するstate
-    const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
-
-    // イベントデータを取得する関数
-    if (eventId) {
-        // サンプルデータ（実際のアプリではAPIから取得）
-        const sampleEvents: Event[] = [
-            {
-                id: "101",
-                title: "交流会",
-                description:
-                    "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
-                begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
-                end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
-                created_at: new Date(),
-                updated_at: new Date(),
-            },
-            {
-                id: "102",
-                title: "ミーティング",
-                description:
-                    "外部進学した留学生のためにたこ焼きパーティーをする",
-                begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
-                end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
-                created_at: new Date(),
-                updated_at: new Date(),
-            },
-        ];
-
-        const event = sampleEvents.find((e) => e.id === eventId);
-        if (event) {
-            setOriginalEvent(event);
-            // EventからEventDraftに変換（計算された値を使用）
-            const draft = convertEventToDraft(event);
-            setEventData(draft);
-        }
+    // eventId が変わったときにフォームをリセットする
+    const [syncedEventId, setSyncedEventId] = useState(eventId);
+    if (syncedEventId !== eventId) {
+        setSyncedEventId(eventId);
+        setEventData(
+            originalEvent ? convertEventToDraft(originalEvent) : emptyDraft,
+        );
     }
 
     // 入力値の変更をハンドルする関数
