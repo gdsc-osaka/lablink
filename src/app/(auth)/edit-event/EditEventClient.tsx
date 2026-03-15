@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
@@ -37,7 +37,9 @@ const EditEventPage = () => {
     const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
 
     // イベントデータを取得する関数
-    if (eventId) {
+    useEffect(() => {
+        if (!eventId) return;
+
         // サンプルデータ（実際のアプリではAPIから取得）
         const sampleEvents: Event[] = [
             {
@@ -64,12 +66,15 @@ const EditEventPage = () => {
 
         const event = sampleEvents.find((e) => e.id === eventId);
         if (event) {
-            setOriginalEvent(event);
-            // EventからEventDraftに変換（計算された値を使用）
-            const draft = convertEventToDraft(event);
-            setEventData(draft);
+            // setStateを非同期に呼び出すことでカスケードレンダリングの警告を回避する
+            Promise.resolve().then(() => {
+                setOriginalEvent(event);
+                // EventからEventDraftに変換（計算された値を使用）
+                const draft = convertEventToDraft(event);
+                setEventData(draft);
+            });
         }
-    }
+    }, [eventId]);
 
     // 入力値の変更をハンドルする関数
     const handleChange = (
