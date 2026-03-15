@@ -5,6 +5,12 @@ import { cookies } from "next/headers";
 import { createGoogleOAuthRepo } from "@/infra/oauth/google-oauth-repo";
 import { createOAuthService } from "@/service/oauth-service";
 import { getBaseUrl } from "@/lib/server-url";
+import { getAuthAdmin } from "@/firebase/admin";
+import { createTokenService } from "@/service/token-service";
+import { googleTokenRepository } from "@/infra/token/google-token-repo";
+
+const authAdmin = getAuthAdmin();
+const tokenService = createTokenService(googleTokenRepository);
 
 /**
  * Google OAuthのauthorization codeをaccess token/refresh tokenに交換
@@ -12,11 +18,11 @@ import { getBaseUrl } from "@/lib/server-url";
  */
 export async function POST(request: NextRequest) {
     try {
-        const { code, state } = await request.json();
+        const { code, state, idToken } = await request.json();
 
-        if (!code || !state) {
+        if (!code || !state || !idToken) {
             return NextResponse.json(
-                { error: "Authorization code and state are required" },
+                { error: "Authorization code, state, and ID token are required" },
                 { status: 400 },
             );
         }
@@ -35,6 +41,20 @@ export async function POST(request: NextRequest) {
         // 一度検証に成功したら、リプレイできないようにCookieのstateを削除
         // 以降のいかなるレスポンス（エラー時含む）でもCookieが削除されるようにここで設定
         cookieStore.delete("oauth_state");
+
+        // Firebase Auth IDトークンを検証してユーザーの UID を取得する
+        let decodedToken;
+        try {
+            decodedToken = await authAdmin.verifyIdToken(idToken);
+        } catch (verifyError) {
+            console.error("Failed to verify Firebase ID token:", verifyError);
+            return NextResponse.json(
+                { error: "Invalid Firebase ID token" },
+                { status: 401 },
+            );
+        }
+
+        const userId = decodedToken.uid;
 
         // 環境変数のバリデーション
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -69,28 +89,31 @@ export async function POST(request: NextRequest) {
 
         const tokens = tokenResult.value;
 
-        // リフレッシュトークンが存在する場合はサーバー側の一時Cookieに保存する
-        // FirestoreへのDB保存は、フロントエンド側でFirebase Authログイン完了後に専用エンドポイントを呼んで行うように遅延させる
-
-        const response = NextResponse.json({
-            access_token: tokens.accessToken,
-            id_token: tokens.idToken, // Firebaseにログインするためフロントに返す必要がある
-            expires_in: tokens.expiresIn,
-        });
-
+        // リフレッシュトークンが存在する場合はサーバー側（Firestore）で保存する
         if (tokens.refreshToken) {
-            response.cookies.set({
-                name: "temp_google_refresh_token",
-                value: tokens.refreshToken,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                path: "/",
-                maxAge: 60 * 10, // 10 minutes
+            const tokenSaveResult = await tokenService.saveToken({
+                userId,
+                token: tokens.refreshToken,
+                serviceType: "google",
+                expiresAt: null,
             });
+
+            if (tokenSaveResult.isErr()) {
+                console.error(
+                    "Failed to save refresh token:",
+                    tokenSaveResult.error,
+                );
+                return NextResponse.json(
+                    { error: "Failed to persist refresh token" },
+                    { status: 500 },
+                );
+            }
         }
 
-        return response;
+        return NextResponse.json({
+            access_token: tokens.accessToken,
+            expires_in: tokens.expiresIn,
+        });
     } catch (error) {
         console.error("Token exchange endpoint error:", error);
         return NextResponse.json(

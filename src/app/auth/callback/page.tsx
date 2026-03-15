@@ -2,22 +2,14 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import { onAuthStateChanged, getIdToken } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { Spinner } from "@/components/ui/spinner";
-import { userRepo } from "@/infra/user/user-repo";
-import { createNewUser } from "@/domain/user";
 import { isSafeRedirectUrl } from "@/lib/url";
 
 /**
  * Google OAuth 認証後のコールバックページ
- *
- * @example
- * ```
- * sessionStorage.setItem("oauth_redirect_to", redirectTo);
- * const authUrl = await generateAuthUrl(state);
- * window.location.href = authUrl;
- * ```
+ * Google Calendarの権限取得などのフローで使用
  */
 export default function AuthCallbackPage() {
     const router = useRouter();
@@ -59,7 +51,23 @@ export default function AuthCallbackPage() {
             exchangeAttempted.current = true;
 
             try {
-                setStatus("トークンを取得中...");
+                setStatus("ユーザー認証を確認中...");
+
+                // Firebaseの認証状態を待機
+                const user = await new Promise((resolve) => {
+                    const unsubscribe = onAuthStateChanged(auth, (u) => {
+                        unsubscribe();
+                        resolve(u);
+                    });
+                });
+
+                if (!user) {
+                    throw new Error("User is not authenticated with Firebase");
+                }
+
+                setStatus("トークンを取得・保存中...");
+
+                const idToken = await getIdToken(auth.currentUser!);
 
                 // 1. API Route経由でトークン交換と永続化（サーバー完結）
                 const tokenResponse = await fetch("/api/auth/exchange-token", {
@@ -67,7 +75,7 @@ export default function AuthCallbackPage() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ code, state }),
+                    body: JSON.stringify({ code, state, idToken }),
                 });
 
                 if (!tokenResponse.ok) {
@@ -76,60 +84,9 @@ export default function AuthCallbackPage() {
                     throw new Error("Failed to exchange authorization code");
                 }
 
-                const tokens = await tokenResponse.json();
-                const { access_token, id_token } = tokens;
+                setStatus("連携成功！リダイレクト中...");
 
-                if (!id_token) {
-                    throw new Error(
-                        "ID token not received from OAuth provider",
-                    );
-                }
-
-                setStatus("Firebase にログイン中...");
-
-                // 2. Firebase Auth にログイン（ID Token を使用）
-                const credential = GoogleAuthProvider.credential(
-                    id_token,
-                    access_token,
-                );
-                const userCredential = await signInWithCredential(
-                    auth,
-                    credential,
-                );
-                const user = userCredential.user;
-
-                setStatus("セッションを同期中...");
-
-                // 2.5 リフレッシュトークンの永続化（Cookie -> DB）
-                const syncResponse = await fetch(
-                    "/api/auth/sync-google-token",
-                    {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Bearer ${await user.getIdToken()}`,
-                        },
-                    },
-                );
-
-                if (!syncResponse.ok) {
-                    console.warn(
-                        "Failed to sync refresh token, but ignoring to continue login flow",
-                    );
-                }
-
-                // 3. ユーザー基本情報を保存（初回のみ）
-                const existingUserResult = await userRepo.findById(user.uid);
-                if (existingUserResult.isErr()) {
-                    const newUserResult = createNewUser(user);
-                    if (newUserResult.isOk()) {
-                        await userRepo.create(newUserResult.value);
-                    }
-                }
-
-                setStatus("ログイン成功！リダイレクト中...");
-
-                // 4. ホームページまたは指定されたリダイレクト先に遷移
-                // isMounted に関わらずリダイレクトは必ず実行する
+                // ホームページまたは指定されたリダイレクト先に遷移
                 setTimeout(() => {
                     const redirectTo =
                         sessionStorage.getItem("oauth_redirect_to");
