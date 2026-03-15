@@ -22,38 +22,7 @@ const tokenCollection = (userId: string) =>
         .withConverter(tokenConverter);
 
 export const googleTokenRepository: TokenRepository = {
-    upsert: (token) =>
-        ResultAsync.fromPromise(
-            tokenCollection(token.userId).doc(token.serviceType).set({
-                userId: token.userId,
-                encryptedToken: token.encryptedToken,
-                serviceType: token.serviceType,
-                createdAt: new Date(),
-                updatedAt: FieldValue.serverTimestamp(),
-                expiresAt: token.expiresAt,
-            }),
-            (error) => {
-                const _error = error as FirebaseFirestoreError;
-                return TokenUnknownError(_error.message, {
-                    extra: {
-                        impl: GOOGLE_TOKEN_IMPL,
-                        userId: token.userId,
-                        serviceType: token.serviceType,
-                    },
-                });
-            },
-        ).map((writeResult) => {
-            return {
-                userId: token.userId,
-                encryptedToken: token.encryptedToken,
-                serviceType: token.serviceType,
-                createdAt: writeResult.writeTime.toDate(),
-                updatedAt: writeResult.writeTime.toDate(),
-                expiresAt: token.expiresAt,
-            };
-        }),
-
-    update: (token) =>
+    set: (token) =>
         ResultAsync.fromPromise(
             tokenCollection(token.userId).doc(token.serviceType).set({
                 userId: token.userId,

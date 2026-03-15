@@ -129,10 +129,7 @@ export const encryptToken = (
 };
 
 export interface TokenRepository {
-    upsert(
-        token: Omit<EncryptedToken, "createdAt" | "updatedAt">,
-    ): ResultAsync<EncryptedToken, TokenError>;
-    update(
+    set(
         token: Omit<EncryptedToken, "updatedAt">,
     ): ResultAsync<EncryptedToken, TokenError>;
     get(
