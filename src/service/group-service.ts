@@ -61,7 +61,7 @@ const validateRequiredId = (
 ): ResultAsync<void, ServiceError> => {
     if (!value || value.trim() === "") {
         return errAsync(
-            ServiceLogicError("${fieldName}は必須です。", {
+            ServiceLogicError(`${fieldName}は必須です。`, {
                 extra: { code: errorCode },
             }),
         );
@@ -245,7 +245,11 @@ export const createGroupService = ({
     },
 
     deleteGroup: (groupId: string): ResultAsync<void, ServiceError> => {
-        return validateRequiredId(groupId, "グループID", "{}").andThen(() => {
+        return validateRequiredId(
+            groupId,
+            "グループID",
+            "MISSING_GROUP_ID",
+        ).andThen(() => {
             return groupRepo.delete(groupId);
         });
     },

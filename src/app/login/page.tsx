@@ -11,6 +11,7 @@ import { auth } from "@/firebase/client";
 import { getIdToken } from "firebase/auth";
 import { createAuthSession } from "@/lib/auth/server-auth";
 import { isSafeRedirectUrl } from "@/lib/url";
+import { toast } from "sonner";
 
 const authService = createAuthService(userRepo, authRepo);
 
@@ -19,7 +20,10 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
 
     const handleSignIn = async () => {
-        const result = await authService.signInWithGoogle();
+        const state = crypto.randomUUID();
+        sessionStorage.setItem("oauth_state", state);
+
+        const result = await authService.signInWithGoogle(state);
 
         result.match(
             async () => {
@@ -41,7 +45,7 @@ export default function LoginPage() {
             },
             (error) => {
                 console.error("Google認証に失敗しました:", error.message);
-                alert("ログインに失敗しました。再度お試しください。");
+                toast.error("ログインに失敗しました。再度お試しください。");
             },
         );
     };
