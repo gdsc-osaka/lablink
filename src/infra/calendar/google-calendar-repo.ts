@@ -26,7 +26,6 @@ const initCalendar = (userId: string, token: Token) => {
                     extra: {
                         userId,
                         impl: "google-calendar",
-                        configIssue: "Google OAuth credentials are missing",
                     },
                 },
             ),
