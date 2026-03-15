@@ -91,25 +91,32 @@ export async function POST(request: NextRequest) {
 
         const tokens = tokenResult.value;
 
-        // リフレッシュトークンが存在する場合はサーバー側（Firestore）で保存する
-        if (tokens.refreshToken) {
-            const tokenSaveResult = await tokenService.saveToken({
-                userId,
-                token: tokens.refreshToken,
-                serviceType: "google",
-                expiresAt: null,
-            });
+        // Googleからリフレッシュトークンが返却されなかった場合はエラーとする
+        if (!tokens.refreshToken) {
+            console.error("No refresh token returned from Google OAuth");
+            return NextResponse.json(
+                { error: "Missing refresh token from provider" },
+                { status: 500 },
+            );
+        }
 
-            if (tokenSaveResult.isErr()) {
-                console.error(
-                    "Failed to save refresh token:",
-                    tokenSaveResult.error,
-                );
-                return NextResponse.json(
-                    { error: "Failed to persist refresh token" },
-                    { status: 500 },
-                );
-            }
+        // リフレッシュトークンが存在する場合はサーバー側（Firestore）で保存する
+        const tokenSaveResult = await tokenService.saveToken({
+            userId,
+            token: tokens.refreshToken,
+            serviceType: "google",
+            expiresAt: null,
+        });
+
+        if (tokenSaveResult.isErr()) {
+            console.error(
+                "Failed to save refresh token:",
+                tokenSaveResult.error,
+            );
+            return NextResponse.json(
+                { error: "Failed to persist refresh token" },
+                { status: 500 },
+            );
         }
 
         // アクセストークンはサーバー側でのみ使用し、クライアントには返さない
