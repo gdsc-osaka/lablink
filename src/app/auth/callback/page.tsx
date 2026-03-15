@@ -30,12 +30,12 @@ export default function AuthCallbackPage() {
             // エラーハンドリング
             if (error) {
                 console.error("OAuth error:", error);
-                router.push(`/signin?error=${encodeURIComponent(error)}`);
+                router.push(`/login?error=${encodeURIComponent(error)}`);
                 return;
             }
 
             if (!code) {
-                router.push("/signin?error=no_code");
+                router.push("/login?error=no_code");
                 return;
             }
 
@@ -44,7 +44,7 @@ export default function AuthCallbackPage() {
             if (!state || !savedState || state !== savedState) {
                 console.error("OAuth state mismatch or missing");
                 sessionStorage.removeItem("oauth_state");
-                router.push("/signin?error=invalid_state");
+                router.push("/login?error=invalid_state");
                 return;
             }
 
@@ -105,7 +105,7 @@ export default function AuthCallbackPage() {
                 );
                 sessionStorage.removeItem("oauth_state");
                 setTimeout(() => {
-                    router.push("/signin?error=authentication_failed");
+                    router.push("/login?error=authentication_failed");
                 }, 2000);
             }
         };
