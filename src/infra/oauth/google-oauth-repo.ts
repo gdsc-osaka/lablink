@@ -30,7 +30,7 @@ export const createGoogleOAuthRepo = (
                 );
                 const { tokens } = await oauth2Client.getToken(code);
 
-                if (!tokens.access_token || !tokens.id_token) {
+                if (!tokens.access_token) {
                     throw new Error(
                         "必要なトークン情報がレスポンスに含まれていません",
                     );
@@ -43,7 +43,7 @@ export const createGoogleOAuthRepo = (
 
                 return {
                     accessToken: tokens.access_token,
-                    idToken: tokens.id_token,
+                    idToken: tokens.id_token ?? undefined,
                     expiresIn,
                     refreshToken: tokens.refresh_token ?? undefined,
                 };
