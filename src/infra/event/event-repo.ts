@@ -4,6 +4,7 @@ import {
     getDocs,
     getDoc,
     addDoc,
+    setDoc,
     updateDoc,
     deleteDoc,
     query,
@@ -71,12 +72,8 @@ export const firestoreEventRepository: EventRepository = {
             updated_at: serverTimestamp(),
         };
 
-        const eventsRef = collection(
-            db,
-            "groups",
-            groupId,
-            "events",
-        ).withConverter(eventConverter);
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventsRef = collection(db, "groups", groupId, "events");
 
         return ResultAsync.fromPromise(
             addDoc(eventsRef, event),
@@ -84,6 +81,27 @@ export const firestoreEventRepository: EventRepository = {
         ).map((docRef) => ({
             ...eventData,
             id: docRef.id,
+            created_at: new Date(),
+            updated_at: new Date(),
+        }));
+    },
+
+    save: (groupId: string, event: Event): ResultAsync<Event, DBError> => {
+        const { id, ...eventData } = event;
+        const eventToSave: WithFieldValue<NewEvent> = {
+            ...eventData,
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp(),
+        };
+
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventRef = doc(db, "groups", groupId, "events", id);
+
+        return ResultAsync.fromPromise(
+            setDoc(eventRef, eventToSave),
+            handleFirestoreError,
+        ).map(() => ({
+            ...event,
             created_at: new Date(),
             updated_at: new Date(),
         }));
@@ -102,9 +120,8 @@ export const firestoreEventRepository: EventRepository = {
             );
         }
 
-        const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
-            eventConverter,
-        );
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventRef = doc(db, "groups", groupId, "events", id);
 
         const updatePayload: WithFieldValue<Partial<Event>> = {
             ...updateData,
