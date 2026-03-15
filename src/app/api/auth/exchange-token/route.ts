@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
 
         if (!code || !state || !idToken) {
             return NextResponse.json(
-                { error: "Authorization code, state, and ID token are required" },
+                {
+                    error: "Authorization code, state, and ID token are required",
+                },
                 { status: 400 },
             );
         }
