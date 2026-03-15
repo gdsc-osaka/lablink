@@ -37,9 +37,12 @@ export const createGoogleOAuthRepo = (
                 }
 
                 // Credentials 型は expiry_date（Unix ms）を持つため、expires_in（秒）に変換する
-                const expiresIn = tokens.expiry_date
-                    ? Math.floor((tokens.expiry_date - Date.now()) / 1000)
-                    : 3600; // フォールバック: 1時間
+                const expiresIn = Math.max(
+                    0,
+                    tokens.expiry_date
+                        ? Math.floor((tokens.expiry_date - Date.now()) / 1000)
+                        : 3600, // フォールバック: 1時間
+                );
 
                 return {
                     accessToken: tokens.access_token,
