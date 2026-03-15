@@ -1,6 +1,7 @@
 import "server-only";
 
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createGoogleOAuthRepo } from "@/infra/oauth/google-oauth-repo";
 import { createOAuthService } from "@/service/oauth-service";
 import { getBaseUrl } from "@/lib/server-url";
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
         }
 
         // OAuth CSRF保護: state パラメータの検証
-        const cookieStore = request.cookies;
+        const cookieStore = await cookies();
         const savedState = cookieStore.get("oauth_state")?.value;
 
         if (!savedState || savedState !== state) {
@@ -32,12 +33,8 @@ export async function POST(request: NextRequest) {
         }
 
         // 一度検証に成功したら、リプレイできないようにCookieのstateを削除
-        const clearStateCookieOpt = {
-            name: "oauth_state",
-            value: "",
-            maxAge: 0,
-            path: "/",
-        };
+        // 以降のいかなるレスポンス（エラー時含む）でもCookieが削除されるようにここで設定
+        cookieStore.delete("oauth_state");
 
         // 環境変数のバリデーション
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -92,8 +89,6 @@ export async function POST(request: NextRequest) {
                 maxAge: 60 * 10, // 10 minutes
             });
         }
-
-        response.cookies.set(clearStateCookieOpt);
 
         return response;
     } catch (error) {
