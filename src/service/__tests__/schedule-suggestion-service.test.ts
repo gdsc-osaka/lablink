@@ -123,7 +123,22 @@ describe("ScheduleSuggestionService", () => {
 
             const service = createScheduleSuggestionService(mockGenAIRepo);
 
-            const result = await service.suggestSchedule("Test Event", [], 1);
+            const scores: TimeRangeScore[] = [
+                {
+                    timeRange: {
+                        start: new Date("2026-02-27T09:00:00.000Z"),
+                        end: new Date("2026-02-27T10:00:00.000Z"),
+                    },
+                    availableMemberIds: { required: ["user1"], optional: [] },
+                    score: 10,
+                },
+            ];
+
+            const result = await service.suggestSchedule(
+                "Test Event",
+                scores,
+                1,
+            );
 
             expect(result.isErr()).toBe(true);
             if (result.isErr()) {
