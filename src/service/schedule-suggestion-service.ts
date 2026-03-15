@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ResultAsync } from "neverthrow";
+import { okAsync, ResultAsync } from "neverthrow";
 import { CalendarError, TimeRange } from "@/domain/calendar";
 import { GenAIError, GenAIRepository } from "@/domain/gen-ai";
 import * as z from "zod";
@@ -122,31 +122,37 @@ export const createScheduleSuggestionService = (
     return {
         // TODO: 時間帯による絞り込み (朝・昼・夜など) の機能を削除しているので、今後実装する必要あり
         suggestSchedule: (description, scores, requiredMemberCount) =>
-            genAIService
-                .generateStructured(
-                    generatePrompt(scores, description, requiredMemberCount),
-                    z.object({
-                        suggestions: z
-                            .array(
-                                z.object({
-                                    start: z.iso.datetime(),
-                                    end: z.iso.datetime(),
-                                    reason: z.string(),
-                                }),
-                            )
-                            .min(1)
-                            .max(3),
-                    }),
-                    /* retryCount */ 2,
-                )
-                .map((result) =>
-                    result.suggestions.map((suggestion) => ({
-                        timeRange: {
-                            start: new Date(suggestion.start),
-                            end: new Date(suggestion.end),
-                        },
-                        reason: suggestion.reason,
-                    })),
-                ),
+            scores.length === 0
+                ? okAsync([])
+                : genAIService
+                      .generateStructured(
+                          generatePrompt(
+                              scores,
+                              description,
+                              requiredMemberCount,
+                          ),
+                          z.object({
+                              suggestions: z
+                                  .array(
+                                      z.object({
+                                          start: z.iso.datetime(),
+                                          end: z.iso.datetime(),
+                                          reason: z.string(),
+                                      }),
+                                  )
+                                  .min(0)
+                                  .max(3),
+                          }),
+                          /* retryCount */ 2,
+                      )
+                      .map((result) =>
+                          result.suggestions.map((suggestion) => ({
+                              timeRange: {
+                                  start: new Date(suggestion.start),
+                                  end: new Date(suggestion.end),
+                              },
+                              reason: suggestion.reason,
+                          })),
+                      ),
     };
 };
