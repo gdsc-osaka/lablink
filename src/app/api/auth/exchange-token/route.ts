@@ -1,7 +1,8 @@
 import "server-only";
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerAuthRepo } from "@/infra/auth/server-auth-repo";
+import { createGoogleOAuthRepo } from "@/infra/oauth/google-oauth-repo";
+import { createOAuthService } from "@/service/oauth-service";
 import { getBaseUrl } from "@/lib/server-url";
 
 /**
@@ -51,27 +52,39 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // googleapis の OAuth2Client を通じて Authorization Code をトークンに交換
-        const authRepo = createServerAuthRepo(clientId, clientSecret);
+        // OAuthService を通じて Authorization Code をトークンに交換
+        const oauthRepo = createGoogleOAuthRepo(clientId, clientSecret);
+        const oauthService = createOAuthService(oauthRepo);
         const baseUrl = await getBaseUrl();
-        const tokens = await authRepo.exchangeAuthCode(
+
+        const tokenResult = await oauthService.exchangeAuthCode(
             code,
             `${baseUrl}/auth/callback`,
         );
+
+        if (tokenResult.isErr()) {
+            console.error("Token exchange failed:", tokenResult.error);
+            return NextResponse.json(
+                { error: "Token exchange failed" },
+                { status: 500 },
+            );
+        }
+
+        const tokens = tokenResult.value;
 
         // リフレッシュトークンが存在する場合はサーバー側の一時Cookieに保存する
         // FirestoreへのDB保存は、フロントエンド側でFirebase Authログイン完了後に専用エンドポイントを呼んで行うように遅延させる
 
         const response = NextResponse.json({
-            access_token: tokens.access_token,
-            id_token: tokens.id_token, // Firebaseにログインするためフロントに返す必要がある
-            expires_in: tokens.expires_in,
+            access_token: tokens.accessToken,
+            id_token: tokens.idToken, // Firebaseにログインするためフロントに返す必要がある
+            expires_in: tokens.expiresIn,
         });
 
-        if (tokens.refresh_token) {
+        if (tokens.refreshToken) {
             response.cookies.set({
                 name: "temp_google_refresh_token",
-                value: tokens.refresh_token,
+                value: tokens.refreshToken,
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",

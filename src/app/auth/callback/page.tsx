@@ -9,6 +9,16 @@ import { userRepo } from "@/infra/user/user-repo";
 import { createNewUser } from "@/domain/user";
 import { isSafeRedirectUrl } from "@/lib/url";
 
+/**
+ * Google OAuth 認証後のコールバックページ
+ *
+ * @example
+ * ```
+ * sessionStorage.setItem("oauth_redirect_to", redirectTo);
+ * const authUrl = await generateAuthUrl(state);
+ * window.location.href = authUrl;
+ * ```
+ */
 export default function AuthCallbackPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
