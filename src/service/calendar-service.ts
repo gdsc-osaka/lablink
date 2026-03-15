@@ -1,5 +1,10 @@
-import { busyToFreeSlots, TimeRange, UserTimeRanges } from "@/domain/calendar";
-import { CalendarError, CalendarRepository } from "@/domain/calendar";
+import {
+    busyToFreeSlots,
+    TimeRange,
+    UserTimeRanges,
+    CalendarError,
+    CalendarRepository,
+} from "@/domain/calendar";
 import { TokenRepository } from "@/domain/token";
 import { ResultAsync } from "neverthrow";
 
