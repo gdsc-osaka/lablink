@@ -45,7 +45,7 @@ export const firestoreGroupRepository: GroupRepository = {
         });
     },
 
-    save: (group: Group /* _userId: string */): ResultAsync<Group, DBError> => {
+    save: (group: Group, _userId: string): ResultAsync<Group, DBError> => {
         const groupDataToSave: WithFieldValue<GroupForDb> = {
             ...group,
             createdAt: serverTimestamp(),

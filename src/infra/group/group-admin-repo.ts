@@ -22,7 +22,7 @@ export const firestoreGroupAdminRepository: GroupRepository = {
         );
     },
 
-    save: (group: Group /* _userId: string */): ResultAsync<Group, DBError> => {
+    save: (group: Group, _userId: string): ResultAsync<Group, DBError> => {
         const groupData: FirebaseFirestore.DocumentData = {
             name: group.name,
             createdAt: FieldValue.serverTimestamp(),

@@ -51,7 +51,7 @@ export default function CreateEventForm({ users }: Props) {
         const csv = selected.map((s) => s.email).join(",");
         setValue("priorityParticipants", csv);
     }, [selected, setValue]);
-    const onSubmit: SubmitHandler<EventDraft> = (/* data */) => {
+    const onSubmit: SubmitHandler<EventDraft> = (_data) => {
         // TODO: create-event のAPIへの送信処理を追加
         router.push("/ai-suggest");
     };
