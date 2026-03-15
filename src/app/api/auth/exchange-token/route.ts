@@ -112,9 +112,9 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // アクセストークンはサーバー側でのみ使用し、クライアントには返さない
         return NextResponse.json({
-            access_token: tokens.accessToken,
-            expires_in: tokens.expiresIn,
+            success: true,
         });
     } catch (error) {
         console.error("Token exchange endpoint error:", error);
