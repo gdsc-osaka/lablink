@@ -5,18 +5,25 @@ const publicRoutes = ["/", "/login"];
 
 // 楽観的チェックのみ行う
 export function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+    const { pathname, search } = request.nextUrl;
     const sessionCookie = request.cookies.get("session");
 
     const isPublicRoute = publicRoutes.includes(pathname);
 
     // 公開ルートではなく、かつセッションクッキーがない → /login へリダイレクト
     if (!isPublicRoute && !sessionCookie) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        const url = new URL("/login", request.url);
+        url.searchParams.set("redirectTo", pathname + search);
+        return NextResponse.redirect(url);
     }
 
     // ログインページ + セッションクッキーあり → /group へリダイレクト
-    if (pathname === "/login" && sessionCookie) {
+    // ただし、redirectToパラメータがある場合は（セッション切れなどで明示的に飛ばされてきた可能性があるため）リダイレクトしない
+    if (
+        pathname === "/login" &&
+        sessionCookie &&
+        !request.nextUrl.searchParams.has("redirectTo")
+    ) {
         return NextResponse.redirect(new URL("/group", request.url));
     }
 
