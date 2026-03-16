@@ -46,7 +46,7 @@ export const createCalendarService = (
             })),
 
     fetchCommonFreeSlots: (users, timeMin, timeMax) => {
-        const freeSlotsResult = users.map((user) =>
+        const busySlotsResult = users.map((user) =>
             calendarRepository.fetchBusySlots(
                 user.userId,
                 user.calendarIds,
@@ -56,9 +56,9 @@ export const createCalendarService = (
             ),
         );
 
-        return ResultAsync.combine(freeSlotsResult).map((freeSlots) =>
+        return ResultAsync.combine(busySlotsResult).map((busySlots) =>
             busyToFreeSlots(
-                freeSlots.flatMap((user) => user.timeRanges),
+                busySlots.flatMap((user) => user.timeRanges),
                 timeMin,
                 timeMax,
             ),
