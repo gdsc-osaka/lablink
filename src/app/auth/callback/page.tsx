@@ -10,6 +10,22 @@ import { isSafeRedirectUrl } from "@/lib/url";
 /**
  * Google OAuth 認証後のコールバックページ
  * Google Calendarの権限取得などのフローで使用
+ *
+ * @example
+ * ```ts
+ * const state = crypto.randomUUID();
+ * sessionStorage.setItem("oauth_state", state);
+ *
+ * const redirectTo = searchParams.get("redirectTo");
+ * if (redirectTo) {
+ *     sessionStorage.setItem("oauth_redirect_to", redirectTo);
+ * } else {
+ *     sessionStorage.removeItem("oauth_redirect_to");
+ * }
+ *
+ * const authUrl = await generateAuthUrl(state);
+ * window.location.href = authUrl;
+ * ```
  */
 export default function AuthCallbackPage() {
     const router = useRouter();
