@@ -67,8 +67,7 @@ export const googleTokenRepository: TokenRepository = {
                 });
             },
         ).andThen((snapshot) => {
-            const token = snapshot.data();
-            if (!snapshot.exists || !token) {
+            if (!snapshot.exists) {
                 return err(
                     TokenNotFoundError("Token not found", {
                         extra: {
@@ -79,7 +78,32 @@ export const googleTokenRepository: TokenRepository = {
                     }),
                 );
             }
-            return ok(token);
+            try {
+                const token = snapshot.data();
+                if (!token) {
+                    return err(
+                        TokenNotFoundError("Token not found", {
+                            extra: {
+                                impl: GOOGLE_TOKEN_IMPL,
+                                userId,
+                                serviceType,
+                            },
+                        }),
+                    );
+                }
+                return ok(token);
+            } catch (error) {
+                const _error = error as Error;
+                return err(
+                    TokenUnknownError(_error.message, {
+                        extra: {
+                            impl: GOOGLE_TOKEN_IMPL,
+                            userId,
+                            serviceType,
+                        },
+                    }),
+                );
+            }
         });
     },
 };
