@@ -17,7 +17,7 @@ import { toGroupFromAdmin } from "./group-converter";
 const db = getFirestoreAdmin();
 
 export const userGroupAdminRepo: UserGroupRepository = {
-    findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
+    getGroupsByUserId: (userId: string): ResultAsync<Group[], DBError> => {
         const userGroupsRef = db
             .collection("users")
             .doc(userId)
@@ -72,7 +72,7 @@ export const userGroupAdminRepo: UserGroupRepository = {
         );
     },
 
-    findUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
+    getUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
         const groupUsersRef = db
             .collection("groups")
             .doc(groupId)
@@ -120,19 +120,20 @@ export const userGroupAdminRepo: UserGroupRepository = {
     ): ResultAsync<void, DBError> => {
         const batch = db.batch();
 
+        // groups/:groupId/users/:userId を削除
         const groupUserRef = db
             .collection("groups")
             .doc(groupId)
             .collection("users")
             .doc(userId);
+        batch.delete(groupUserRef);
 
+        // users/:userId/groups/:groupId を削除
         const userGroupRef = db
             .collection("users")
             .doc(userId)
             .collection("groups")
             .doc(groupId);
-
-        batch.delete(groupUserRef);
         batch.delete(userGroupRef);
 
         return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
@@ -145,16 +146,26 @@ export const userGroupAdminRepo: UserGroupRepository = {
         userId: string,
         role: Exclude<GroupRole, "owner">,
     ): ResultAsync<void, DBError> => {
+        const batch = db.batch();
+
         const groupUserRef = db
             .collection("groups")
             .doc(groupId)
             .collection("users")
             .doc(userId);
 
-        return ResultAsync.fromPromise(
-            groupUserRef.update({ role }),
-            handleAdminError,
-        ).map(() => undefined);
+        const userGroupRef = db
+            .collection("users")
+            .doc(userId)
+            .collection("groups")
+            .doc(groupId);
+
+        batch.update(groupUserRef, { role });
+        batch.update(userGroupRef, { role });
+
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
     },
 
     transferOwnership: (

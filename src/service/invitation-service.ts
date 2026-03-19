@@ -35,24 +35,26 @@ export function createInvitationService(
     groupRepo: GroupRepository,
 ): InvitationService {
     const validateInvitation = (token: string) => {
-        return invitationRepo.findByToken(token).andThen((invitation) => {
-            if (new Date() > invitation.expiresAt) {
-                return errAsync(
-                    ExpiredError("招待リンクの有効期限が切れています"),
-                );
-            }
-            if (invitation.status === "declined") {
-                return errAsync(
-                    ExpiredError("この招待リンクは拒否されています"),
-                );
-            }
-            if (invitation.status === "accepted" || invitation.usedAt) {
-                return errAsync(
-                    ExpiredError("この招待リンクは既に使用されています"),
-                );
-            }
-            return okAsync(invitation);
-        });
+        return invitationRepo
+            .getInvitationByToken(token)
+            .andThen((invitation) => {
+                if (new Date() > invitation.expiresAt) {
+                    return errAsync(
+                        ExpiredError("招待リンクの有効期限が切れています"),
+                    );
+                }
+                if (invitation.status === "declined") {
+                    return errAsync(
+                        ExpiredError("この招待リンクは拒否されています"),
+                    );
+                }
+                if (invitation.status === "accepted" || invitation.usedAt) {
+                    return errAsync(
+                        ExpiredError("この招待リンクは既に使用されています"),
+                    );
+                }
+                return okAsync(invitation);
+            });
     };
 
     return {
@@ -67,14 +69,14 @@ export function createInvitationService(
                     Date.now() + expiresInDays * 24 * 60 * 60 * 1000,
                 ),
             };
-            return invitationRepo.create(invitation);
+            return invitationRepo.createInvitation(invitation);
         },
 
         validateInvitation,
 
         getGroupByToken: (token) => {
             return validateInvitation(token).andThen((invitation) =>
-                groupRepo.findById(invitation.groupId),
+                groupRepo.getGroupById(invitation.groupId),
             );
         },
 
@@ -83,7 +85,7 @@ export function createInvitationService(
                 .andThen((invitation) => {
                     // トランザクションで招待受け入れ + メンバー追加を原子的に実行
                     return invitationRepo
-                        .acceptInvitationTransaction(
+                        .acceptInvitation(
                             invitation.id,
                             userId,
                             invitation.groupId,
@@ -92,13 +94,13 @@ export function createInvitationService(
                 })
                 .andThen((groupId) => {
                     // グループ情報を取得して返す
-                    return groupRepo.findById(groupId);
+                    return groupRepo.getGroupById(groupId);
                 });
         },
 
         declineInvitation: (token) => {
             return validateInvitation(token).andThen(() => {
-                return invitationRepo.decline(token);
+                return invitationRepo.declineByToken(token);
             });
         },
     };

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
@@ -73,3 +74,4 @@ export async function transferOwnershipAction(
         (err) => ({ success: false, error: err.message }),
     );
 }
+

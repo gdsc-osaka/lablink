@@ -57,7 +57,7 @@ export const requireAuth = cache(
                     true,
                 );
                 return decodedClaims;
-            } catch (error) {
+            } catch {
                 // セッションが無効な場合はリダイレクト処理へ進む
             }
         }
@@ -85,7 +85,7 @@ export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
             true,
         );
         return decodedClaims;
-    } catch (error) {
+    } catch {
         return null;
     }
 });
@@ -102,7 +102,7 @@ export async function removeAuthSession() {
             const decodedClaims =
                 await getAuthAdmin().verifySessionCookie(sessionCookie);
             await getAuthAdmin().revokeRefreshTokens(decodedClaims.sub);
-        } catch (error) {}
+        } catch {}
     }
 
     cookieStore.delete("session");
