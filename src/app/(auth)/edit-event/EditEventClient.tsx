@@ -182,6 +182,10 @@ const EditEventPage = () => {
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
                             {...register("duration", {
                                 required: "所要時間は必須です",
+                                validate: (value) =>
+                                    /^(\d+時間)?(\d+分)?$/.test(value) &&
+                                        value.length > 0 ||
+                                    "所要時間は「30分」「2時間」「2時間30分」の形式で入力してください",
                             })}
                         />
                         {errors.duration && (
