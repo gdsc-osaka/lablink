@@ -1,6 +1,5 @@
 import {
     decryptToken,
-    EncryptedToken,
     encryptToken,
     ExternalServiceType,
     TokenError,

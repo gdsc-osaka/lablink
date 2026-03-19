@@ -105,7 +105,7 @@ export function decryptToken(encryptedText: string): string {
         decrypted += decipher.final("utf8");
 
         return decrypted;
-    } catch (error) {
+    } catch (_error) {
         throw new Error(
             "Failed to decrypt token. The token may be corrupted or the encryption key may be incorrect.",
         );
