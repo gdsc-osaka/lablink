@@ -16,7 +16,7 @@ import { DBError } from "@/domain/error";
 import { handleFirestoreError } from "../error";
 
 export const firestoreUserGroupRepository: UserGroupRepository = {
-    findAllByUserId: (userId: string): ResultAsync<Group[], DBError> => {
+    getGroupsByUserId: (userId: string): ResultAsync<Group[], DBError> => {
         const userGroupsRef = collection(
             db,
             "users",
@@ -76,7 +76,7 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
         ).map(() => undefined);
     },
 
-    findUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
+    getUserIdsByGroupId: (groupId: string): ResultAsync<string[], DBError> => {
         const groupUsersRef = collection(db, "groups", groupId, "users");
 
         return ResultAsync.fromPromise(
@@ -85,5 +85,25 @@ export const firestoreUserGroupRepository: UserGroupRepository = {
         ).map((snapshot) => {
             return snapshot.docs.map((doc) => doc.id);
         });
+    },
+
+    removeMember: (
+        groupId: string,
+        userId: string,
+    ): ResultAsync<void, DBError> => {
+        const batch = writeBatch(db);
+
+        // groups/:groupId/users/:userId を削除
+        const groupUserRef = doc(db, "groups", groupId, "users", userId);
+        batch.delete(groupUserRef);
+
+        // users/:userId/groups/:groupId を削除
+        const userGroupRef = doc(db, "users", userId, "groups", groupId);
+        batch.delete(userGroupRef);
+
+        return ResultAsync.fromPromise(
+            batch.commit(),
+            handleFirestoreError,
+        ).map(() => undefined);
     },
 };

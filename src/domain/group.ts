@@ -24,10 +24,10 @@ interface GroupWithMembers {
 type CreateGroupDto = Omit<Group, "id" | "createdAt" | "updatedAt">;
 
 interface GroupRepository {
-    findById(groupId: string): ResultAsync<Group, DBError>;
-    save(group: Group, userId: string): ResultAsync<Group, DBError>;
-    update(group: Partial<Group>): ResultAsync<Group, DBError>;
-    delete(groupId: string): ResultAsync<void, DBError>;
+    getGroupById(groupId: string): ResultAsync<Group, DBError>;
+    saveGroup(group: Group): ResultAsync<Group, DBError>;
+    updateGroup(group: Partial<Group>): ResultAsync<Group, DBError>;
+    deleteGroup(groupId: string): ResultAsync<void, DBError>;
 }
 
 interface UserGroupRepository {
@@ -35,8 +35,9 @@ interface UserGroupRepository {
         membership: UserGroup,
         groupData: Group,
     ): ResultAsync<void, DBError>;
-    findAllByUserId(userId: string): ResultAsync<Group[], DBError>;
-    findUserIdsByGroupId(groupId: string): ResultAsync<string[], DBError>;
+    getGroupsByUserId(userId: string): ResultAsync<Group[], DBError>;
+    getUserIdsByGroupId(groupId: string): ResultAsync<string[], DBError>;
+    removeMember(groupId: string, userId: string): ResultAsync<void, DBError>;
 }
 
 export type {

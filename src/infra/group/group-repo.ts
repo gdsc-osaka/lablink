@@ -31,7 +31,7 @@ type GroupUpdateData = Partial<Omit<Group, "updatedAt">> & {
 };
 
 export const firestoreGroupRepository: GroupRepository = {
-    findById: (groupId: string): ResultAsync<Group, DBError> => {
+    getGroupById: (groupId: string): ResultAsync<Group, DBError> => {
         const docRef = doc(db, "groups", groupId).withConverter(groupConverter);
 
         return ResultAsync.fromPromise(
@@ -45,7 +45,7 @@ export const firestoreGroupRepository: GroupRepository = {
         });
     },
 
-    save: (group: Group, _userId: string): ResultAsync<Group, DBError> => {
+    saveGroup: (group: Group): ResultAsync<Group, DBError> => {
         const groupDataToSave: WithFieldValue<GroupForDb> = {
             ...group,
             createdAt: serverTimestamp(),
@@ -64,7 +64,7 @@ export const firestoreGroupRepository: GroupRepository = {
         ).map(() => group);
     },
 
-    update: (group: Partial<Group>): ResultAsync<Group, DBError> => {
+    updateGroup: (group: Partial<Group>): ResultAsync<Group, DBError> => {
         if (!group.id) {
             return errAsync(
                 UnknownError("Group ID is required for update operation.", {}),
@@ -82,10 +82,10 @@ export const firestoreGroupRepository: GroupRepository = {
         return ResultAsync.fromPromise(
             updateDoc(docRef, updateData),
             handleFirestoreError,
-        ).andThen(() => firestoreGroupRepository.findById(group.id!));
+        ).andThen(() => firestoreGroupRepository.getGroupById(group.id!));
     },
 
-    delete: (groupId: string): ResultAsync<void, DBError> => {
+    deleteGroup: (groupId: string): ResultAsync<void, DBError> => {
         const docRef = doc(db, "groups", groupId);
         return ResultAsync.fromPromise(
             deleteDoc(docRef),
