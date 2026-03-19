@@ -31,13 +31,13 @@ export default function LoginPage() {
                     await createAuthSession(idToken);
                 }
 
-                // redirectToが指定されていればそのページへ、なければグループ作成ページへ
+                // redirectToが指定されていればそのページへ、なければ/groupへ
                 const redirectTo = searchParams.get("redirectTo");
 
                 if (isSafeRedirectUrl(redirectTo)) {
                     router.push(redirectTo);
                 } else {
-                    router.push("/create-group");
+                    router.push("/group");
                 }
             },
             (error) => {

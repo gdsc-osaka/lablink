@@ -10,7 +10,7 @@ export interface EventService {
     getAllEvents: (groupId: string) => ResultAsync<Event[], DBError>;
     createEvent: (
         groupId: string,
-        eventData: Event,
+        eventData: NewEvent,
     ) => ResultAsync<Event, DBError>;
     updateEvent: (
         groupId: string,

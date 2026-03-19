@@ -33,7 +33,7 @@ export async function createEventAction(
             };
         }
 
-        const result = await firestoreEventAdminRepository.createEvent(
+        const result = await firestoreEventAdminRepository.createNewEvent(
             groupId,
             eventData,
         );

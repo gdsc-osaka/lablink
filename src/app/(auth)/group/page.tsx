@@ -1,9 +1,10 @@
 import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
+import { createEventService } from "@/service/event-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
+import { firestoreEventAdminRepository } from "@/infra/event/event-admin-repo";
 import { Suspense } from "react";
-//サービスインスタンスを構築するためにinfraをインポートしていますが、diコンテナを別でつくった方がいいですか？
 import { Event } from "@/domain/event";
 import GroupPageClient from "./GroupPageClient";
 import GroupView from "./_components/group-list";
@@ -96,8 +97,22 @@ export default async function GroupPage({ searchParams }: PageProps) {
         return groups[0];
     })();
 
-    // TODO: イベント一覧を取得（event-serviceの実装が必要）
-    const events: Event[] = [];
+    // イベント一覧を取得
+    let events: Event[] = [];
+    if (selectedGroup) {
+        // EventServiceを組み立てて利用する
+        const eventService = createEventService(firestoreEventAdminRepository);
+        const eventsResult = await eventService.getAllEvents(selectedGroup.id);
+
+        if (eventsResult.isOk()) {
+            events = eventsResult.value;
+        } else {
+            console.error(
+                "イベント一覧の取得に失敗しました",
+                eventsResult.error,
+            );
+        }
+    }
 
     return (
         <main className="flex min-h-screen bg-white">
