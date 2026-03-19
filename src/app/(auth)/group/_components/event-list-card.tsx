@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { Timestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { formatToJST } from "@/lib/date";
 
 type EventListCardProps = {
     id: string;
     title: string;
-    startTime: Timestamp;
-    endTime: Timestamp;
+    startTime: Date;
+    endTime: Date;
 };
 
 const EventListCard = ({
@@ -16,9 +15,8 @@ const EventListCard = ({
     startTime,
     endTime,
 }: EventListCardProps) => {
-    // propsで受け取ったTimestampをDateオブジェクトに変換
-    const startDate = startTime.toDate();
-    const endDate = endTime.toDate();
+    const startDate = startTime;
+    const endDate = endTime;
 
     // 日付と時刻を指定の形式にフォーマット
     const formattedDate = formatToJST(startDate, "yyyy/MM/dd");

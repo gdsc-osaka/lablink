@@ -15,11 +15,11 @@ export interface Invitation {
 }
 
 export interface InvitationRepository {
-    create(invitation: Invitation): ResultAsync<Invitation, DBError>;
-    findByToken(token: string): ResultAsync<Invitation, DBError>;
-    decline(token: string): ResultAsync<void, DBError>;
-    delete(invitationId: string): ResultAsync<void, DBError>;
-    acceptInvitationTransaction(
+    createInvitation(invitation: Invitation): ResultAsync<Invitation, DBError>;
+    getInvitationByToken(token: string): ResultAsync<Invitation, DBError>;
+    declineByToken(token: string): ResultAsync<void, DBError>;
+    deleteInvitation(invitationId: string): ResultAsync<void, DBError>;
+    acceptInvitation(
         invitationId: string,
         userId: string,
         groupId: string,
