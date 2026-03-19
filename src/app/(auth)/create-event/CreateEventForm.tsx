@@ -9,8 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
-import { convertDraftToEvent } from "@/lib/event-to-draft";
-import { createEventAction } from "./actions";
+import { getScheduleSuggestionsAction } from "./actions";
 
 type User = { id: string; username: string; email: string };
 
@@ -60,17 +59,27 @@ export default function CreateEventForm({ groupId, users }: Props) {
     const onSubmit: SubmitHandler<EventDraft> = async (data) => {
         setError(null);
         try {
-            const newEvent = convertDraftToEvent(data);
-            const result = await createEventAction(groupId, newEvent);
+            const result = await getScheduleSuggestionsAction(groupId, data);
 
             if (result.success) {
-                router.push("/complete");
+                sessionStorage.setItem(
+                    "lablink_event_session",
+                    JSON.stringify({
+                        groupId,
+                        draft: {
+                            title: data.title,
+                            description: data.description,
+                        },
+                        suggestions: result.suggestions,
+                    }),
+                );
+                router.push("/ai-suggest");
             } else {
                 setError(result.error);
             }
         } catch (err) {
-            console.error("Error creating event:", err);
-            setError("イベントの作成中にエラーが発生しました");
+            console.error("Error getting suggestions:", err);
+            setError("日程提案の取得中にエラーが発生しました");
         }
     };
 
@@ -243,7 +252,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
                     disabled={isSubmitting}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isSubmitting ? "作成中..." : "イベントを作成"}
+                    {isSubmitting ? "AI提案を取得中..." : "イベントを作成"}
                 </Button>
             </div>
         </form>

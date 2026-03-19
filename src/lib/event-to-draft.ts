@@ -107,7 +107,7 @@ function getTimeOfDayStartHour(timeOfDay: EventTimeOfDay): number {
  * 所要時間の文字列をパースして分数を返す
  * 例: "30分" → 30, "2時間" → 120, "1時間30分" → 90
  */
-function parseDuration(duration: string): number {
+export function parseDuration(duration: string): number {
     const hourMatch = duration.match(/(\d+)\s*時間/);
     const minuteMatch = duration.match(/(\d+)\s*分/);
 

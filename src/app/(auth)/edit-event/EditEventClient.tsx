@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,35 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
 import { useForm, SubmitHandler } from "react-hook-form";
-
-const sampleEvents: Event[] = [
-    {
-        id: "101",
-        title: "交流会",
-        description:
-            "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
-        begin_at: new Date("2025-05-12T13:00:00Z"),
-        end_at: new Date("2025-05-12T16:00:00Z"),
-        created_at: new Date(),
-        updated_at: new Date(),
-    },
-    {
-        id: "102",
-        title: "ミーティング",
-        description: "外部進学した留学生のためにたこ焼きパーティーをする",
-        begin_at: new Date("2025-05-23T11:00:00Z"),
-        end_at: new Date("2025-05-23T12:00:00Z"),
-        created_at: new Date(),
-        updated_at: new Date(),
-    },
-];
-
-const emptyDraft: EventDraft = {
-    title: "",
-    duration: "",
-    timeOfDayCandidate: [],
-    description: "",
-};
+import { updateEventAction, deleteEventAction } from "./actions";
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -86,47 +57,53 @@ function convertDraftToEvent(draft: EventDraft, original: Event): Event {
     };
 }
 
-const EditEventPage = () => {
-    const searchParams = useSearchParams();
-    const eventId = searchParams.get("id");
+interface Props {
+    event: Event;
+    groupId: string;
+}
 
-    const originalEvent = useMemo(
-        () => sampleEvents.find((e) => e.id === eventId) ?? null,
-        [eventId],
-    );
+const EditEventClient = ({ event, groupId }: Props) => {
+    const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const {
         register,
         handleSubmit,
-        reset,
         formState: { errors },
     } = useForm<EventDraft>({
-        defaultValues: originalEvent
-            ? convertEventToDraft(originalEvent)
-            : emptyDraft,
+        defaultValues: convertEventToDraft(event),
     });
 
-    // eventId が変わったときにフォームをリセットする
-    const [syncedEventId, setSyncedEventId] = useState(eventId);
-    if (syncedEventId !== eventId) {
-        setSyncedEventId(eventId);
-        reset(originalEvent ? convertEventToDraft(originalEvent) : emptyDraft);
-    }
-
-    const onSubmit: SubmitHandler<EventDraft> = (data) => {
-        if (!originalEvent) return;
-        const updatedEvent = convertDraftToEvent(data, originalEvent);
-        console.log("Event Updated:", updatedEvent);
-        // TODO: APIへの更新処理
+    const onSubmit: SubmitHandler<EventDraft> = async (data) => {
+        setError(null);
+        setIsSubmitting(true);
+        try {
+            const updatedEvent = convertDraftToEvent(data, event);
+            const result = await updateEventAction(groupId, updatedEvent);
+            if (result.success) {
+                router.push("/group");
+            } else {
+                setError(result.error);
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    // イベント削除をハンドルする関数
-    const handleDelete = () => {
-        if (confirm("このイベントを削除しますか？")) {
-            console.log("Event Deleted:", eventId);
-            // ここでAPIへの削除処理などを行う
-            // 削除後はグループページに戻る
-            window.location.href = "/group";
+    const handleDelete = async () => {
+        if (!confirm("このイベントを削除しますか？")) return;
+        setError(null);
+        setIsSubmitting(true);
+        try {
+            const result = await deleteEventAction(groupId, event.id);
+            if (result.success) {
+                router.push("/group");
+            } else {
+                setError(result.error);
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -255,33 +232,30 @@ const EditEventPage = () => {
                         )}
                     </div>
 
+                    {error && (
+                        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {error}
+                        </div>
+                    )}
+
                     {/* ボタンエリア */}
                     <div className="flex justify-between pt-6">
                         <Button
                             type="button"
                             onClick={handleDelete}
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                            disabled={isSubmitting}
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             イベントを削除
                         </Button>
 
-                        <div className="flex items-center gap-3">
-                            <Button
-                                type="submit"
-                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                            >
-                                保存
-                            </Button>
-
-                            <Link href="/ai-suggest">
-                                <Button
-                                    type="button"
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                >
-                                    AIのsuggestへ
-                                </Button>
-                            </Link>
-                        </div>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isSubmitting ? "保存中..." : "保存"}
+                        </Button>
                     </div>
                 </form>
             </div>
@@ -289,4 +263,4 @@ const EditEventPage = () => {
     );
 };
 
-export default EditEventPage;
+export default EditEventClient;
