@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
@@ -9,10 +10,10 @@ export async function removeGroupMember(
     groupId: string,
     userId: string,
 ): Promise<{ success: boolean; error?: string }> {
-    try {
-        // 認証確認
-        await requireAuth();
+    // 認証確認（Next.js の redirect() を try-catch で捕まえないよう外に出す）
+    await requireAuth();
 
+    try {
         // サービスインスタンスを組み立て
         const groupService = createGroupService({
             groupRepo: firestoreGroupAdminRepository,
@@ -29,6 +30,7 @@ export async function removeGroupMember(
             };
         }
 
+        revalidatePath("/group");
         return { success: true };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

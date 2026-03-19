@@ -2,7 +2,8 @@
     "functions": {
         "source": "functions",
         "codebase": "default",
-        "runtime": "nodejs18"
+        "runtime": "nodejs18",
+        "predeploy": ["pnpm --prefix \"$RESOURCE_DIR\" run build"]
     },
     "hosting": {
         "source": ".",

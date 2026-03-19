@@ -82,15 +82,26 @@ export const userGroupAdminRepo: UserGroupRepository = {
         groupId: string,
         userId: string,
     ): ResultAsync<void, DBError> => {
+        const batch = db.batch();
+
+        // groups/:groupId/users/:userId を削除
         const groupUserRef = db
             .collection("groups")
             .doc(groupId)
             .collection("users")
             .doc(userId);
+        batch.delete(groupUserRef);
 
-        return ResultAsync.fromPromise(
-            groupUserRef.delete(),
-            handleAdminError,
-        ).map(() => undefined);
+        // users/:userId/groups/:groupId を削除
+        const userGroupRef = db
+            .collection("users")
+            .doc(userId)
+            .collection("groups")
+            .doc(groupId);
+        batch.delete(userGroupRef);
+
+        return ResultAsync.fromPromise(batch.commit(), handleAdminError).map(
+            () => undefined,
+        );
     },
 };

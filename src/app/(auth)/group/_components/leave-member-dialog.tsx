@@ -76,7 +76,10 @@ export default function LeaveMemberDialog({
                     <AlertDialogAction
                         className="bg-destructive text-white hover:bg-destructive/90 disabled:opacity-50"
                         disabled={isLoading}
-                        onClick={handleConfirm}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleConfirm();
+                        }}
                     >
                         {isLoading ? "削除中..." : "退会"}
                     </AlertDialogAction>
