@@ -34,7 +34,8 @@ export default async function CreateEventPage({ searchParams }: Props) {
         );
     }
 
-    const membersResult = await userGroupAdminRepo.findMembersWithRoles(groupId);
+    const membersResult =
+        await userGroupAdminRepo.findMembersWithRoles(groupId);
     if (membersResult.isErr()) {
         return errorLayout("グループメンバーの取得に失敗しました。");
     }

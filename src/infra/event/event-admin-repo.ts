@@ -72,31 +72,29 @@ export const firestoreEventAdminRepository: EventRepository = {
             .collection("events")
             .doc(eventId);
 
-        return ResultAsync.fromPromise(
-            docRef.get(),
-            handleAdminError,
-        ).andThen((doc) => {
-            if (!doc.exists) {
-                return errAsync(
-                    UnknownError(`Event ${eventId} not found in group ${groupId}`),
-                );
-            }
-            const data = doc.data()!;
-            return okAsync({
-                id: doc.id,
-                title: data.title,
-                description: data.description,
-                begin_at: data.begin_at?.toDate(),
-                end_at: data.end_at?.toDate(),
-                created_at: data.created_at?.toDate(),
-                updated_at: data.updated_at?.toDate(),
-            });
-        });
+        return ResultAsync.fromPromise(docRef.get(), handleAdminError).andThen(
+            (doc) => {
+                if (!doc.exists) {
+                    return errAsync(
+                        UnknownError(
+                            `Event ${eventId} not found in group ${groupId}`,
+                        ),
+                    );
+                }
+                const data = doc.data()!;
+                return okAsync({
+                    id: doc.id,
+                    title: data.title,
+                    description: data.description,
+                    begin_at: data.begin_at?.toDate(),
+                    end_at: data.end_at?.toDate(),
+                    created_at: data.created_at?.toDate(),
+                    updated_at: data.updated_at?.toDate(),
+                });
+            },
+        );
     },
-    save: (
-        groupId: string,
-        eventData: Event,
-    ): ResultAsync<Event, DBError> => {
+    save: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
         return firestoreEventAdminRepository.updateNewEvent(groupId, eventData);
     },
     updateNewEvent: (
@@ -130,9 +128,8 @@ export const firestoreEventAdminRepository: EventRepository = {
             .collection("events")
             .doc(eventId);
 
-        return ResultAsync.fromPromise(
-            docRef.delete(),
-            handleAdminError,
-        ).map(() => undefined);
+        return ResultAsync.fromPromise(docRef.delete(), handleAdminError).map(
+            () => undefined,
+        );
     },
 };

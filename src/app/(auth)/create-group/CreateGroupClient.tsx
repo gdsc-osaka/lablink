@@ -54,9 +54,7 @@ const CreateGroupClient = () => {
                         {errors.groupName.message}
                     </p>
                 )}
-                {error && (
-                    <p className="mb-4 text-sm text-red-600">{error}</p>
-                )}
+                {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
                 <Button
                     type="submit"
                     disabled={isSubmitting}
