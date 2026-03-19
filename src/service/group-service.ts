@@ -53,6 +53,11 @@ export interface GroupService {
         userId: string,
         groupId: string,
     ) => ResultAsync<void, ServiceError>;
+
+    removeGroupMember: (
+        groupId: string,
+        userId: string,
+    ) => ResultAsync<void, ServiceError>;
 }
 
 const generateId = (): string => crypto.randomUUID();
@@ -326,6 +331,19 @@ export const createGroupService = ({
                 )
                 .andThen(() => verifyMembership(userId, groupId))
                 .andThen(() => groupRepo.deleteGroup(groupId));
+        },
+
+        removeGroupMember: (
+            groupId: string,
+            userId: string,
+        ): ResultAsync<void, ServiceError> => {
+            return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
+                .andThen(() =>
+                    validateRequiredId(userId, "ユーザーID", "MISSING_USER_ID"),
+                )
+                .andThen(() => {
+                    return userGroupRepo.removeMember(groupId, userId);
+                });
         },
     };
 };

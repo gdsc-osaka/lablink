@@ -37,6 +37,7 @@ interface UserGroupRepository {
     ): ResultAsync<void, DBError>;
     getGroupsByUserId(userId: string): ResultAsync<Group[], DBError>;
     getUserIdsByGroupId(groupId: string): ResultAsync<string[], DBError>;
+    removeMember(groupId: string, userId: string): ResultAsync<void, DBError>;
 }
 
 export type {
