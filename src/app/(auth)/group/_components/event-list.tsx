@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 
 interface EventListProps {
     events: Event[];
+    groupId: string;
 }
 
-const EventList = ({ events }: EventListProps) => {
+const EventList = ({ events, groupId }: EventListProps) => {
     return (
         <div className="flex-1 flex flex-col items-center justify-start min-h-screen bg-white">
             {/* タイトル */}
@@ -39,7 +40,7 @@ const EventList = ({ events }: EventListProps) => {
             {/* イベント追加ボタン */}
             <div className="w-full max-w-4xl px-8 mt-8 pb-8">
                 <div className="flex justify-end">
-                    <Link href="/create-event">
+                    <Link href={`/create-event?groupId=${groupId}`}>
                         <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             イベント追加
                         </Button>

@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import { Event, EventRepository } from "@/domain/event";
+import { Event, EventRepository, NewEvent } from "@/domain/event";
 import { DBError } from "@/domain/error";
 
 export interface EventService {
@@ -10,7 +10,7 @@ export interface EventService {
     getAllEvents: (groupId: string) => ResultAsync<Event[], DBError>;
     createEvent: (
         groupId: string,
-        eventData: Event,
+        eventData: NewEvent,
     ) => ResultAsync<Event, DBError>;
     updateEvent: (
         groupId: string,
@@ -41,7 +41,7 @@ export const createEventService = (
     /* 新しいイベントを作成 */
     createEvent: (
         groupId: string,
-        eventData: Event,
+        eventData: NewEvent,
     ): ResultAsync<Event, DBError> => {
         return eventRepository.create(groupId, eventData);
     },
