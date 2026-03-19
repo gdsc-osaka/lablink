@@ -1,18 +1,7 @@
 import { ResultAsync, okAsync, errAsync } from "neverthrow";
 import { Invitation, InvitationRepository } from "@/domain/invitation";
-import {
-    DBError,
-    ExpiredError,
-    InvitationError,
-    NotFoundError,
-    UnknownError,
-} from "@/domain/error";
-import {
-    Group,
-    GroupRepository,
-    UserGroup,
-    UserGroupRepository,
-} from "@/domain/group";
+import { DBError, ExpiredError, InvitationError } from "@/domain/error";
+import { Group, GroupRepository } from "@/domain/group";
 
 export interface InvitationService {
     // 招待を作成
@@ -32,6 +21,9 @@ export interface InvitationService {
         token: string,
         userId: string,
     ): ResultAsync<Group, InvitationError>;
+
+    // 招待を拒否
+    declineInvitation(token: string): ResultAsync<void, InvitationError>;
 }
 
 function generateToken(): string {
@@ -41,17 +33,28 @@ function generateToken(): string {
 export function createInvitationService(
     invitationRepo: InvitationRepository,
     groupRepo: GroupRepository,
-    userGroupRepo: UserGroupRepository,
 ): InvitationService {
     const validateInvitation = (token: string) => {
-        return invitationRepo.findByToken(token).andThen((invitation) => {
-            if (new Date() > invitation.expiresAt) {
-                return errAsync(
-                    ExpiredError("招待リンクの有効期限が切れています"),
-                );
-            }
-            return okAsync(invitation);
-        });
+        return invitationRepo
+            .getInvitationByToken(token)
+            .andThen((invitation) => {
+                if (new Date() > invitation.expiresAt) {
+                    return errAsync(
+                        ExpiredError("招待リンクの有効期限が切れています"),
+                    );
+                }
+                if (invitation.status === "declined") {
+                    return errAsync(
+                        ExpiredError("この招待リンクは拒否されています"),
+                    );
+                }
+                if (invitation.status === "accepted" || invitation.usedAt) {
+                    return errAsync(
+                        ExpiredError("この招待リンクは既に使用されています"),
+                    );
+                }
+                return okAsync(invitation);
+            });
     };
 
     return {
@@ -60,41 +63,45 @@ export function createInvitationService(
                 id: crypto.randomUUID(),
                 groupId,
                 token: generateToken(),
+                status: "pending",
                 createdAt: new Date(),
                 expiresAt: new Date(
                     Date.now() + expiresInDays * 24 * 60 * 60 * 1000,
                 ),
             };
-            return invitationRepo.create(invitation);
+            return invitationRepo.createInvitation(invitation);
         },
 
         validateInvitation,
 
         getGroupByToken: (token) => {
             return validateInvitation(token).andThen((invitation) =>
-                groupRepo.findById(invitation.groupId),
+                groupRepo.getGroupById(invitation.groupId),
             );
         },
 
         acceptInvitation: (token, userId) => {
             return validateInvitation(token)
-                .andThen((invitation) =>
-                    // グループ情報を取得
-                    groupRepo.findById(invitation.groupId),
-                )
-                .andThen((group) => {
-                    // メンバーを追加
-                    const membership: UserGroup = {
-                        groupId: group.id,
-                        userId,
-                        role: "member",
-                        joinedAt: new Date(),
-                    };
-
-                    return userGroupRepo
-                        .addMember(membership, group)
-                        .map(() => group);
+                .andThen((invitation) => {
+                    // トランザクションで招待受け入れ + メンバー追加を原子的に実行
+                    return invitationRepo
+                        .acceptInvitation(
+                            invitation.id,
+                            userId,
+                            invitation.groupId,
+                        )
+                        .map(() => invitation.groupId);
+                })
+                .andThen((groupId) => {
+                    // グループ情報を取得して返す
+                    return groupRepo.getGroupById(groupId);
                 });
+        },
+
+        declineInvitation: (token) => {
+            return validateInvitation(token).andThen(() => {
+                return invitationRepo.declineByToken(token);
+            });
         },
     };
 }
