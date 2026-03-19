@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MoreHorizontal } from "lucide-react";
 import MemberMenuModal, { MenuPosition } from "./member-menu-modal";
 import RemoveMemberConfirmModal from "./remove-member-confirm-modal";
+import { useAuth } from "@/provider/AuthProvider";
 
 //このあたりの型定義はdomain/user.ts実装後変更予定
 // メンバーとグループのデータ型を定義
@@ -24,8 +26,11 @@ interface GroupViewProps {
     group: Group;
 }
 
+const MENU_WIDTH = 200;
+
 const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
     const router = useRouter();
+    const { user } = useAuth();
     const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
     const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -41,9 +46,14 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
         event: React.MouseEvent<HTMLButtonElement>,
     ) => {
         const rect = event.currentTarget.getBoundingClientRect();
+        const menuLeft = rect.right + window.scrollX + 8;
+        const adjustedLeft =
+            menuLeft + MENU_WIDTH > window.innerWidth + window.scrollX
+                ? rect.left + window.scrollX - MENU_WIDTH - 8
+                : menuLeft;
         setMenuPosition({
             top: rect.top + window.scrollY,
-            left: rect.right + window.scrollX + 8,
+            left: adjustedLeft,
         });
         setActiveMemberId(memberId);
     };
@@ -102,7 +112,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                                 }
                                 className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                             >
-                                <span className="text-lg leading-none">⋯</span>
+                                <MoreHorizontal className="h-4 w-4" />
                             </button>
                         </div>
                     ))
@@ -122,7 +132,7 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                 <RemoveMemberConfirmModal
                     isOpen={confirmModalOpen}
                     memberName={selectedMemberForRemoval.name}
-                    isCurrentUser={false}
+                    isCurrentUser={user?.uid === selectedMemberForRemoval.id}
                     onConfirm={handleConfirmRemoval}
                     onCancel={handleCloseConfirmModal}
                 />

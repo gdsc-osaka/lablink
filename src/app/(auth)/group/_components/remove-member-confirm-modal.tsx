@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 interface RemoveMemberConfirmModalProps {
@@ -16,6 +16,27 @@ const RemoveMemberConfirmModal: React.FC<RemoveMemberConfirmModalProps> = ({
     onConfirm,
     onCancel,
 }) => {
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const triggerRef = useRef<Element | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onCancel();
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, onCancel]);
+
+    useEffect(() => {
+        if (isOpen) {
+            triggerRef.current = document.activeElement;
+            cancelButtonRef.current?.focus();
+        } else {
+            (triggerRef.current as HTMLElement | null)?.focus();
+        }
+    }, [isOpen]);
+
     if (!isOpen) {
         return null;
     }
@@ -28,8 +49,13 @@ const RemoveMemberConfirmModal: React.FC<RemoveMemberConfirmModalProps> = ({
                 onClick={onCancel}
                 className="absolute inset-0 bg-black/30"
             />
-            <div className="relative w-[360px] rounded-lg bg-white p-6 shadow-lg">
-                <h2 className="text-lg font-bold text-black">
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="remove-member-title"
+                className="relative w-[360px] rounded-lg bg-white p-6 shadow-lg"
+            >
+                <h2 id="remove-member-title" className="text-lg font-bold text-black">
                     {isCurrentUser ? "グループから退会" : "メンバーを削除"}
                 </h2>
                 <p className="mt-4 text-sm text-gray-700">
@@ -39,16 +65,17 @@ const RemoveMemberConfirmModal: React.FC<RemoveMemberConfirmModalProps> = ({
                 </p>
                 <div className="mt-6 flex justify-end gap-3">
                     <Button
+                        ref={cancelButtonRef}
                         type="button"
                         onClick={onCancel}
-                        className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                        variant="outline"
                     >
                         キャンセル
                     </Button>
                     <Button
                         type="button"
                         onClick={onConfirm}
-                        className="rounded bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                        variant="destructive"
                     >
                         {isCurrentUser ? "退会" : "削除"}
                     </Button>
