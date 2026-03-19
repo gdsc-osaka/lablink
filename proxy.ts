@@ -1,35 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 認証が必要なルート
-const protectedRoutes = [
-    "/group",
-    "/ai-suggest",
-    "/complete",
-    "/create-event",
-    "/create-group",
-    "/edit-event",
-    "/invite",
-    "/invited",
-];
-
-// 公開ルート
+// 公開ルート（これら以外はすべてログイン必須とする）
 const publicRoutes = ["/", "/login"];
 
 // 楽観的チェックのみ行う
 export function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+    const { pathname, search } = request.nextUrl;
     const sessionCookie = request.cookies.get("session");
 
-    // 保護されたルート + セッションクッキーなし → /login へリダイレクト
-    const isProtectedRoute = protectedRoutes.some((route) =>
-        pathname.startsWith(route),
-    );
-    if (isProtectedRoute && !sessionCookie) {
-        return NextResponse.redirect(new URL("/login", request.url));
+    const isPublicRoute = publicRoutes.includes(pathname);
+
+    // 公開ルートではなく、かつセッションクッキーがない → /login へリダイレクト
+    if (!isPublicRoute && !sessionCookie) {
+        const url = new URL("/login", request.url);
+        url.searchParams.set("redirectTo", pathname + search);
+        return NextResponse.redirect(url);
     }
 
     // ログインページ + セッションクッキーあり → /group へリダイレクト
-    if (pathname === "/login" && sessionCookie) {
+    // ただし、redirectToパラメータがある場合は（セッション切れなどで明示的に飛ばされてきた可能性があるため）リダイレクトしない
+    if (
+        pathname === "/login" &&
+        sessionCookie &&
+        !request.nextUrl.searchParams.has("redirectTo")
+    ) {
         return NextResponse.redirect(new URL("/group", request.url));
     }
 

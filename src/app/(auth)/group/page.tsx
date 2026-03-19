@@ -99,7 +99,6 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
     // イベント一覧を取得
     let events: Event[] = [];
-    let fetchError: string | null = null;
     if (selectedGroup) {
         // EventServiceを組み立てて利用する
         const eventService = createEventService(firestoreEventAdminRepository);
@@ -108,7 +107,6 @@ export default async function GroupPage({ searchParams }: PageProps) {
         if (eventsResult.isOk()) {
             events = eventsResult.value;
         } else if (eventsResult.error.message !== "No events found") {
-            fetchError = eventsResult.error.message || JSON.stringify(eventsResult.error);
             console.error("イベント一覧の取得に失敗しました", eventsResult.error);
         }
     }
@@ -164,14 +162,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
                     }
                 >
                     {selectedGroup ? (
-                        <>
-                            {fetchError && (
-                                <div className="p-4 m-4 bg-red-100 text-red-700 border border-red-400 rounded">
-                                    [デバッグ情報] イベント取得エラー: {fetchError}
-                                </div>
-                            )}
-                            <EventList events={events} groupId={selectedGroup.id} />
-                        </>
+                        <EventList events={events} groupId={selectedGroup.id} />
                     ) : (
                         <div className="h-full flex items-center justify-center bg-gray-50">
                             <p className="text-gray-400">

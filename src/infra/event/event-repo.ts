@@ -4,6 +4,7 @@ import {
     getDocs,
     getDoc,
     addDoc,
+    setDoc,
     updateDoc,
     deleteDoc,
     query,
@@ -19,10 +20,17 @@ import { handleFirestoreError } from "@/infra/error";
 import { DBError, NotFoundError } from "@/domain/error";
 
 export const firestoreEventRepository: EventRepository = {
-    findById: (groupId: string, id: string): ResultAsync<Event, DBError> => {
-        const eventDoc = doc(db, "groups", groupId, "events", id).withConverter(
-            eventConverter,
-        );
+    getNewEventByGroupAndEventId: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<Event, DBError> => {
+        const eventDoc = doc(
+            db,
+            "groups",
+            groupId,
+            "events",
+            eventId,
+        ).withConverter(eventConverter);
 
         return ResultAsync.fromPromise(
             getDoc(eventDoc),
@@ -37,7 +45,7 @@ export const firestoreEventRepository: EventRepository = {
         });
     },
 
-    findAll: (groupId: string): ResultAsync<Event[], DBError> => {
+    getNewEventsByGroupId: (groupId: string): ResultAsync<Event[], DBError> => {
         const eventsRef = collection(
             db,
             "groups",
@@ -61,7 +69,7 @@ export const firestoreEventRepository: EventRepository = {
         });
     },
 
-    create: (
+    createNewEvent: (
         groupId: string,
         eventData: NewEvent,
     ): ResultAsync<Event, DBError> => {
@@ -71,12 +79,8 @@ export const firestoreEventRepository: EventRepository = {
             updated_at: serverTimestamp(),
         };
 
-        const eventsRef = collection(
-            db,
-            "groups",
-            groupId,
-            "events",
-        ).withConverter(eventConverter);
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventsRef = collection(db, "groups", groupId, "events");
 
         return ResultAsync.fromPromise(
             addDoc(eventsRef, event),
@@ -89,7 +93,27 @@ export const firestoreEventRepository: EventRepository = {
         }));
     },
 
-    update: (
+    save: (groupId: string, event: Event): ResultAsync<Event, DBError> => {
+        const { id, ...eventData } = event;
+        const eventToSave: WithFieldValue<NewEvent> = {
+            ...eventData,
+            updated_at: serverTimestamp(),
+        };
+
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventRef = doc(db, "groups", groupId, "events", id);
+
+        return ResultAsync.fromPromise(
+            setDoc(eventRef, eventToSave),
+            handleFirestoreError,
+        ).map(() => ({
+            ...event,
+            created_at: new Date(),
+            updated_at: new Date(),
+        }));
+    },
+
+    updateNewEvent: (
         groupId: string,
         eventData: Event,
     ): ResultAsync<Event, DBError> => {
@@ -102,9 +126,8 @@ export const firestoreEventRepository: EventRepository = {
             );
         }
 
-        const eventRef = doc(db, "groups", groupId, "events", id).withConverter(
-            eventConverter,
-        );
+        // 書き込み時は converter を使わない（serverTimestamp() が FieldValue のため）
+        const eventRef = doc(db, "groups", groupId, "events", id);
 
         const updatePayload: WithFieldValue<Partial<Event>> = {
             ...updateData,
@@ -114,11 +137,16 @@ export const firestoreEventRepository: EventRepository = {
         return ResultAsync.fromPromise(
             updateDoc(eventRef, updatePayload),
             handleFirestoreError,
-        ).andThen(() => firestoreEventRepository.findById(groupId, id));
+        ).andThen(() =>
+            firestoreEventRepository.getNewEventByGroupAndEventId(groupId, id),
+        );
     },
 
-    delete: (groupId: string, id: string): ResultAsync<void, DBError> => {
-        const eventRef = doc(db, "groups", groupId, "events", id);
+    deleteNewEvent: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<void, DBError> => {
+        const eventRef = doc(db, "groups", groupId, "events", eventId);
 
         return ResultAsync.fromPromise(
             deleteDoc(eventRef),

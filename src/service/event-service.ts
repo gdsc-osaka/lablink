@@ -30,12 +30,12 @@ export const createEventService = (
         groupId: string,
         eventId: string,
     ): ResultAsync<Event, DBError> => {
-        return eventRepository.findById(groupId, eventId);
+        return eventRepository.getNewEventByGroupAndEventId(groupId, eventId);
     },
 
     /* 全てのイベントを取得 */
     getAllEvents: (groupId: string): ResultAsync<Event[], DBError> => {
-        return eventRepository.findAll(groupId);
+        return eventRepository.getNewEventsByGroupId(groupId);
     },
 
     /* 新しいイベントを作成 */
@@ -43,7 +43,7 @@ export const createEventService = (
         groupId: string,
         eventData: NewEvent,
     ): ResultAsync<Event, DBError> => {
-        return eventRepository.create(groupId, eventData);
+        return eventRepository.createNewEvent(groupId, eventData);
     },
 
     /* イベントを更新 */
@@ -51,7 +51,7 @@ export const createEventService = (
         groupId: string,
         eventData: Event,
     ): ResultAsync<Event, DBError> => {
-        return eventRepository.update(groupId, eventData);
+        return eventRepository.updateNewEvent(groupId, eventData);
     },
 
     /* イベントを削除 */
@@ -59,6 +59,6 @@ export const createEventService = (
         groupId: string,
         eventId: string,
     ): ResultAsync<void, DBError> => {
-        return eventRepository.delete(groupId, eventId);
+        return eventRepository.deleteNewEvent(groupId, eventId);
     },
 });

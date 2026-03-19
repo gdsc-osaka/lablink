@@ -8,7 +8,7 @@ import { FieldValue } from "firebase-admin/firestore";
 const db = getFirestoreAdmin();
 
 export const firestoreEventAdminRepository: EventRepository = {
-    create: (
+    createNewEvent: (
         groupId: string,
         eventData: NewEvent,
     ): ResultAsync<Event, DBError> => {
@@ -36,7 +36,7 @@ export const firestoreEventAdminRepository: EventRepository = {
             updated_at: new Date(),
         }));
     },
-    findAll: (groupId: string): ResultAsync<Event[], DBError> => {
+    getNewEventsByGroupId: (groupId: string): ResultAsync<Event[], DBError> => {
         const eventsRef = db
             .collection("groups")
             .doc(groupId)
@@ -65,13 +65,31 @@ export const firestoreEventAdminRepository: EventRepository = {
             return okAsync(events);
         });
     },
-    findById: (groupId: string, id: string): ResultAsync<Event, DBError> => {
-        return errAsync(NotFoundError("findById not implemented for admin repo"));
+    getNewEventByGroupAndEventId: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<Event, DBError> => {
+        return errAsync(
+            NotFoundError("getNewEventByGroupAndEventId not implemented for admin repo"),
+        );
     },
-    update: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
-        return errAsync(NotFoundError("update not implemented for admin repo"));
+    save: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
+        return errAsync(NotFoundError("save not implemented for admin repo"));
     },
-    delete: (groupId: string, id: string): ResultAsync<void, DBError> => {
-        return errAsync(NotFoundError("delete not implemented for admin repo"));
+    updateNewEvent: (
+        groupId: string,
+        eventData: Event,
+    ): ResultAsync<Event, DBError> => {
+        return errAsync(
+            NotFoundError("updateNewEvent not implemented for admin repo"),
+        );
+    },
+    deleteNewEvent: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<void, DBError> => {
+        return errAsync(
+            NotFoundError("deleteNewEvent not implemented for admin repo"),
+        );
     },
 };

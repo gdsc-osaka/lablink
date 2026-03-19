@@ -4,16 +4,16 @@ import { createNewUser, User, UserRepository } from "@/domain/user";
 import { AuthError, AuthRepository } from "@/domain/auth";
 
 export interface AuthService {
-    signInWithGoogle(): ResultAsync<User, DBError | AuthError>;
+    signInWithGoogle(state?: string): ResultAsync<User, DBError | AuthError>;
 }
 
 export const createAuthService = (
     userRepository: UserRepository,
     authRepository: AuthRepository,
 ): AuthService => ({
-    signInWithGoogle: () =>
+    signInWithGoogle: (state) =>
         authRepository
-            .signInWithGoogle()
+            .signInWithGoogle(state)
             .andThen(createNewUser)
-            .andThen(userRepository.create),
+            .andThen(userRepository.saveUser),
 });
