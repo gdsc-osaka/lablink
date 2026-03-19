@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth/server-auth";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { firestoreEventAdminRepository } from "@/infra/event/event-admin-repo";
 import type { NewEvent } from "@/domain/event";
+import { revalidatePath } from "next/cache";
 
 export async function createEventAction(
     groupId: string,
@@ -38,7 +39,10 @@ export async function createEventAction(
         );
 
         return result.match(
-            (event) => ({ success: true, eventId: event.id }),
+            (event) => {
+                revalidatePath("/group");
+                return { success: true, eventId: event.id };
+            },
             (err) => ({ success: false, error: err.message }),
         );
     } catch (error) {

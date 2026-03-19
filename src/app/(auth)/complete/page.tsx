@@ -34,7 +34,7 @@ export default async function EventCompletePage() {
                         asChild
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     >
-                        <Link href="/">ホームに戻る</Link>
+                        <Link href="/group">グループページに戻る</Link>
                     </Button>
                 </div>
             </div>
