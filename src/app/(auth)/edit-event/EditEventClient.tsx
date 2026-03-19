@@ -70,9 +70,9 @@ function convertDraftToEvent(draft: EventDraft, original: Event): Event {
     const firstTimeOfDay = draft.timeOfDayCandidate[0];
     const startHour = firstTimeOfDay
         ? timeOfDayHours[firstTimeOfDay]
-        : original.begin_at.toDate().getHours();
+        : original.begin_at.getHours();
 
-    const beginDate = original.begin_at.toDate();
+    const beginDate = new Date(original.begin_at);
     beginDate.setHours(startHour, 0, 0, 0);
     const endDate = new Date(beginDate.getTime() + durationMinutes * 60 * 1000);
 
@@ -80,8 +80,8 @@ function convertDraftToEvent(draft: EventDraft, original: Event): Event {
         ...original,
         title: draft.title,
         description: draft.description,
-        begin_at: Timestamp.fromDate(beginDate),
-        end_at: Timestamp.fromDate(endDate),
+        begin_at: beginDate,
+        end_at: endDate,
         updated_at: new Date(),
     };
 }

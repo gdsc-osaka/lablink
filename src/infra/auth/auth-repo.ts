@@ -9,8 +9,12 @@ import {
 import { auth } from "@/firebase/client";
 
 export const authRepo: AuthRepository = {
-    signInWithGoogle(): ResultAsync<User, AuthError> {
+    signInWithGoogle(state?: string): ResultAsync<User, AuthError> {
         const provider = new GoogleAuthProvider();
+
+        if (state) {
+            provider.setCustomParameters({ state });
+        }
 
         // Google Calendar APIのアクセス権をリクエスト
         provider.addScope("https://www.googleapis.com/auth/calendar.readonly");
