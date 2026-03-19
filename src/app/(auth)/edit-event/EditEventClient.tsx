@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
+import { useForm, SubmitHandler } from "react-hook-form";
 
 const sampleEvents: Event[] = [
     {
@@ -49,6 +50,42 @@ const timeOfDayInputItems: {
     { value: "night", label: "夜（18:00~22:00ごろ）" },
 ];
 
+const timeOfDayHours: Record<EventTimeOfDay, number> = {
+    morning: 8,
+    noon: 12,
+    evening: 15,
+    night: 18,
+};
+
+function parseDurationToMinutes(duration: string): number {
+    const hoursMatch = duration.match(/(\d+)時間/);
+    const minutesMatch = duration.match(/(\d+)分/);
+    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+    const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+    return hours * 60 + minutes;
+}
+
+function convertDraftToEvent(draft: EventDraft, original: Event): Event {
+    const durationMinutes = parseDurationToMinutes(draft.duration);
+    const firstTimeOfDay = draft.timeOfDayCandidate[0];
+    const startHour = firstTimeOfDay
+        ? timeOfDayHours[firstTimeOfDay]
+        : original.begin_at.toDate().getHours();
+
+    const beginDate = original.begin_at.toDate();
+    beginDate.setHours(startHour, 0, 0, 0);
+    const endDate = new Date(beginDate.getTime() + durationMinutes * 60 * 1000);
+
+    return {
+        ...original,
+        title: draft.title,
+        description: draft.description,
+        begin_at: Timestamp.fromDate(beginDate),
+        end_at: Timestamp.fromDate(endDate),
+        updated_at: new Date(),
+    };
+}
+
 const EditEventPage = () => {
     const searchParams = useSearchParams();
     const eventId = searchParams.get("id");
@@ -58,52 +95,35 @@ const EditEventPage = () => {
         [eventId],
     );
 
-    // フォーム用のイベントデータを管理するstate
-    const [eventData, setEventData] = useState<EventDraft>(() =>
-        originalEvent ? convertEventToDraft(originalEvent) : emptyDraft,
-    );
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<EventDraft>({
+        defaultValues: originalEvent
+            ? convertEventToDraft(originalEvent)
+            : emptyDraft,
+    });
 
     // eventId が変わったときにフォームをリセットする
     const [syncedEventId, setSyncedEventId] = useState(eventId);
     if (syncedEventId !== eventId) {
         setSyncedEventId(eventId);
-        setEventData(
-            originalEvent ? convertEventToDraft(originalEvent) : emptyDraft,
-        );
+        reset(originalEvent ? convertEventToDraft(originalEvent) : emptyDraft);
     }
 
-    // 入力値の変更をハンドルする関数
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        const { name, value } = e.target;
-        setEventData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
-
-    // チェックボックスの変更をハンドルする関数
-    const handleCheckboxChange = (value: EventTimeOfDay) => {
-        setEventData((prevData) => ({
-            ...prevData,
-            timeOfDayCandidate: prevData.timeOfDayCandidate.includes(value)
-                ? prevData.timeOfDayCandidate.filter((item) => item !== value)
-                : [...prevData.timeOfDayCandidate, value],
-        }));
-    };
-
-    // フォーム送信をハンドルする関数
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log("Event Updated:", eventData);
-        // ここでAPIへの更新処理などを行う
+    const onSubmit: SubmitHandler<EventDraft> = (data) => {
+        if (!originalEvent) return;
+        const updatedEvent = convertDraftToEvent(data, originalEvent);
+        console.log("Event Updated:", updatedEvent);
+        // TODO: APIへの更新処理
     };
 
     // イベント削除をハンドルする関数
     const handleDelete = () => {
         if (confirm("このイベントを削除しますか？")) {
-            console.log("Event Deleted:", originalEvent?.id);
+            console.log("Event Deleted:", eventId);
             // ここでAPIへの削除処理などを行う
             // 削除後はグループページに戻る
             window.location.href = "/group";
@@ -120,7 +140,10 @@ const EditEventPage = () => {
                     </h1>
                 </div>
                 {/* フォーム */}
-                <form onSubmit={handleSubmit} className="space-y-6 px-15 mt-9">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-6 px-15 mt-9"
+                >
                     <div>
                         <Label
                             htmlFor="title"
@@ -131,12 +154,17 @@ const EditEventPage = () => {
                         <Input
                             type="text"
                             id="title"
-                            name="title"
-                            value={eventData.title}
                             placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
-                            onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                            {...register("title", {
+                                required: "タイトルは必須です",
+                            })}
                         />
+                        {errors.title && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.title.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -149,12 +177,21 @@ const EditEventPage = () => {
                         <Input
                             type="text"
                             id="duration"
-                            name="duration"
-                            value={eventData.duration}
                             placeholder="イベントの所要時間 (例: 30分、2時間)"
-                            onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                            {...register("duration", {
+                                required: "所要時間は必須です",
+                                validate: (value) =>
+                                    (/^(\d+時間)?(\d+分)?$/.test(value) &&
+                                        value.length > 0) ||
+                                    "所要時間は「30分」「2時間」「2時間30分」の形式で入力してください",
+                            })}
                         />
+                        {errors.duration && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.duration.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -170,12 +207,13 @@ const EditEventPage = () => {
                                     <Input
                                         type="checkbox"
                                         id={item.value}
-                                        checked={eventData.timeOfDayCandidate.includes(
-                                            item.value,
-                                        )}
-                                        onChange={() =>
-                                            handleCheckboxChange(item.value)
-                                        }
+                                        value={item.value}
+                                        {...register("timeOfDayCandidate", {
+                                            validate: (value) =>
+                                                (Array.isArray(value) &&
+                                                    value.length > 0) ||
+                                                "時間帯を少なくとも1つ選択してください",
+                                        })}
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
                                     <Label
@@ -187,6 +225,11 @@ const EditEventPage = () => {
                                 </div>
                             ))}
                         </div>
+                        {errors.timeOfDayCandidate && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.timeOfDayCandidate.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -198,13 +241,18 @@ const EditEventPage = () => {
                         </Label>
                         <Textarea
                             id="details"
-                            name="description"
                             rows={4}
-                            value={eventData.description}
                             placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-                            onChange={handleChange}
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
+                            {...register("description", {
+                                required: "イベントの詳細は必須です",
+                            })}
                         />
+                        {errors.description && (
+                            <p className="text-sm text-red-600 mt-2">
+                                {errors.description.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* ボタンエリア */}
@@ -217,14 +265,23 @@ const EditEventPage = () => {
                             イベントを削除
                         </Button>
 
-                        <Link href="/ai-suggest">
+                        <div className="flex items-center gap-3">
                             <Button
-                                type="button"
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                type="submit"
+                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                             >
-                                AIのsuggestへ
+                                保存
                             </Button>
-                        </Link>
+
+                            <Link href="/ai-suggest">
+                                <Button
+                                    type="button"
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                >
+                                    AIのsuggestへ
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
                 </form>
             </div>
