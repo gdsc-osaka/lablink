@@ -8,6 +8,7 @@ import { getFirestoreAdmin } from "@/firebase/admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { handleAdminError } from "@/infra/error-admin";
 import { NotFoundError } from "@/domain/error";
+import { toGroupFromAdmin } from "@/infra/group/group-converter";
 
 const db = getFirestoreAdmin();
 const invitationsRef = db.collection("invitations");
@@ -44,12 +45,12 @@ const fromInvitationDoc = (
 };
 
 export const invitationRepo: InvitationRepository = {
-    create: (invitation) =>
+    createInvitation: (invitation) =>
         ResultAsync.fromPromise(
             invitationRef(invitation.id).set(toInvitationData(invitation)),
             handleAdminError,
         ).map(() => invitation),
-    findByToken: (token) =>
+    getInvitationByToken: (token) =>
         ResultAsync.fromPromise(
             invitationsRef.where("token", "==", token).get(),
             handleAdminError,
@@ -60,7 +61,7 @@ export const invitationRepo: InvitationRepository = {
                     ? errAsync(NotFoundError("Invitation not found"))
                     : okAsync(fromInvitationDoc(doc)),
             ),
-    decline: (token) =>
+    declineByToken: (token) =>
         ResultAsync.fromPromise(
             invitationsRef.where("token", "==", token).get(),
             handleAdminError,
@@ -75,12 +76,12 @@ export const invitationRepo: InvitationRepository = {
                 );
             })
             .map(() => undefined),
-    delete: (invitationId) =>
+    deleteInvitation: (invitationId) =>
         ResultAsync.fromPromise(
             invitationRef(invitationId).delete(),
             handleAdminError,
         ).map(() => undefined),
-    acceptInvitationTransaction: (invitationId, userId, groupId) =>
+    acceptInvitation: (invitationId, userId, groupId) =>
         ResultAsync.fromPromise(
             db.runTransaction(async (transaction) => {
                 // 1. 招待ドキュメントを取得
@@ -118,14 +119,7 @@ export const invitationRepo: InvitationRepository = {
                     throw new Error("グループが見つかりません");
                 }
 
-                const groupData = groupSnap.data() as {
-                    createdAt: Timestamp | Date;
-                    updatedAt: Timestamp | Date;
-                    [key: string]: any;
-                };
-                if (!groupData) {
-                    throw new Error("グループが見つかりません");
-                }
+                const groupData = toGroupFromAdmin(groupId, groupSnap.data()!);
 
                 // 4. グループメンバーシップをチェック (groups/{groupId}/users/{userId})
                 const groupUserRef = db
@@ -160,19 +154,12 @@ export const invitationRepo: InvitationRepository = {
 
                 // 8. ユーザーのグループ一覧に追加（既存エントリがない場合）
                 if (!userGroupSnap.exists) {
-                    const userGroupIndexData = {
-                        ...groupData,
-                        createdAt:
-                            groupData.createdAt instanceof Date
-                                ? Timestamp.fromDate(groupData.createdAt)
-                                : groupData.createdAt,
-                        updatedAt:
-                            groupData.updatedAt instanceof Date
-                                ? Timestamp.fromDate(groupData.updatedAt)
-                                : groupData.updatedAt,
+                    transaction.set(userGroupRef, {
+                        name: groupData.name,
+                        createdAt: groupData.createdAt,
+                        updatedAt: groupData.updatedAt,
                         joinedAt: FieldValue.serverTimestamp(),
-                    };
-                    transaction.set(userGroupRef, userGroupIndexData);
+                    });
                 }
             }),
             handleAdminError,

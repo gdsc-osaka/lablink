@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
@@ -11,6 +11,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
 import { useForm, SubmitHandler } from "react-hook-form";
+
+const sampleEvents: Event[] = [
+    {
+        id: "101",
+        title: "交流会",
+        description:
+            "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
+        begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
+        end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
+        created_at: new Date(),
+        updated_at: new Date(),
+    },
+    {
+        id: "102",
+        title: "ミーティング",
+        description: "外部進学した留学生のためにたこ焼きパーティーをする",
+        begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
+        end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
+        created_at: new Date(),
+        updated_at: new Date(),
+    },
+];
+
+const emptyDraft: EventDraft = {
+    title: "",
+    duration: "",
+    timeOfDayCandidate: [],
+    description: "",
+};
 
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
@@ -61,7 +90,11 @@ function convertDraftToEvent(draft: EventDraft, original: Event): Event {
 const EditEventPage = () => {
     const searchParams = useSearchParams();
     const eventId = searchParams.get("id");
-    const originalEventRef = useRef<Event | null>(null);
+
+    const originalEvent = useMemo(
+        () => sampleEvents.find((e) => e.id === eventId) ?? null,
+        [eventId],
+    );
 
     const {
         register,
@@ -69,51 +102,21 @@ const EditEventPage = () => {
         reset,
         formState: { errors },
     } = useForm<EventDraft>({
-        defaultValues: {
-            title: "",
-            duration: "",
-            timeOfDayCandidate: [],
-            description: "",
-        },
+        defaultValues: originalEvent
+            ? convertEventToDraft(originalEvent)
+            : emptyDraft,
     });
 
-    // イベントデータを取得してフォームにセットする
-    useEffect(() => {
-        if (!eventId) return;
-
-        const sampleEvents: Event[] = [
-            {
-                id: "101",
-                title: "交流会",
-                description:
-                    "新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする",
-                begin_at: Timestamp.fromDate(new Date("2025-05-12T13:00:00Z")),
-                end_at: Timestamp.fromDate(new Date("2025-05-12T16:00:00Z")),
-                created_at: new Date(),
-                updated_at: new Date(),
-            },
-            {
-                id: "102",
-                title: "ミーティング",
-                description:
-                    "外部進学した留学生のためにたこ焼きパーティーをする",
-                begin_at: Timestamp.fromDate(new Date("2025-05-23T11:00:00Z")),
-                end_at: Timestamp.fromDate(new Date("2025-05-23T12:00:00Z")),
-                created_at: new Date(),
-                updated_at: new Date(),
-            },
-        ];
-
-        const event = sampleEvents.find((e) => e.id === eventId);
-        if (event) {
-            originalEventRef.current = event;
-            reset(convertEventToDraft(event));
-        }
-    }, [eventId, reset]);
+    // eventId が変わったときにフォームをリセットする
+    const [syncedEventId, setSyncedEventId] = useState(eventId);
+    if (syncedEventId !== eventId) {
+        setSyncedEventId(eventId);
+        reset(originalEvent ? convertEventToDraft(originalEvent) : emptyDraft);
+    }
 
     const onSubmit: SubmitHandler<EventDraft> = (data) => {
-        if (!originalEventRef.current) return;
-        const updatedEvent = convertDraftToEvent(data, originalEventRef.current);
+        if (!originalEvent) return;
+        const updatedEvent = convertDraftToEvent(data, originalEvent);
         console.log("Event Updated:", updatedEvent);
         // TODO: APIへの更新処理
     };
