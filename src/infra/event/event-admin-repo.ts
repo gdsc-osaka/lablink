@@ -67,10 +67,15 @@ export const firestoreEventAdminRepository: EventRepository = {
         _eventId: string,
     ): ResultAsync<Event, DBError> => {
         return errAsync(
-            UnknownError("getNewEventByGroupAndEventId not implemented for admin repo"),
+            UnknownError(
+                "getNewEventByGroupAndEventId not implemented for admin repo",
+            ),
         );
     },
-    save: (_groupId: string, _eventData: Event): ResultAsync<Event, DBError> => {
+    save: (
+        _groupId: string,
+        _eventData: Event,
+    ): ResultAsync<Event, DBError> => {
         return errAsync(UnknownError("save not implemented for admin repo"));
     },
     updateNewEvent: (
