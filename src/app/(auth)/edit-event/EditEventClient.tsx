@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Event, type EventTimeOfDay, EventDraft } from "@/domain/event";
@@ -22,12 +22,46 @@ const timeOfDayInputItems: {
     { value: "night", label: "夜（18:00~22:00ごろ）" },
 ];
 
+const timeOfDayHours: Record<EventTimeOfDay, number> = {
+    morning: 8,
+    noon: 12,
+    evening: 15,
+    night: 18,
+};
+
+function parseDurationToMinutes(duration: string): number {
+    const hoursMatch = duration.match(/(\d+)時間/);
+    const minutesMatch = duration.match(/(\d+)分/);
+    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+    const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+    return hours * 60 + minutes;
+}
+
+function convertDraftToEvent(draft: EventDraft, original: Event): Event {
+    const durationMinutes = parseDurationToMinutes(draft.duration);
+    const firstTimeOfDay = draft.timeOfDayCandidate[0];
+    const startHour = firstTimeOfDay
+        ? timeOfDayHours[firstTimeOfDay]
+        : original.begin_at.toDate().getHours();
+
+    const beginDate = original.begin_at.toDate();
+    beginDate.setHours(startHour, 0, 0, 0);
+    const endDate = new Date(beginDate.getTime() + durationMinutes * 60 * 1000);
+
+    return {
+        ...original,
+        title: draft.title,
+        description: draft.description,
+        begin_at: Timestamp.fromDate(beginDate),
+        end_at: Timestamp.fromDate(endDate),
+        updated_at: new Date(),
+    };
+}
+
 const EditEventPage = () => {
     const searchParams = useSearchParams();
     const eventId = searchParams.get("id");
-
-    // 元のEventデータを管理するstate
-    const [originalEvent, setOriginalEvent] = useState<Event | null>(null);
+    const originalEventRef = useRef<Event | null>(null);
 
     const {
         register,
@@ -72,21 +106,22 @@ const EditEventPage = () => {
 
         const event = sampleEvents.find((e) => e.id === eventId);
         if (event) {
-            setOriginalEvent(event);
-            const draft = convertEventToDraft(event);
-            reset(draft);
+            originalEventRef.current = event;
+            reset(convertEventToDraft(event));
         }
     }, [eventId, reset]);
 
     const onSubmit: SubmitHandler<EventDraft> = (data) => {
-        console.log("Event Updated:", data);
-        // ここでAPIへの更新処理などを行う
+        if (!originalEventRef.current) return;
+        const updatedEvent = convertDraftToEvent(data, originalEventRef.current);
+        console.log("Event Updated:", updatedEvent);
+        // TODO: APIへの更新処理
     };
 
     // イベント削除をハンドルする関数
     const handleDelete = () => {
         if (confirm("このイベントを削除しますか？")) {
-            console.log("Event Deleted:", originalEvent?.id);
+            console.log("Event Deleted:", eventId);
             // ここでAPIへの削除処理などを行う
             // 削除後はグループページに戻る
             window.location.href = "/group";
@@ -168,7 +203,9 @@ const EditEventPage = () => {
                                         id={item.value}
                                         value={item.value}
                                         {...register("timeOfDayCandidate", {
-                                            required:
+                                            validate: (value) =>
+                                                (Array.isArray(value) &&
+                                                    value.length > 0) ||
                                                 "時間帯を少なくとも1つ選択してください",
                                         })}
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"

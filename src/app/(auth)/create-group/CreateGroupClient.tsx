@@ -45,7 +45,7 @@ const CreateGroupClient = () => {
                     })}
                 />
                 {errors.groupName && (
-                    <p className="text-sm text-red-600 mb-4">
+                    <p className="mb-4 text-sm text-red-600">
                         {errors.groupName.message}
                     </p>
                 )}
