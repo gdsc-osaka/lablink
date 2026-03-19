@@ -100,9 +100,26 @@ export async function getScheduleSuggestionsAction(
 
         const requiredCount = members.filter((m) => m.isRequired).length;
 
+        const timeOfDayLabels: Record<string, string> = {
+            morning: "朝（8:00〜12:00ごろ）",
+            noon: "昼（12:00〜15:00ごろ）",
+            evening: "夕（15:00〜18:00ごろ）",
+            night: "夜（18:00〜22:00ごろ）",
+        };
+        const timeConstraint =
+            draft.timeOfDayCandidate.length > 0
+                ? `\n希望時間帯: ${draft.timeOfDayCandidate.map((t) => timeOfDayLabels[t] ?? t).join("、")}`
+                : "";
+        const descriptionWithTimeConstraint =
+            draft.description + timeConstraint;
+
         const suggestionsResult = await createScheduleSuggestionService(
             geminiRepo,
-        ).suggestSchedule(draft.description, scoresResult.value, requiredCount);
+        ).suggestSchedule(
+            descriptionWithTimeConstraint,
+            scoresResult.value,
+            requiredCount,
+        );
 
         if (suggestionsResult.isErr()) {
             return {

@@ -95,6 +95,9 @@ export default function AISuggestPage() {
             } else {
                 setError(result.error);
             }
+        } catch (err) {
+            console.error("Failed to confirm event:", err);
+            setError("イベントの作成中にエラーが発生しました");
         } finally {
             setIsConfirming(false);
         }

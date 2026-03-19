@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default async function CreateEventPage({ searchParams }: Props) {
-    await requireAuth();
+    const { uid } = await requireAuth();
     const { groupId } = await searchParams;
 
     const errorLayout = (message: string) => (
@@ -41,6 +41,9 @@ export default async function CreateEventPage({ searchParams }: Props) {
     }
 
     const memberIds = membersResult.value.map((m) => m.userId);
+    if (!memberIds.includes(uid)) {
+        return errorLayout("このグループへのアクセス権限がありません。");
+    }
     const userMapResult = await findUsersByIds(memberIds);
     if (userMapResult.isErr()) {
         return errorLayout("ユーザー情報の取得に失敗しました。");

@@ -85,6 +85,9 @@ const EditEventClient = ({ event, groupId }: Props) => {
             } else {
                 setError(result.error);
             }
+        } catch (err) {
+            console.error("Failed to update event:", err);
+            setError("イベントの保存中にエラーが発生しました");
         } finally {
             setIsSubmitting(false);
         }
@@ -101,6 +104,9 @@ const EditEventClient = ({ event, groupId }: Props) => {
             } else {
                 setError(result.error);
             }
+        } catch (err) {
+            console.error("Failed to delete event:", err);
+            setError("イベントの削除中にエラーが発生しました");
         } finally {
             setIsSubmitting(false);
         }

@@ -1,4 +1,5 @@
 import { requireAuth } from "@/lib/auth/server-auth";
+import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { firestoreEventAdminRepository } from "@/infra/event/event-admin-repo";
 import EditEventClient from "./EditEventClient";
 
@@ -7,7 +8,7 @@ interface Props {
 }
 
 export default async function EditEventPage({ searchParams }: Props) {
-    await requireAuth();
+    const { uid } = await requireAuth();
     const { id, groupId } = await searchParams;
 
     const errorLayout = (message: string) => (
@@ -31,6 +32,12 @@ export default async function EditEventPage({ searchParams }: Props) {
         return errorLayout(
             "エラー: イベントIDまたはグループIDが指定されていません。",
         );
+    }
+
+    const memberIdsResult =
+        await userGroupAdminRepo.getUserIdsByGroupId(groupId);
+    if (memberIdsResult.isErr() || !memberIdsResult.value.includes(uid)) {
+        return errorLayout("このグループへのアクセス権限がありません。");
     }
 
     const eventResult =
