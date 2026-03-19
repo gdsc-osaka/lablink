@@ -1,7 +1,7 @@
 import { getFirestoreAdmin } from "@/firebase/admin";
 import { handleAdminError } from "@/infra/error-admin";
 import { Event, NewEvent, EventRepository } from "@/domain/event";
-import { DBError, NotFoundError } from "@/domain/error";
+import { DBError, UnknownError } from "@/domain/error";
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -59,37 +59,34 @@ export const firestoreEventAdminRepository: EventRepository = {
                     updated_at: data.updated_at?.toDate(),
                 });
             });
-            if (events.length === 0) {
-                return errAsync(NotFoundError("No events found"));
-            }
             return okAsync(events);
         });
     },
     getNewEventByGroupAndEventId: (
-        groupId: string,
-        eventId: string,
+        _groupId: string,
+        _eventId: string,
     ): ResultAsync<Event, DBError> => {
         return errAsync(
-            NotFoundError("getNewEventByGroupAndEventId not implemented for admin repo"),
+            UnknownError("getNewEventByGroupAndEventId not implemented for admin repo"),
         );
     },
-    save: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
-        return errAsync(NotFoundError("save not implemented for admin repo"));
+    save: (_groupId: string, _eventData: Event): ResultAsync<Event, DBError> => {
+        return errAsync(UnknownError("save not implemented for admin repo"));
     },
     updateNewEvent: (
-        groupId: string,
-        eventData: Event,
+        _groupId: string,
+        _eventData: Event,
     ): ResultAsync<Event, DBError> => {
         return errAsync(
-            NotFoundError("updateNewEvent not implemented for admin repo"),
+            UnknownError("updateNewEvent not implemented for admin repo"),
         );
     },
     deleteNewEvent: (
-        groupId: string,
-        eventId: string,
+        _groupId: string,
+        _eventId: string,
     ): ResultAsync<void, DBError> => {
         return errAsync(
-            NotFoundError("deleteNewEvent not implemented for admin repo"),
+            UnknownError("deleteNewEvent not implemented for admin repo"),
         );
     },
 };

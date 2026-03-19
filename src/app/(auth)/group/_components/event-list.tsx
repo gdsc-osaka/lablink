@@ -40,7 +40,7 @@ const EventList = ({ events, groupId }: EventListProps) => {
             {/* イベント追加ボタン */}
             <div className="w-full max-w-4xl px-8 mt-8 pb-8">
                 <div className="flex justify-end">
-                    <Link href={`/create-event?groupId=${groupId}`}>
+                    <Link href={`/create-event?groupId=${encodeURIComponent(groupId)}`}>
                         <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             イベント追加
                         </Button>

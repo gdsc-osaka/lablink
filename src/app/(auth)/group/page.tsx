@@ -106,7 +106,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
         if (eventsResult.isOk()) {
             events = eventsResult.value;
-        } else if (eventsResult.error.message !== "No events found") {
+        } else {
             console.error("イベント一覧の取得に失敗しました", eventsResult.error);
         }
     }
