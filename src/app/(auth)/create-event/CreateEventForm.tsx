@@ -44,14 +44,14 @@ export default function CreateEventForm({ users }: Props) {
         [users],
     );
     const results = useMemo(
-        () => (query ? fuse.search(query).map((r: any) => r.item) : []),
+        () => (query ? fuse.search(query).map((r) => r.item) : []),
         [query, fuse],
     );
     useEffect(() => {
         const csv = selected.map((s) => s.email).join(",");
         setValue("priorityParticipants", csv);
     }, [selected, setValue]);
-    const onSubmit: SubmitHandler<EventDraft> = (data) => {
+    const onSubmit: SubmitHandler<EventDraft> = (_data) => {
         // TODO: create-event のAPIへの送信処理を追加
         router.push("/ai-suggest");
     };

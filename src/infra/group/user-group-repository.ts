@@ -11,7 +11,7 @@ import { db } from "@/firebase/client";
 import { groupConverter } from "./group-converter";
 import { UserGroup, UserGroupRepository, Group } from "@/domain/group";
 import { UserGroupIndexData } from "./group-repo";
-import { ok, ResultAsync } from "neverthrow";
+import { ResultAsync } from "neverthrow";
 import { DBError } from "@/domain/error";
 import { handleFirestoreError } from "../error";
 

@@ -8,6 +8,7 @@ import { getFirestoreAdmin } from "@/firebase/admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { handleAdminError } from "@/infra/error-admin";
 import { NotFoundError } from "@/domain/error";
+import { toGroupFromAdmin } from "@/infra/group/group-converter";
 
 const db = getFirestoreAdmin();
 const invitationsRef = db.collection("invitations");
@@ -118,14 +119,7 @@ export const invitationRepo: InvitationRepository = {
                     throw new Error("グループが見つかりません");
                 }
 
-                const groupData = groupSnap.data() as {
-                    createdAt: Timestamp | Date;
-                    updatedAt: Timestamp | Date;
-                    [key: string]: any;
-                };
-                if (!groupData) {
-                    throw new Error("グループが見つかりません");
-                }
+                const groupData = toGroupFromAdmin(groupId, groupSnap.data()!);
 
                 // 4. グループメンバーシップをチェック (groups/{groupId}/users/{userId})
                 const groupUserRef = db
@@ -160,19 +154,12 @@ export const invitationRepo: InvitationRepository = {
 
                 // 8. ユーザーのグループ一覧に追加（既存エントリがない場合）
                 if (!userGroupSnap.exists) {
-                    const userGroupIndexData = {
-                        ...groupData,
-                        createdAt:
-                            groupData.createdAt instanceof Date
-                                ? Timestamp.fromDate(groupData.createdAt)
-                                : groupData.createdAt,
-                        updatedAt:
-                            groupData.updatedAt instanceof Date
-                                ? Timestamp.fromDate(groupData.updatedAt)
-                                : groupData.updatedAt,
+                    transaction.set(userGroupRef, {
+                        name: groupData.name,
+                        createdAt: groupData.createdAt,
+                        updatedAt: groupData.updatedAt,
                         joinedAt: FieldValue.serverTimestamp(),
-                    };
-                    transaction.set(userGroupRef, userGroupIndexData);
+                    });
                 }
             }),
             handleAdminError,
