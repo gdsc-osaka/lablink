@@ -55,7 +55,10 @@ const RemoveMemberConfirmModal: React.FC<RemoveMemberConfirmModalProps> = ({
                 aria-labelledby="remove-member-title"
                 className="relative w-[360px] rounded-lg bg-white p-6 shadow-lg"
             >
-                <h2 id="remove-member-title" className="text-lg font-bold text-black">
+                <h2
+                    id="remove-member-title"
+                    className="text-lg font-bold text-black"
+                >
                     {isCurrentUser ? "グループから退会" : "メンバーを削除"}
                 </h2>
                 <p className="mt-4 text-sm text-gray-700">
