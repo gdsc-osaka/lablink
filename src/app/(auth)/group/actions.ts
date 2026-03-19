@@ -1,43 +1,75 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/server-auth";
 import { createGroupService } from "@/service/group-service";
 import { firestoreGroupAdminRepository } from "@/infra/group/group-admin-repo";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
+import { isGroupRole } from "@/domain/group";
 
-export async function removeGroupMember(
+const groupService = createGroupService({
+    groupRepo: firestoreGroupAdminRepository,
+    userGroupRepo: userGroupAdminRepo,
+});
+
+export async function removeMemberAction(
     groupId: string,
-    userId: string,
-): Promise<{ success: boolean; error?: string }> {
-    // 認証確認（Next.js の redirect() を try-catch で捕まえないよう外に出す）
-    await requireAuth();
+    targetUserId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+    const decodedClaims = await requireAuth();
+    const requesterId = decodedClaims.uid;
 
-    try {
-        // サービスインスタンスを組み立て
-        const groupService = createGroupService({
-            groupRepo: firestoreGroupAdminRepository,
-            userGroupRepo: userGroupAdminRepo,
-        });
+    const result = await groupService.removeMember(
+        groupId,
+        requesterId,
+        targetUserId,
+    );
 
-        // メンバー削除実行
-        const result = await groupService.removeGroupMember(groupId, userId);
+    return result.match(
+        () => ({ success: true as const }),
+        (err) => ({ success: false, error: err.message }),
+    );
+}
 
-        if (result.isErr()) {
-            return {
-                success: false,
-                error: result.error.message || "メンバー削除に失敗しました",
-            };
-        }
+export async function changeMemberRoleAction(
+    groupId: string,
+    targetUserId: string,
+    newRole: unknown,
+): Promise<{ success: true } | { success: false; error: string }> {
+    const decodedClaims = await requireAuth();
+    const requesterId = decodedClaims.uid;
 
-        revalidatePath("/group");
-        return { success: true };
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error("Failed to remove group member:", message);
-        return {
-            success: false,
-            error: "メンバー削除中にエラーが発生しました",
-        };
+    if (!isGroupRole(newRole) || newRole === "owner") {
+        return { success: false, error: "無効なロールが指定されました" };
     }
+
+    const result = await groupService.changeMemberRole(
+        groupId,
+        requesterId,
+        targetUserId,
+        newRole,
+    );
+
+    return result.match(
+        () => ({ success: true as const }),
+        (err) => ({ success: false, error: err.message }),
+    );
+}
+
+export async function transferOwnershipAction(
+    groupId: string,
+    newOwnerId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+    const decodedClaims = await requireAuth();
+    const currentOwnerId = decodedClaims.uid;
+
+    const result = await groupService.transferOwnership(
+        groupId,
+        currentOwnerId,
+        newOwnerId,
+    );
+
+    return result.match(
+        () => ({ success: true as const }),
+        (err) => ({ success: false, error: err.message }),
+    );
 }
