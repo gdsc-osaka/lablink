@@ -36,7 +36,7 @@ export default function LoginPage() {
                 if (isSafeRedirectUrl(redirectTo)) {
                     router.push(redirectTo);
                 } else {
-                    router.push("/create-group");
+                    router.push("/group");
                 }
             },
             (error) => {
