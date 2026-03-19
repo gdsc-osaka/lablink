@@ -55,8 +55,9 @@ export const onGroupUserDeleted = onDocumentDeleted(
             // バッチ処理を実行
             await batch.commit();
 
+            const archiveSuffix = deletedUserData ? " and archived" : "";
             logger.info(
-                `User ${userId} successfully removed from group ${groupId} and archived.`,
+                `User ${userId} successfully removed from group ${groupId}${archiveSuffix}.`,
             );
         } catch (error) {
             logger.error(
