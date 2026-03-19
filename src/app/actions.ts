@@ -3,10 +3,6 @@
 import { google } from "googleapis";
 import { findCommonFreeSlots } from "@/lib/availability";
 import { formatFreeSlotsForAI } from "@/lib/ai-formatter";
-import { firestoreEventRepository } from "@/infra/event/event-repo";
-import { Event, NewEvent } from "@/domain/event";
-import { ResultAsync } from "neverthrow";
-import { DBError } from "@/domain/error";
 // import { callGeminiAPI } from '@/lib/gemini'; // 将来的にGemini APIを呼び出す関数
 import { requireAuth } from "@/lib/auth/server-auth";
 
@@ -19,27 +15,6 @@ interface CommonAvailabilityResponse {
     success: boolean;
     message: string;
     data: string; // Geminiに渡すために整形された文字列
-}
-
-/**
- * イベントをデータベースに保存するサーバーアクション
- */
-export async function createEvent(
-    groupId: string,
-    eventId: string,
-    eventData: NewEvent,
-): Promise<{ success: boolean; error?: string }> {
-    const event: Event = {
-        id: eventId,
-        ...eventData,
-    };
-
-    const result = await firestoreEventRepository.save(groupId, event);
-
-    return result.match(
-        () => ({ success: true }),
-        (error) => ({ success: false, error: error.message }),
-    );
 }
 
 export async function getCommonAvailability(

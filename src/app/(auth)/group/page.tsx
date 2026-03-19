@@ -150,7 +150,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
                     }
                 >
                     {selectedGroup ? (
-                        <EventList events={events} />
+                        <EventList events={events} groupId={selectedGroup.id} />
                     ) : (
                         <div className="h-full flex items-center justify-center bg-gray-50">
                             <p className="text-gray-400">
