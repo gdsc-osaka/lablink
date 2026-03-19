@@ -1,7 +1,7 @@
 import { getFirestoreAdmin } from "@/firebase/admin";
 import { handleAdminError } from "@/infra/error-admin";
 import { Event, NewEvent, EventRepository } from "@/domain/event";
-import { DBError, UnknownError } from "@/domain/error";
+import { DBError, NotFoundError } from "@/domain/error";
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -76,7 +76,7 @@ export const firestoreEventAdminRepository: EventRepository = {
             (doc) => {
                 if (!doc.exists) {
                     return errAsync(
-                        UnknownError(
+                        NotFoundError(
                             `Event ${eventId} not found in group ${groupId}`,
                         ),
                     );

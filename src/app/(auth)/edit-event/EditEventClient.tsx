@@ -53,7 +53,6 @@ function convertDraftToEvent(draft: EventDraft, original: Event): Event {
         description: draft.description,
         begin_at: beginDate,
         end_at: endDate,
-        updated_at: new Date(),
     };
 }
 
@@ -158,10 +157,25 @@ const EditEventClient = ({ event, groupId }: Props) => {
                             className="mt-2 block w-full p-3 bg-white border border-gray-400 rounded-lg focus:outline-none focus:border-gray-400 text-black"
                             {...register("duration", {
                                 required: "所要時間は必須です",
-                                validate: (value) =>
-                                    (/^(\d+時間)?(\d+分)?$/.test(value) &&
-                                        value.length > 0) ||
-                                    "所要時間は「30分」「2時間」「2時間30分」の形式で入力してください",
+                                validate: (value) => {
+                                    if (
+                                        !(
+                                            /^(\d+時間)?(\d+分)?$/.test(
+                                                value,
+                                            ) && value.length > 0
+                                        )
+                                    ) {
+                                        return "所要時間は「30分」「2時間」「2時間30分」の形式で入力してください";
+                                    }
+                                    const h =
+                                        value.match(/(\d+)時間/)?.[1] ?? "0";
+                                    const m =
+                                        value.match(/(\d+)分/)?.[1] ?? "0";
+                                    if (parseInt(h) * 60 + parseInt(m) === 0) {
+                                        return "所要時間は1分以上を入力してください";
+                                    }
+                                    return true;
+                                },
                             })}
                         />
                         {errors.duration && (

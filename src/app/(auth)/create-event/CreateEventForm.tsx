@@ -62,17 +62,24 @@ export default function CreateEventForm({ groupId, users }: Props) {
             const result = await getScheduleSuggestionsAction(groupId, data);
 
             if (result.success) {
-                sessionStorage.setItem(
-                    "lablink_event_session",
-                    JSON.stringify({
-                        groupId,
-                        draft: {
-                            title: data.title,
-                            description: data.description,
-                        },
-                        suggestions: result.suggestions,
-                    }),
-                );
+                try {
+                    sessionStorage.setItem(
+                        "lablink_event_session",
+                        JSON.stringify({
+                            groupId,
+                            draft: {
+                                title: data.title,
+                                description: data.description,
+                            },
+                            suggestions: result.suggestions,
+                        }),
+                    );
+                } catch (storageErr) {
+                    console.error(
+                        "Failed to save session to sessionStorage:",
+                        storageErr,
+                    );
+                }
                 router.push("/ai-suggest");
             } else {
                 setError(result.error);
@@ -158,7 +165,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
                     type="search"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="ユーザー名やメールで検索"
+                    placeholder="メールアドレスで検索"
                     className="event-form-input"
                 />
                 {results.length > 0 && (
@@ -170,9 +177,6 @@ export default function CreateEventForm({ groupId, users }: Props) {
                             >
                                 <div>
                                     <div className="text-sm font-medium">
-                                        {u.username}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
                                         {u.email}
                                     </div>
                                 </div>

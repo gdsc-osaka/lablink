@@ -132,7 +132,19 @@ export default function AISuggestPage() {
                             return (
                                 <div
                                     key={idx}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-pressed={selectedIndex === idx}
                                     onClick={() => setSelectedIndex(idx)}
+                                    onKeyDown={(e) => {
+                                        if (
+                                            e.key === "Enter" ||
+                                            e.key === " "
+                                        ) {
+                                            e.preventDefault();
+                                            setSelectedIndex(idx);
+                                        }
+                                    }}
                                     className={`p-6 rounded-lg cursor-pointer transition-colors ${
                                         selectedIndex === idx
                                             ? "bg-blue-100 border-2 border-blue-500"

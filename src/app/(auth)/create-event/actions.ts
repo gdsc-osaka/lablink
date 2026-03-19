@@ -28,21 +28,6 @@ export async function getScheduleSuggestionsAction(
         const decodedClaims = await requireAuth();
         const userId = decodedClaims.uid;
 
-        const memberIdsResult =
-            await userGroupAdminRepo.getUserIdsByGroupId(groupId);
-        if (memberIdsResult.isErr()) {
-            return {
-                success: false,
-                error: "グループ情報の取得に失敗しました",
-            };
-        }
-        if (!memberIdsResult.value.includes(userId)) {
-            return {
-                success: false,
-                error: "このグループへのアクセス権限がありません",
-            };
-        }
-
         const membersWithRolesResult =
             await userGroupAdminRepo.findMembersWithRoles(groupId);
         if (membersWithRolesResult.isErr()) {
@@ -53,6 +38,12 @@ export async function getScheduleSuggestionsAction(
         }
 
         const memberIds = membersWithRolesResult.value.map((m) => m.userId);
+        if (!memberIds.includes(userId)) {
+            return {
+                success: false,
+                error: "このグループへのアクセス権限がありません",
+            };
+        }
         const userMapResult = await findUsersByIds(memberIds);
         if (userMapResult.isErr()) {
             return {

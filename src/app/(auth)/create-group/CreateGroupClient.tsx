@@ -22,11 +22,16 @@ const CreateGroupClient = () => {
 
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         setError(null);
-        const result = await createGroupAction(data.groupName);
-        if (result.success) {
-            router.push("/group");
-        } else {
-            setError(result.error.message);
+        try {
+            const result = await createGroupAction(data.groupName);
+            if (result.success) {
+                router.push("/group");
+            } else {
+                setError(result.error.message);
+            }
+        } catch (err) {
+            console.error("Failed to create group:", err);
+            setError("グループの作成中にエラーが発生しました");
         }
     };
 
@@ -57,8 +62,9 @@ const CreateGroupClient = () => {
                 {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
                 <Button
                     type="submit"
+                    variant="default"
                     disabled={isSubmitting}
-                    className="btn-primary disabled:opacity-50"
+                    className="disabled:opacity-50"
                 >
                     {isSubmitting ? "作成中..." : "作成"}
                 </Button>
