@@ -7,7 +7,6 @@ import {
     UserGroup,
     UserGroupRepository,
     GroupWithMembers,
-    isGroupRole,
 } from "@/domain/group";
 import { ServiceError, ServiceLogicError } from "@/domain/error";
 import { findUsersByIds } from "@/infra/user/user-admin-repo";
@@ -439,14 +438,6 @@ export const createGroupService = ({
             targetUserId: string,
             newRole: Exclude<GroupRole, "owner">,
         ): ResultAsync<void, ServiceError> => {
-            if (!isGroupRole(newRole) || newRole === "owner") {
-                return errAsync(
-                    ServiceLogicError("不正なロールです", {
-                        extra: { code: "INVALID_ROLE" },
-                    }),
-                );
-            }
-
             return validateRequiredId(groupId, "グループID", "MISSING_GROUP_ID")
                 .andThen(() =>
                     validateRequiredId(
