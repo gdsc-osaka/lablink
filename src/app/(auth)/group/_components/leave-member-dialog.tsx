@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { removeGroupMember } from "../actions";
+import { removeMemberAction as removeGroupMember } from "../actions";
 import {
     AlertDialog,
     AlertDialogAction,
