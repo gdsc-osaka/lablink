@@ -97,7 +97,6 @@ export const firestoreEventRepository: EventRepository = {
         const { id, ...eventData } = event;
         const eventToSave: WithFieldValue<NewEvent> = {
             ...eventData,
-            created_at: serverTimestamp(),
             updated_at: serverTimestamp(),
         };
 

@@ -42,7 +42,7 @@ export interface EventRepository {
     getNewEventsByGroupId: (groupId: string) => ResultAsync<Event[], DBError>;
     createNewEvent: (
         groupId: string,
-        event: Event,
+        event: NewEvent,
     ) => ResultAsync<Event, DBError>;
     save: (groupId: string, event: Event) => ResultAsync<Event, DBError>;
     updateNewEvent: (

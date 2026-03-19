@@ -57,7 +57,7 @@ function determineTimeOfDay(beginAt: Date): EventTimeOfDay[] {
 
 /**
  * EventDraftからNewEventへの変換（イベント作成時）
- * ダミーのタイムスタンプを生成して返す
+ * 仮の開始・終了日時（Date）を生成して返す
  */
 export function convertDraftToEvent(draft: EventDraft): NewEvent {
     // 時間帯の中間時刻を取得
