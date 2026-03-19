@@ -17,7 +17,7 @@ export async function createEventAction(
 
     try {
         const memberIdsResult =
-            await userGroupAdminRepo.findUserIdsByGroupId(groupId);
+            await userGroupAdminRepo.getUserIdsByGroupId(groupId);
 
         if (memberIdsResult.isErr()) {
             return {
