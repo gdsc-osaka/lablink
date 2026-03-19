@@ -19,10 +19,17 @@ import { handleFirestoreError } from "@/infra/error";
 import { DBError, NotFoundError } from "@/domain/error";
 
 export const firestoreEventRepository: EventRepository = {
-    findById: (groupId: string, id: string): ResultAsync<Event, DBError> => {
-        const eventDoc = doc(db, "groups", groupId, "events", id).withConverter(
-            eventConverter,
-        );
+    getNewEventByGroupAndEventId: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<Event, DBError> => {
+        const eventDoc = doc(
+            db,
+            "groups",
+            groupId,
+            "events",
+            eventId,
+        ).withConverter(eventConverter);
 
         return ResultAsync.fromPromise(
             getDoc(eventDoc),
@@ -37,7 +44,7 @@ export const firestoreEventRepository: EventRepository = {
         });
     },
 
-    findAll: (groupId: string): ResultAsync<Event[], DBError> => {
+    getNewEventsByGroupId: (groupId: string): ResultAsync<Event[], DBError> => {
         const eventsRef = collection(
             db,
             "groups",
@@ -61,7 +68,7 @@ export const firestoreEventRepository: EventRepository = {
         });
     },
 
-    create: (
+    createNewEvent: (
         groupId: string,
         eventData: NewEvent,
     ): ResultAsync<Event, DBError> => {
@@ -89,7 +96,7 @@ export const firestoreEventRepository: EventRepository = {
         }));
     },
 
-    update: (
+    updateNewEvent: (
         groupId: string,
         eventData: Event,
     ): ResultAsync<Event, DBError> => {
@@ -114,11 +121,16 @@ export const firestoreEventRepository: EventRepository = {
         return ResultAsync.fromPromise(
             updateDoc(eventRef, updatePayload),
             handleFirestoreError,
-        ).andThen(() => firestoreEventRepository.findById(groupId, id));
+        ).andThen(() =>
+            firestoreEventRepository.getNewEventByGroupAndEventId(groupId, id),
+        );
     },
 
-    delete: (groupId: string, id: string): ResultAsync<void, DBError> => {
-        const eventRef = doc(db, "groups", groupId, "events", id);
+    deleteNewEvent: (
+        groupId: string,
+        eventId: string,
+    ): ResultAsync<void, DBError> => {
+        const eventRef = doc(db, "groups", groupId, "events", eventId);
 
         return ResultAsync.fromPromise(
             deleteDoc(eventRef),

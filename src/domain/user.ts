@@ -10,9 +10,8 @@ export interface User {
 }
 
 export interface UserRepository {
-    create(user: User): ResultAsync<User, DBError>;
-    findById(uid: string): ResultAsync<User, DBError>;
-    update(user: User): ResultAsync<User, DBError>;
+    saveUser(user: User): ResultAsync<User, DBError>;
+    getUserByUid(uid: string): ResultAsync<User, DBError>;
 }
 
 export const createNewUser = (user: AuthUser): Result<User, never> => {
