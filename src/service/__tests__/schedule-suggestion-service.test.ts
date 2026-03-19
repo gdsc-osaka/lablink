@@ -112,6 +112,18 @@ describe("ScheduleSuggestionService", () => {
             expect(callArgs[1]).toBeDefined();
         });
 
+        it("should return empty array when no scores are provided", async () => {
+            const service = createScheduleSuggestionService(mockGenAIRepo);
+
+            const result = await service.suggestSchedule("Test Event", [], 1);
+
+            expect(result.isOk()).toBe(true);
+            if (result.isOk()) {
+                expect(result.value).toHaveLength(0);
+            }
+            expect(mockGenAIRepo.generateStructured).not.toHaveBeenCalled();
+        });
+
         it("should forward GenAI error when the model fails to generate", async () => {
             mockGenAIRepo.generateStructured.mockReturnValue(
                 errAsync(

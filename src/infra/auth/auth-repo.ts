@@ -4,7 +4,6 @@ import {
     AuthError,
     GoogleAuthProvider,
     signInWithPopup,
-    signInWithRedirect,
     User,
 } from "firebase/auth";
 import { auth } from "@/firebase/client";

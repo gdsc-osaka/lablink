@@ -15,7 +15,8 @@ export async function getBaseUrl(): Promise<string> {
     // ローカル開発環境や、その他の環境でのフォールバックとしてヘッダーを使用
     const headersList = await headers();
     const host = headersList.get("host") || "localhost:3000";
-    const forwardedProto = headersList.get("x-forwarded-proto");
+    const forwardedProtoRaw = headersList.get("x-forwarded-proto");
+    const forwardedProto = forwardedProtoRaw?.split(",")[0].trim() || null;
 
     // リバースプロキシ環境でのプロトコルを優先し、ない場合はlocalhostでhttp、他はhttpsと判定
     const protocol =

@@ -143,6 +143,7 @@ export const geminiRepo: GenAIRepository = {
                                 extra: {
                                     impl: GEMINI_IMPL,
                                     model: GEMINI_MODEL_NAME,
+                                    validationErrors: parsedResult.error.issues,
                                 },
                             }),
                         );

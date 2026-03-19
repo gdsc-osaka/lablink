@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { onAuthStateChanged, getIdToken } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { Spinner } from "@/components/ui/spinner";
 import { isSafeRedirectUrl } from "@/lib/url";
@@ -10,22 +10,6 @@ import { isSafeRedirectUrl } from "@/lib/url";
 /**
  * Google OAuth 認証後のコールバックページ
  * Google Calendarの権限取得などのフローで使用
- *
- * @example
- * ```ts
- * const state = crypto.randomUUID();
- * sessionStorage.setItem("oauth_state", state);
- *
- * const redirectTo = searchParams.get("redirectTo");
- * if (redirectTo) {
- *     sessionStorage.setItem("oauth_redirect_to", redirectTo);
- * } else {
- *     sessionStorage.removeItem("oauth_redirect_to");
- * }
- *
- * const authUrl = await generateAuthUrl(state);
- * window.location.href = authUrl;
- * ```
  */
 export default function AuthCallbackPage() {
     const router = useRouter();
@@ -83,15 +67,13 @@ export default function AuthCallbackPage() {
 
                 setStatus("トークンを取得・保存中...");
 
-                const idToken = await getIdToken(auth.currentUser!);
-
                 // 1. API Route経由でトークン交換と永続化（サーバー完結）
                 const tokenResponse = await fetch("/api/auth/exchange-token", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ code, state, idToken }),
+                    body: JSON.stringify({ code, state }),
                 });
 
                 if (!tokenResponse.ok) {

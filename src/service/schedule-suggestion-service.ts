@@ -1,7 +1,7 @@
 import "server-only";
 
 import { okAsync, ResultAsync } from "neverthrow";
-import { CalendarError, TimeRange } from "@/domain/calendar";
+import { TimeRange } from "@/domain/calendar";
 import { GenAIError, GenAIRepository } from "@/domain/gen-ai";
 import * as z from "zod";
 import { createGenAIService } from "./gen-ai-service";
@@ -111,7 +111,7 @@ export interface ScheduleSuggestionService {
         description: string,
         scores: TimeRangeScore[],
         requiredMemberCount: number,
-    ): ResultAsync<ScheduleSuggestion[], CalendarError | GenAIError>;
+    ): ResultAsync<ScheduleSuggestion[], GenAIError>;
 }
 
 export const createScheduleSuggestionService = (

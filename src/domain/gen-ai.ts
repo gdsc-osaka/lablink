@@ -57,6 +57,7 @@ export const GenAIUnknownError = errorBuilder(
     z.object({
         impl: z.string(),
         model: z.string().optional(),
+        validationErrors: z.array(z.unknown()).optional(),
     }),
 );
 export type GenAIUnknownError = InferError<typeof GenAIUnknownError>;

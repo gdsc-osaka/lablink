@@ -102,11 +102,12 @@ export const calculateTimeRangeScores = (
     durationMinutes: number,
     memberAvailability: UserTimeRanges[],
     members: EventMember[],
+    slotIntervalMinutes: number = 30,
 ): TimeRangeScore[] => {
     const slots: TimeRangeScore[] = createSlots(
         timeRange,
         durationMinutes,
-        30, // TODO: 開始時刻の間隔は 30 分で固定で良いか？
+        slotIntervalMinutes,
     ).map((slot) => ({
         timeRange: slot,
         availableMemberIds: {

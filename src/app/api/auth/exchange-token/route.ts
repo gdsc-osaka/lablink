@@ -18,12 +18,17 @@ const tokenService = createTokenService(googleTokenRepository);
  */
 export async function POST(request: NextRequest) {
     try {
-        const { code, state, idToken } = await request.json();
+        const { code, state } = await request.json();
 
-        if (!code || !state || !idToken) {
+        if (
+            typeof code !== "string" ||
+            code.trim() === "" ||
+            typeof state !== "string" ||
+            state.trim() === ""
+        ) {
             return NextResponse.json(
                 {
-                    error: "Authorization code, state, and ID token are required",
+                    error: "Authorization code and state are required",
                 },
                 { status: 400 },
             );
@@ -44,14 +49,25 @@ export async function POST(request: NextRequest) {
         // 以降のいかなるレスポンス（エラー時含む）でもCookieが削除されるようにここで設定
         cookieStore.delete("oauth_state");
 
-        // Firebase Auth IDトークンを検証してユーザーの UID を取得する
+        // セッションクッキーからユーザーの UID を取得する
+        const sessionCookie = cookieStore.get("session")?.value;
+        if (!sessionCookie) {
+            return NextResponse.json(
+                { error: "Authentication required" },
+                { status: 401 },
+            );
+        }
+
         let decodedToken;
         try {
-            decodedToken = await authAdmin.verifyIdToken(idToken);
+            decodedToken = await authAdmin.verifySessionCookie(
+                sessionCookie,
+                true,
+            );
         } catch (verifyError) {
-            console.error("Failed to verify Firebase ID token:", verifyError);
+            console.error("Failed to verify session cookie:", verifyError);
             return NextResponse.json(
-                { error: "Invalid Firebase ID token" },
+                { error: "Invalid or expired session" },
                 { status: 401 },
             );
         }

@@ -4,7 +4,7 @@ import { google } from "googleapis";
 import {
     CalendarRepository,
     TimeRange,
-    CalendarUnauthenticatedError,
+    CalendarUnknownError,
 } from "@/domain/calendar";
 import { ResultAsync, err, ok } from "neverthrow";
 import { GaxiosError } from "gaxios";
@@ -20,7 +20,7 @@ const initCalendar = (userId: string, token: Token) => {
 
     if (!clientId || !clientSecret) {
         return err(
-            CalendarUnauthenticatedError(
+            CalendarUnknownError(
                 "Server configuration error: Google OAuth credentials are missing",
                 {
                     extra: {

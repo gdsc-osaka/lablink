@@ -32,6 +32,27 @@ export const tokenConverter: FirestoreDataConverter<EncryptedToken> = {
     ): EncryptedToken {
         const data = snapshot.data();
 
+        if (typeof data.userId !== "string" || data.userId.trim() === "") {
+            throw new Error(
+                `Malformed document: userId is missing or invalid for token ${snapshot.id}`,
+            );
+        }
+        if (
+            typeof data.encryptedToken !== "string" ||
+            data.encryptedToken === ""
+        ) {
+            throw new Error(
+                `Malformed document: encryptedToken is missing or invalid for token ${snapshot.id}`,
+            );
+        }
+        if (
+            typeof data.serviceType !== "string" ||
+            data.serviceType.trim() === ""
+        ) {
+            throw new Error(
+                `Malformed document: serviceType is missing or invalid for token ${snapshot.id}`,
+            );
+        }
         if (!data.createdAt || typeof data.createdAt.toDate !== "function") {
             throw new Error(
                 `Malformed document: createdAt is missing or invalid for token ${snapshot.id}`,
