@@ -44,12 +44,12 @@ const fromInvitationDoc = (
 };
 
 export const invitationRepo: InvitationRepository = {
-    create: (invitation) =>
+    createInvitation: (invitation) =>
         ResultAsync.fromPromise(
             invitationRef(invitation.id).set(toInvitationData(invitation)),
             handleAdminError,
         ).map(() => invitation),
-    findByToken: (token) =>
+    getInvitationByToken: (token) =>
         ResultAsync.fromPromise(
             invitationsRef.where("token", "==", token).get(),
             handleAdminError,
@@ -60,7 +60,7 @@ export const invitationRepo: InvitationRepository = {
                     ? errAsync(NotFoundError("Invitation not found"))
                     : okAsync(fromInvitationDoc(doc)),
             ),
-    decline: (token) =>
+    declineByToken: (token) =>
         ResultAsync.fromPromise(
             invitationsRef.where("token", "==", token).get(),
             handleAdminError,
@@ -75,12 +75,12 @@ export const invitationRepo: InvitationRepository = {
                 );
             })
             .map(() => undefined),
-    delete: (invitationId) =>
+    deleteInvitation: (invitationId) =>
         ResultAsync.fromPromise(
             invitationRef(invitationId).delete(),
             handleAdminError,
         ).map(() => undefined),
-    acceptInvitationTransaction: (invitationId, userId, groupId) =>
+    acceptInvitation: (invitationId, userId, groupId) =>
         ResultAsync.fromPromise(
             db.runTransaction(async (transaction) => {
                 // 1. 招待ドキュメントを取得
