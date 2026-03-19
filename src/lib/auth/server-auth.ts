@@ -36,26 +36,39 @@ export async function createAuthSession(idToken: string) {
     }
 }
 
-// サーバー側で認証チェックする
-// 未認証の場合はログインページへリダイレクトする
-export const requireAuth = cache(async (): Promise<DecodedIdToken> => {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
+/**
+ * サーバーサイドで認証状態をチェック
+ * 未認証の場合はログインページへリダイレクト（この関数は値を返さずに終了）
+ *
+ * @param searchParams リダイレクト先で保持したいパラメータ（例: 招待トークン）
+ * @returns 認証済みの場合はデコードされたIDトークンを返す。未認証の場合はリダイレクトするため返り値はない。
+ */
+export const requireAuth = cache(
+    async (searchParams?: {
+        token?: string;
+    }): Promise<DecodedIdToken | never> => {
+        const cookieStore = await cookies();
+        const sessionCookie = cookieStore.get("session")?.value;
 
-    if (!sessionCookie) {
-        redirect("/login");
-    }
+        if (sessionCookie) {
+            try {
+                const decodedClaims = await getAuthAdmin().verifySessionCookie(
+                    sessionCookie,
+                    true,
+                );
+                return decodedClaims;
+            } catch {
+                // セッションが無効な場合はリダイレクト処理へ進む
+            }
+        }
 
-    try {
-        const decodedClaims = await getAuthAdmin().verifySessionCookie(
-            sessionCookie,
-            true,
-        );
-        return decodedClaims;
-    } catch (error) {
-        redirect("/login");
-    }
-});
+        // tokenが存在する場合は、ログイン後に招待ページへ戻るようにリダイレクト先を指定
+        const redirectUrl = searchParams?.token
+            ? `/login?redirectTo=${encodeURIComponent(`/invited?token=${searchParams.token}`)}`
+            : "/login";
+        redirect(redirectUrl);
+    },
+);
 
 // セッション取得（リダイレクトなし）
 export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
@@ -72,7 +85,7 @@ export const getSession = cache(async (): Promise<DecodedIdToken | null> => {
             true,
         );
         return decodedClaims;
-    } catch (error) {
+    } catch {
         return null;
     }
 });
@@ -89,7 +102,7 @@ export async function removeAuthSession() {
             const decodedClaims =
                 await getAuthAdmin().verifySessionCookie(sessionCookie);
             await getAuthAdmin().revokeRefreshTokens(decodedClaims.sub);
-        } catch (error) {}
+        } catch {}
     }
 
     cookieStore.delete("session");

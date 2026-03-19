@@ -1,117 +1,29 @@
-﻿"use client";
+import { requireAuth } from "@/lib/auth/server-auth";
+import CreateEventForm from "./CreateEventForm";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
-import type { EventTimeOfDay, EventDraft } from "@/domain/event";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import Fuse from "fuse.js";
-import { convertDraftToEvent } from "@/lib/event-to-draft";
-import { createEvent } from "@/app/actions";
-
-const timeOfDayInputItems: {
-    value: EventTimeOfDay;
-    label: string;
-}[] = [
-    { value: "morning", label: "朝（8:00~12:00ごろ）" },
-    { value: "noon", label: "昼（12:00~15:00ごろ）" },
-    { value: "evening", label: "夕（15:00~18:00ごろ）" },
-    { value: "night", label: "夜（18:00~22:00ごろ）" },
+// テスト用の静的ユーザー一覧
+// TODO: UserRepository.findAll() または UserGroupRepository.findUsersByGroupId() を実装したら置き換える
+const MOCK_USERS = [
+    { id: "1", username: "tanigaki kei", email: "tanigaki_kei@example.com" },
+    { id: "2", username: "suyama souta", email: "suyama_souta@example.com" },
+    {
+        id: "3",
+        username: "yoshida kazuya",
+        email: "yoshida_kazuya@example.com",
+    },
+    { id: "4", username: "siomi ayari", email: "siomi_ayari@example.com" },
+    { id: "5", username: "itaya kosuke", email: "itaya_kosuke@example.com" },
 ];
 
-export default function CreateEventPage() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
+export default async function CreateEventPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ groupId?: string; eventId?: string }>;
+}) {
+    await requireAuth();
 
-    const groupId = searchParams.get("groupId");
-    const eventId = searchParams.get("eventId");
-
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    // useFormフックをコンポーネント内で呼び出す
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        setValue,
-    } = useForm<EventDraft>({
-        defaultValues: {
-            title: "",
-            duration: "",
-            timeOfDayCandidate: [],
-            priorityParticipants: "",
-            description: "",
-        },
-    });
-
-    const [users, setUsers] = useState<
-        Array<{ id: string; username: string; email: string }>
-    >([]);
-    const [query, setQuery] = useState("");
-    const [selected, setSelected] = useState<typeof users>([]);
-
-    const fuse = useMemo(() => {
-        return new Fuse(users, {
-            keys: ["username", "email"],
-            threshold: 0.3,
-        });
-    }, [users]);
-
-    const results = useMemo(() => {
-        if (!query) return [] as typeof users;
-        return fuse.search(query).map((r: any) => r.item);
-    }, [query, fuse]);
-
-    useEffect(() => {
-        // フェッチ: テスト用のユーザー一覧を取得
-        fetch("/api/users")
-            .then((r) => r.json())
-            .then((data) => setUsers(data))
-            .catch(() => setUsers([]));
-    }, []);
-
-    // 選択の変化をフォームの値に反映（カンマ区切り）
-    useEffect(() => {
-        const csv = selected.map((s) => s.email).join(",");
-        setValue("priorityParticipants", csv);
-    }, [selected, setValue]);
-
-    // フォーム送信時の処理
-    const onSubmit: SubmitHandler<EventDraft> = async (data: EventDraft) => {
-        // クエリパラメータの検証
-        if (!groupId || !eventId) {
-            setError("グループIDまたはイベントIDが指定されていません");
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            // EventDraftをNewEventに変換
-            const newEvent = convertDraftToEvent(data);
-
-            // サーバーアクションを呼び出してイベントを保存
-            const result = await createEvent(groupId, eventId, newEvent);
-
-            if (result.success) {
-                // 成功時は完了ページに遷移
-                router.push("/complete");
-            } else {
-                // エラー時はメッセージを表示
-                setError(result.error || "イベントの作成に失敗しました");
-            }
-        } catch (err) {
-            console.error("Error creating event:", err);
-            setError("イベントの作成中にエラーが発生しました");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { groupId, eventId } = await searchParams;
+    const users = MOCK_USERS;
 
     // クエリパラメータが不足している場合のエラー表示
     if (!groupId || !eventId) {
@@ -143,220 +55,11 @@ export default function CreateEventPage() {
                         新規イベントを作成
                     </h1>
                 </div>
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="space-y-6 px-15 mt-9"
-                >
-                    <div>
-                        <Label htmlFor="title" className="event-form-label">
-                            タイトル
-                        </Label>
-                        <Input
-                            type="text"
-                            id="title"
-                            {...register("title", {
-                                required: "タイトルは必須です",
-                            })}
-                            placeholder="イベントのタイトル（例: 編入生歓迎タコパ会）"
-                            className="event-form-input"
-                        />
-                        {errors.title && (
-                            <p className="event-form-error">
-                                {errors.title.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="duration" className="event-form-label">
-                            所要時間
-                        </Label>
-                        <Input
-                            type="text"
-                            id="duration"
-                            {...register("duration", {
-                                required: "所要時間は必須です",
-                            })}
-                            placeholder="イベントの所要時間 (例: 30分、2時間)"
-                            className="event-form-input"
-                        />
-                        {errors.duration && (
-                            <p className="event-form-error">
-                                {errors.duration.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label className="event-form-label">時間帯</Label>
-                        <div className="mt-2 space-y-2">
-                            {timeOfDayInputItems.map((item) => (
-                                <div
-                                    key={item.value}
-                                    className="flex items-center"
-                                >
-                                    <Input
-                                        type="checkbox"
-                                        id={item.value}
-                                        value={item.value}
-                                        {...register("timeOfDayCandidate", {
-                                            required:
-                                                "時間帯を少なくとも1つ選択してください",
-                                        })}
-                                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <Label
-                                        htmlFor={item.value}
-                                        className="text-black"
-                                    >
-                                        {item.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                        {errors.timeOfDayCandidate && (
-                            <p className="event-form-error">
-                                {errors.timeOfDayCandidate.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label
-                            htmlFor="userSearch"
-                            className="event-form-label"
-                        >
-                            優先参加者を検索して追加
-                        </Label>
-                        <input
-                            id="userSearch"
-                            type="search"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="ユーザー名やメールで検索"
-                            className="event-form-input"
-                        />
-
-                        {/* 検索結果 */}
-                        {results.length > 0 && (
-                            <div className="mt-2 space-y-1 max-h-48 overflow-auto border rounded p-2 bg-white">
-                                {results.map((u) => (
-                                    <div
-                                        key={u.id}
-                                        className="flex items-center justify-between py-1"
-                                    >
-                                        <div>
-                                            <div className="text-sm font-medium">
-                                                {u.username}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {u.email}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <button
-                                                type="button"
-                                                className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
-                                                onClick={() => {
-                                                    // 重複を避けて追加
-                                                    setSelected((prev) => {
-                                                        if (
-                                                            prev.find(
-                                                                (p) =>
-                                                                    p.id ===
-                                                                    u.id,
-                                                            )
-                                                        )
-                                                            return prev;
-                                                        return [...prev, u];
-                                                    });
-                                                    setQuery("");
-                                                }}
-                                            >
-                                                追加
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* 選択済みチップ */}
-                        {selected.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {selected.map((s) => (
-                                    <div
-                                        key={s.id}
-                                        className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm"
-                                    >
-                                        <span className="mr-2">
-                                            {s.username}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setSelected((prev) =>
-                                                    prev.filter(
-                                                        (p) => p.id !== s.id,
-                                                    ),
-                                                )
-                                            }
-                                            className="text-xs text-gray-600 hover:text-gray-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* 隠し input: react-hook-form と同期させる */}
-                        <input
-                            type="hidden"
-                            {...register("priorityParticipants")}
-                        />
-                        <p className="text-sm text-gray-500 mt-1">
-                            検索してユーザーを一人ずつ追加してください（任意）。
-                        </p>
-                    </div>
-
-                    <div>
-                        <Label htmlFor="details" className="event-form-label">
-                            イベントの詳細
-                        </Label>
-                        <Textarea
-                            id="details"
-                            rows={4}
-                            {...register("description", {
-                                required: "イベントの詳細は必須です",
-                            })}
-                            placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-                            className="event-form-input"
-                        ></Textarea>
-                        {errors.description && (
-                            <p className="event-form-error">
-                                {errors.description.message}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* エラーメッセージ表示 */}
-                    {error && (
-                        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="flex justify-end">
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? "作成中..." : "イベントを作成"}
-                        </Button>
-                    </div>
-                </form>
+                <CreateEventForm
+                    users={users}
+                    groupId={groupId}
+                    eventId={eventId}
+                />
             </div>
         </main>
     );

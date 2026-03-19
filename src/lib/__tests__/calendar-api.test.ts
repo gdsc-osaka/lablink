@@ -1,5 +1,10 @@
 import { getCommonAvailability } from "../../app/actions";
 
+// Next.js の認証モック（テスト環境ではリクエストスコープが存在しないため）
+vi.mock("../../lib/auth/server-auth", () => ({
+    requireAuth: vi.fn().mockResolvedValue({ uid: "test-user" }),
+}));
+
 // Google Calendar APIのモック
 const mockCalendarQuery = vi.fn();
 const mockCalendar = {

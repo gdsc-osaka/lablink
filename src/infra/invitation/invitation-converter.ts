@@ -15,8 +15,13 @@ export const invitationConverter: FirestoreDataConverter<Invitation> = {
         return {
             groupId: modelObject.groupId,
             token: modelObject.token,
+            status: modelObject.status,
             createdAt: toTimestamp(modelObject.createdAt),
             expiresAt: toTimestamp(modelObject.expiresAt),
+            ...(modelObject.usedAt && {
+                usedAt: toTimestamp(modelObject.usedAt),
+            }),
+            ...(modelObject.usedBy && { usedBy: modelObject.usedBy }),
         };
     },
     fromFirestore(
@@ -28,8 +33,11 @@ export const invitationConverter: FirestoreDataConverter<Invitation> = {
             id: snapshot.id,
             groupId: data.groupId,
             token: data.token,
+            status: data.status ?? "pending",
             createdAt: data.createdAt.toDate(),
             expiresAt: data.expiresAt.toDate(),
+            usedAt: data.usedAt ? data.usedAt.toDate() : undefined,
+            usedBy: data.usedBy,
         };
     },
 };

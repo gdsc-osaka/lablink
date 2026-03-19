@@ -1,4 +1,9 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+    doc,
+    getDoc,
+    runTransaction,
+    serverTimestamp,
+} from "firebase/firestore";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 
 import { UserRepository } from "@/domain/user";
@@ -11,12 +16,28 @@ const userRef = (id: string) =>
     doc(db, "users", id).withConverter(userConverter);
 
 export const userRepo: UserRepository = {
-    create: (user) =>
+    saveUser: (user) =>
         ResultAsync.fromPromise(
-            setDoc(userRef(user.email), user),
+            runTransaction(db, async (transaction) => {
+                const docRef = userRef(user.uid);
+                const snapshot = await transaction.get(docRef);
+
+                if (snapshot.exists()) {
+                    transaction.update(doc(db, "users", user.uid), {
+                        email: user.email,
+                        updated_at: serverTimestamp(),
+                    });
+                } else {
+                    transaction.set(doc(db, "users", user.uid), {
+                        email: user.email,
+                        created_at: serverTimestamp(),
+                        updated_at: serverTimestamp(),
+                    });
+                }
+            }),
             handleFirestoreError,
         ).map(() => user),
-    findById: (uid) =>
+    getUserByUid: (uid) =>
         ResultAsync.fromPromise(
             getDoc(userRef(uid)),
             handleFirestoreError,
@@ -25,9 +46,4 @@ export const userRepo: UserRepository = {
                 ? okAsync(snapshot.data()!)
                 : errAsync(NotFoundError("User not found")),
         ),
-    update: (user) =>
-        ResultAsync.fromPromise(
-            setDoc(userRef(user.email), user, { merge: true }),
-            handleFirestoreError,
-        ).map(() => user),
 };
