@@ -23,13 +23,12 @@ export const onGroupUserDeleted = onDocumentDeleted(
             logger.warn(
                 `No deleted document data for userId: ${userId}, groupId: ${groupId}`,
             );
-            return;
         }
 
         try {
             const batch = db.batch();
 
-            // 1. users/:userId/groups/:groupId を削除
+            // 1. users/:userId/groups/:groupId を削除（常に実行）
             const userGroupRef = db
                 .collection("users")
                 .doc(userId)
@@ -37,19 +36,21 @@ export const onGroupUserDeleted = onDocumentDeleted(
                 .doc(groupId);
             batch.delete(userGroupRef);
 
-            // 2. groups/:groupId/deleted_users/:userId にアーカイブ
-            const deletedUsersRef = db
-                .collection("groups")
-                .doc(groupId)
-                .collection("deleted_users")
-                .doc(userId);
+            // 2. groups/:groupId/deleted_users/:userId にアーカイブ（データがある場合のみ）
+            if (deletedUserData) {
+                const deletedUsersRef = db
+                    .collection("groups")
+                    .doc(groupId)
+                    .collection("deleted_users")
+                    .doc(userId);
 
-            batch.set(deletedUsersRef, {
-                ...deletedUserData,
-                role: deletedUserData.role,
-                joinedAt: deletedUserData.joinedAt,
-                deletedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
+                batch.set(deletedUsersRef, {
+                    userId,
+                    role: deletedUserData.role,
+                    joinedAt: deletedUserData.joinedAt,
+                    deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+            }
 
             // バッチ処理を実行
             await batch.commit();
