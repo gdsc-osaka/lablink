@@ -90,5 +90,8 @@
         "typescript": "^5",
         "vite-tsconfig-paths": "^6.1.1",
         "vitest": "^4.0.15"
+    },
+    "optionalDependencies": {
+        "lightningcss-darwin-x64": "1.30.2"
     }
 }

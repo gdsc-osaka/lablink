@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase/firestore";
 import { ResultAsync } from "neverthrow";
 import { DBError } from "./error";
 
@@ -20,8 +19,8 @@ export interface Event {
     id: string;
     title: string;
     description: string;
-    begin_at: Timestamp;
-    end_at: Timestamp;
+    begin_at: Date;
+    end_at: Date;
     created_at?: Date;
     updated_at?: Date;
 }
@@ -29,8 +28,8 @@ export interface Event {
 export interface NewEvent {
     title: string;
     description: string;
-    begin_at: Timestamp;
-    end_at: Timestamp;
+    begin_at: Date;
+    end_at: Date;
     created_at?: Date;
     updated_at?: Date;
 }
@@ -43,8 +42,9 @@ export interface EventRepository {
     getNewEventsByGroupId: (groupId: string) => ResultAsync<Event[], DBError>;
     createNewEvent: (
         groupId: string,
-        event: Event,
+        event: NewEvent,
     ) => ResultAsync<Event, DBError>;
+    save: (groupId: string, event: Event) => ResultAsync<Event, DBError>;
     updateNewEvent: (
         groupId: string,
         event: Event,

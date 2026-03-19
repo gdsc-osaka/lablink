@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
+import { convertDraftToEvent } from "@/lib/event-to-draft";
+import { createEventAction } from "./actions";
 
 type User = { id: string; username: string; email: string };
 
@@ -19,14 +21,14 @@ const timeOfDayInputItems: { value: EventTimeOfDay; label: string }[] = [
     { value: "night", label: "夜（18:00~22:00ごろ）" },
 ];
 
-type Props = { users: User[] };
+type Props = { groupId: string; users: User[] };
 
-export default function CreateEventForm({ users }: Props) {
+export default function CreateEventForm({ groupId, users }: Props) {
     const router = useRouter();
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isSubmitting },
         setValue,
     } = useForm<EventDraft>({
         defaultValues: {
@@ -39,6 +41,8 @@ export default function CreateEventForm({ users }: Props) {
     });
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<User[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
     const fuse = useMemo(
         () => new Fuse(users, { keys: ["username", "email"], threshold: 0.3 }),
         [users],
@@ -47,14 +51,29 @@ export default function CreateEventForm({ users }: Props) {
         () => (query ? fuse.search(query).map((r) => r.item) : []),
         [query, fuse],
     );
+
     useEffect(() => {
         const csv = selected.map((s) => s.email).join(",");
         setValue("priorityParticipants", csv);
     }, [selected, setValue]);
-    const onSubmit: SubmitHandler<EventDraft> = (_data) => {
-        // TODO: create-event のAPIへの送信処理を追加
-        router.push("/ai-suggest");
+
+    const onSubmit: SubmitHandler<EventDraft> = async (data) => {
+        setError(null);
+        try {
+            const newEvent = convertDraftToEvent(data);
+            const result = await createEventAction(groupId, newEvent);
+
+            if (result.success) {
+                router.push("/complete");
+            } else {
+                setError(result.error);
+            }
+        } catch (err) {
+            console.error("Error creating event:", err);
+            setError("イベントの作成中にエラーが発生しました");
+        }
     };
+
     return (
         <form
             onSubmit={handleSubmit(onSubmit)}
@@ -148,22 +167,20 @@ export default function CreateEventForm({ users }: Props) {
                                         {u.email}
                                     </div>
                                 </div>
-                                <div>
-                                    <button
-                                        type="button"
-                                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
-                                        onClick={() => {
-                                            setSelected((prev) =>
-                                                prev.find((p) => p.id === u.id)
-                                                    ? prev
-                                                    : [...prev, u],
-                                            );
-                                            setQuery("");
-                                        }}
-                                    >
-                                        追加
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
+                                    onClick={() => {
+                                        setSelected((prev) =>
+                                            prev.find((p) => p.id === u.id)
+                                                ? prev
+                                                : [...prev, u],
+                                        );
+                                        setQuery("");
+                                    }}
+                                >
+                                    追加
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -208,19 +225,25 @@ export default function CreateEventForm({ users }: Props) {
                     })}
                     placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
                     className="event-form-input"
-                ></Textarea>
+                />
                 {errors.description && (
                     <p className="event-form-error">
                         {errors.description.message}
                     </p>
                 )}
             </div>
+            {error && (
+                <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {error}
+                </div>
+            )}
             <div className="flex justify-end">
                 <Button
                     type="submit"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    disabled={isSubmitting}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    AIのsuggestへ
+                    {isSubmitting ? "作成中..." : "イベントを作成"}
                 </Button>
             </div>
         </form>
