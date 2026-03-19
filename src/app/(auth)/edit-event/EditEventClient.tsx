@@ -183,8 +183,8 @@ const EditEventPage = () => {
                             {...register("duration", {
                                 required: "所要時間は必須です",
                                 validate: (value) =>
-                                    /^(\d+時間)?(\d+分)?$/.test(value) &&
-                                        value.length > 0 ||
+                                    (/^(\d+時間)?(\d+分)?$/.test(value) &&
+                                        value.length > 0) ||
                                     "所要時間は「30分」「2時間」「2時間30分」の形式で入力してください",
                             })}
                         />
