@@ -1,7 +1,7 @@
 import { getFirestoreAdmin } from "@/firebase/admin";
 import { handleAdminError } from "@/infra/error-admin";
 import { Event, NewEvent, EventRepository } from "@/domain/event";
-import { DBError, NotFoundError } from "@/domain/error";
+import { DBError, NotFoundError, UnknownError } from "@/domain/error";
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -49,12 +49,13 @@ export const firestoreEventAdminRepository: EventRepository = {
             const events: Event[] = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
+                if (!data.begin_at || !data.end_at) return;
                 events.push({
                     id: doc.id,
                     title: data.title,
                     description: data.description,
-                    begin_at: data.begin_at?.toDate(),
-                    end_at: data.end_at?.toDate(),
+                    begin_at: data.begin_at.toDate(),
+                    end_at: data.end_at.toDate(),
                     created_at: data.created_at?.toDate(),
                     updated_at: data.updated_at?.toDate(),
                 });
@@ -82,12 +83,19 @@ export const firestoreEventAdminRepository: EventRepository = {
                     );
                 }
                 const data = doc.data()!;
+                if (!data.begin_at || !data.end_at) {
+                    return errAsync(
+                        UnknownError(
+                            `Event ${eventId} is missing required date fields`,
+                        ),
+                    );
+                }
                 return okAsync({
                     id: doc.id,
                     title: data.title,
                     description: data.description,
-                    begin_at: data.begin_at?.toDate(),
-                    end_at: data.end_at?.toDate(),
+                    begin_at: data.begin_at.toDate(),
+                    end_at: data.end_at.toDate(),
                     created_at: data.created_at?.toDate(),
                     updated_at: data.updated_at?.toDate(),
                 });

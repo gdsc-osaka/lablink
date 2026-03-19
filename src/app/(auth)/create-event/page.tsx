@@ -1,15 +1,17 @@
 import { requireAuth } from "@/lib/auth/server-auth";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { findUsersByIds } from "@/infra/user/user-admin-repo";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import CreateEventForm from "./CreateEventForm";
 
 interface Props {
-    searchParams: Promise<{ groupId?: string }>;
+    searchParams: Promise<{ groupId?: string | string[] }>;
 }
 
 export default async function CreateEventPage({ searchParams }: Props) {
     const { uid } = await requireAuth();
-    const { groupId } = await searchParams;
+    const { groupId: rawGroupId } = await searchParams;
+    const groupId = Array.isArray(rawGroupId) ? rawGroupId[0] : rawGroupId;
 
     const errorLayout = (message: string) => (
         <main className="min-h-screen bg-white">
@@ -20,9 +22,9 @@ export default async function CreateEventPage({ searchParams }: Props) {
                     </h1>
                 </div>
                 <div className="p-8">
-                    <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                        {message}
-                    </div>
+                    <Alert variant="destructive">
+                        <AlertDescription>{message}</AlertDescription>
+                    </Alert>
                 </div>
             </div>
         </main>
