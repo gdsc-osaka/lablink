@@ -4,6 +4,7 @@ import { formatToJST } from "@/lib/date";
 
 type EventListCardProps = {
     id: string;
+    groupId: string;
     title: string;
     startTime: Date;
     endTime: Date;
@@ -11,6 +12,7 @@ type EventListCardProps = {
 
 const EventListCard = ({
     id,
+    groupId,
     title,
     startTime,
     endTime,
@@ -32,7 +34,7 @@ const EventListCard = ({
                 <h3 className="text-xl font-bold text-black mb-2">{title}</h3>
                 <p className="text-base text-black">{displayDateTime}</p>
             </div>
-            <Link href={`/edit-event?id=${id}`}>
+            <Link href={{ pathname: "/edit-event", query: { id, groupId } }}>
                 <Button className="bg-gray-100 hover:bg-gray-200 text-black text-sm font-medium py-2 px-4 border border-gray-300 rounded-md transition-colors ml-4">
                     編集
                 </Button>

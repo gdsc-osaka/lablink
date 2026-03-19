@@ -1,28 +1,38 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createGroupAction } from "./actions";
 
 type FormValues = { groupName: string };
 
 const CreateGroupClient = () => {
+    const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
     const {
         register,
         handleSubmit,
-        reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<FormValues>({ defaultValues: { groupName: "" } });
 
-    const onSubmit: SubmitHandler<FormValues> = (data) => {
-        toast.success("グループを作成しました", {
-            description: data.groupName,
-        });
-        // TODO: グループ作成ロジックを実装
-        reset();
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
+        setError(null);
+        try {
+            const result = await createGroupAction(data.groupName);
+            if (result.success) {
+                router.push("/group");
+            } else {
+                setError(result.error.message);
+            }
+        } catch (err) {
+            console.error("Failed to create group:", err);
+            setError("グループの作成中にエラーが発生しました");
+        }
     };
 
     return (
@@ -49,8 +59,14 @@ const CreateGroupClient = () => {
                         {errors.groupName.message}
                     </p>
                 )}
-                <Button type="submit" className="btn-primary">
-                    作成
+                {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+                <Button
+                    type="submit"
+                    variant="default"
+                    disabled={isSubmitting}
+                    className="disabled:opacity-50"
+                >
+                    {isSubmitting ? "作成中..." : "作成"}
                 </Button>
             </form>
         </main>

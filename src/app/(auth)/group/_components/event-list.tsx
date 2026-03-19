@@ -25,6 +25,7 @@ const EventList = ({ events, groupId }: EventListProps) => {
                         <EventListCard
                             key={event.id}
                             id={event.id}
+                            groupId={groupId}
                             title={event.title}
                             startTime={event.begin_at}
                             endTime={event.end_at}

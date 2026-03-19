@@ -1,7 +1,7 @@
 import { getFirestoreAdmin } from "@/firebase/admin";
 import { handleAdminError } from "@/infra/error-admin";
 import { Event, NewEvent, EventRepository } from "@/domain/event";
-import { DBError, UnknownError } from "@/domain/error";
+import { DBError, NotFoundError, UnknownError } from "@/domain/error";
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -49,12 +49,13 @@ export const firestoreEventAdminRepository: EventRepository = {
             const events: Event[] = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
+                if (!data.begin_at || !data.end_at) return;
                 events.push({
                     id: doc.id,
                     title: data.title,
                     description: data.description,
-                    begin_at: data.begin_at?.toDate(),
-                    end_at: data.end_at?.toDate(),
+                    begin_at: data.begin_at.toDate(),
+                    end_at: data.end_at.toDate(),
                     created_at: data.created_at?.toDate(),
                     updated_at: data.updated_at?.toDate(),
                 });
@@ -63,35 +64,80 @@ export const firestoreEventAdminRepository: EventRepository = {
         });
     },
     getNewEventByGroupAndEventId: (
-        _groupId: string,
-        _eventId: string,
+        groupId: string,
+        eventId: string,
     ): ResultAsync<Event, DBError> => {
-        return errAsync(
-            UnknownError(
-                "getNewEventByGroupAndEventId not implemented for admin repo",
-            ),
+        const docRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("events")
+            .doc(eventId);
+
+        return ResultAsync.fromPromise(docRef.get(), handleAdminError).andThen(
+            (doc) => {
+                if (!doc.exists) {
+                    return errAsync(
+                        NotFoundError(
+                            `Event ${eventId} not found in group ${groupId}`,
+                        ),
+                    );
+                }
+                const data = doc.data()!;
+                if (!data.begin_at || !data.end_at) {
+                    return errAsync(
+                        UnknownError(
+                            `Event ${eventId} is missing required date fields`,
+                        ),
+                    );
+                }
+                return okAsync({
+                    id: doc.id,
+                    title: data.title,
+                    description: data.description,
+                    begin_at: data.begin_at.toDate(),
+                    end_at: data.end_at.toDate(),
+                    created_at: data.created_at?.toDate(),
+                    updated_at: data.updated_at?.toDate(),
+                });
+            },
         );
     },
-    save: (
-        _groupId: string,
-        _eventData: Event,
-    ): ResultAsync<Event, DBError> => {
-        return errAsync(UnknownError("save not implemented for admin repo"));
+    save: (groupId: string, eventData: Event): ResultAsync<Event, DBError> => {
+        return firestoreEventAdminRepository.updateNewEvent(groupId, eventData);
     },
     updateNewEvent: (
-        _groupId: string,
-        _eventData: Event,
+        groupId: string,
+        eventData: Event,
     ): ResultAsync<Event, DBError> => {
-        return errAsync(
-            UnknownError("updateNewEvent not implemented for admin repo"),
-        );
+        const docRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("events")
+            .doc(eventData.id);
+
+        return ResultAsync.fromPromise(
+            docRef.update({
+                title: eventData.title,
+                description: eventData.description,
+                begin_at: eventData.begin_at,
+                end_at: eventData.end_at,
+                updated_at: FieldValue.serverTimestamp(),
+            }),
+            handleAdminError,
+        ).map(() => ({ ...eventData, updated_at: new Date() }));
     },
     deleteNewEvent: (
-        _groupId: string,
-        _eventId: string,
+        groupId: string,
+        eventId: string,
     ): ResultAsync<void, DBError> => {
-        return errAsync(
-            UnknownError("deleteNewEvent not implemented for admin repo"),
+        const docRef = db
+            .collection("groups")
+            .doc(groupId)
+            .collection("events")
+            .doc(eventId);
+
+        return ResultAsync.fromPromise(docRef.delete(), handleAdminError).map(
+            () => undefined,
         );
     },
 };
