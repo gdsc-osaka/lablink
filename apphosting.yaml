@@ -32,3 +32,8 @@ env:
     # Token encryption
     - variable: TOKEN_ENCRYPTION_KEY
       secret: TOKEN_ENCRYPTION_KEY
+    # Google OAuth
+    - variable: GOOGLE_CLIENT_SECRET
+      secret: GOOGLE_CLIENT_SECRET
+    - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      secret: NEXT_PUBLIC_GOOGLE_CLIENT_ID
