@@ -6,7 +6,7 @@ runConfig:
     # concurrency: 80
     # cpu: 1
     # memoryMiB: 512
-    # Environment variables and secrets.
+# Environment variables and secrets.
 env:
     # Firebase Client SDK
     - variable: NEXT_PUBLIC_FIREBASE_API_KEY
