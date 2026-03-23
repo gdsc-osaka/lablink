@@ -37,3 +37,5 @@ env:
       secret: GOOGLE_CLIENT_SECRET
     - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
       secret: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    - variable: APP_BASE_URL
+      secret: APP_BASE_URL
