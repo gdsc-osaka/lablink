@@ -1,7 +1,7 @@
 "use client";
 
 import Head from "next/head";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { createAuthService } from "@/service/auth-service";
@@ -10,13 +10,12 @@ import { authRepo } from "@/infra/auth/auth-repo";
 import { auth } from "@/firebase/client";
 import { getIdToken } from "firebase/auth";
 import { createAuthSession } from "@/lib/auth/server-auth";
-import { isSafeRedirectUrl } from "@/lib/url";
 import { toast } from "sonner";
+import { generateAuthUrl } from "./actions";
 
 const authService = createAuthService(userRepo, authRepo);
 
 export default function LoginPage() {
-    const router = useRouter();
     const searchParams = useSearchParams();
 
     const handleSignIn = async () => {
@@ -26,19 +25,27 @@ export default function LoginPage() {
             async () => {
                 // Firebase Authの現在のユーザーからIDトークンを取得してセッションクッキーを作成
                 const currentUser = auth.currentUser;
-                if (currentUser) {
-                    const idToken = await getIdToken(currentUser);
-                    await createAuthSession(idToken);
+                if (!currentUser) {
+                    toast.error("ログインに失敗しました。再度お試しください。");
+                    return;
                 }
 
-                // redirectToが指定されていればそのページへ、なければ/groupへ
+                const idToken = await getIdToken(currentUser);
+                await createAuthSession(idToken);
+
+                // Google Calendar 認証フローへリダイレクト
+                const state = crypto.randomUUID();
+                sessionStorage.setItem("oauth_state", state);
+
                 const redirectTo = searchParams.get("redirectTo");
-
-                if (isSafeRedirectUrl(redirectTo)) {
-                    router.push(redirectTo);
+                if (redirectTo) {
+                    sessionStorage.setItem("oauth_redirect_to", redirectTo);
                 } else {
-                    router.push("/group");
+                    sessionStorage.removeItem("oauth_redirect_to");
                 }
+
+                const authUrl = await generateAuthUrl(state);
+                window.location.href = authUrl;
             },
             (error) => {
                 console.error("Google認証に失敗しました:", error.message);
