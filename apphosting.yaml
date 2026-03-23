@@ -1,39 +1,39 @@
 # Settings for Backend (on Cloud Run).
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
-  minInstances: 0
-  # maxInstances: 100
-  # concurrency: 80
-  # cpu: 1
-  # memoryMiB: 512
-  # Environment variables and secrets.
+    minInstances: 0
+    # maxInstances: 100
+    # concurrency: 80
+    # cpu: 1
+    # memoryMiB: 512
+    # Environment variables and secrets.
 env:
-  # Firebase Client SDK
-  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    secret: NEXT_PUBLIC_FIREBASE_API_KEY
-  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-  - variable: NEXT_PUBLIC_FIREBASE_MESSAGINGSENDER_ID
-    secret: NEXT_PUBLIC_FIREBASE_MESSAGINGSENDER_ID
-  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    secret: NEXT_PUBLIC_FIREBASE_APP_ID
-  # Firebase Admin SDK
-  - variable: FIREBASE_PRIVATE_KEY
-    secret: FIREBASE_PRIVATE_KEY
-  - variable: FIREBASE_CLIENT_EMAIL
-    secret: FIREBASE_CLIENT_EMAIL
-  # Gemini AI
-  - variable: GEMINI_API_KEY
-    secret: GEMINI_API_KEY
-  # Token encryption
-  - variable: TOKEN_ENCRYPTION_KEY
-    secret: TOKEN_ENCRYPTION_KEY
-  # Google OAuth
-  - variable: GOOGLE_CLIENT_SECRET
-    secret: GOOGLE_CLIENT_SECRET
-  - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    secret: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    # Firebase Client SDK
+    - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+      secret: NEXT_PUBLIC_FIREBASE_API_KEY
+    - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+      secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+      secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+      secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    - variable: NEXT_PUBLIC_FIREBASE_MESSAGINGSENDER_ID
+      secret: NEXT_PUBLIC_FIREBASE_MESSAGINGSENDER_ID
+    - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+      secret: NEXT_PUBLIC_FIREBASE_APP_ID
+    # Firebase Admin SDK
+    - variable: FIREBASE_PRIVATE_KEY
+      secret: FIREBASE_PRIVATE_KEY
+    - variable: FIREBASE_CLIENT_EMAIL
+      secret: FIREBASE_CLIENT_EMAIL
+    # Gemini AI
+    - variable: GEMINI_API_KEY
+      secret: GEMINI_API_KEY
+    # Token encryption
+    - variable: TOKEN_ENCRYPTION_KEY
+      secret: TOKEN_ENCRYPTION_KEY
+    # Google OAuth
+    - variable: GOOGLE_CLIENT_SECRET
+      secret: GOOGLE_CLIENT_SECRET
+    - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      secret: NEXT_PUBLIC_GOOGLE_CLIENT_ID
