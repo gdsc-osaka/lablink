@@ -1,7 +1,7 @@
 "use client";
 
 import Head from "next/head";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { createAuthService } from "@/service/auth-service";
@@ -16,7 +16,6 @@ import { generateAuthUrl } from "./actions";
 const authService = createAuthService(userRepo, authRepo);
 
 export default function LoginPage() {
-    const router = useRouter();
     const searchParams = useSearchParams();
 
     const handleSignIn = async () => {
@@ -26,10 +25,13 @@ export default function LoginPage() {
             async () => {
                 // Firebase Authの現在のユーザーからIDトークンを取得してセッションクッキーを作成
                 const currentUser = auth.currentUser;
-                if (currentUser) {
-                    const idToken = await getIdToken(currentUser);
-                    await createAuthSession(idToken);
+                if (!currentUser) {
+                    toast.error("ログインに失敗しました。再度お試しください。");
+                    return;
                 }
+
+                const idToken = await getIdToken(currentUser);
+                await createAuthSession(idToken);
 
                 // Google Calendar 認証フローへリダイレクト
                 const state = crypto.randomUUID();
