@@ -10,8 +10,8 @@ import { authRepo } from "@/infra/auth/auth-repo";
 import { auth } from "@/firebase/client";
 import { getIdToken } from "firebase/auth";
 import { createAuthSession } from "@/lib/auth/server-auth";
-import { isSafeRedirectUrl } from "@/lib/url";
 import { toast } from "sonner";
+import { generateAuthUrl } from "./actions";
 
 const authService = createAuthService(userRepo, authRepo);
 
@@ -31,14 +31,19 @@ export default function LoginPage() {
                     await createAuthSession(idToken);
                 }
 
-                // redirectToが指定されていればそのページへ、なければ/groupへ
-                const redirectTo = searchParams.get("redirectTo");
+                // Google Calendar 認証フローへリダイレクト
+                const state = crypto.randomUUID();
+                sessionStorage.setItem("oauth_state", state);
 
-                if (isSafeRedirectUrl(redirectTo)) {
-                    router.push(redirectTo);
+                const redirectTo = searchParams.get("redirectTo");
+                if (redirectTo) {
+                    sessionStorage.setItem("oauth_redirect_to", redirectTo);
                 } else {
-                    router.push("/group");
+                    sessionStorage.removeItem("oauth_redirect_to");
                 }
+
+                const authUrl = await generateAuthUrl(state);
+                window.location.href = authUrl;
             },
             (error) => {
                 console.error("Google認証に失敗しました:", error.message);
