@@ -26,3 +26,9 @@ env:
       secret: FIREBASE_PRIVATE_KEY
     - variable: FIREBASE_CLIENT_EMAIL
       secret: FIREBASE_CLIENT_EMAIL
+    # Gemini AI
+    - variable: GEMINI_API_KEY
+      secret: GEMINI_API_KEY
+    # Token encryption
+    - variable: TOKEN_ENCRYPTION_KEY
+      secret: TOKEN_ENCRYPTION_KEY
