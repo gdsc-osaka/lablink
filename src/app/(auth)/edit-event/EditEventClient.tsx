@@ -11,6 +11,10 @@ import { convertEventToDraft } from "@/lib/event-to-draft";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { updateEventAction, deleteEventAction } from "./actions";
 
+// TODO: このリストは src/domain/event.ts の EVENT_TIME_OF_DAY_CONFIG と重複している。
+// 時間帯を追加・変更する場合は EVENT_TIME_OF_DAY_CONFIG を更新したうえで、
+// このファイルと CreateEventForm.tsx の timeOfDayInputItems も合わせて更新すること。
+// 将来的には EVENT_TIME_OF_DAY_CONFIG から直接導出するよう統一を検討。
 const timeOfDayInputItems: {
     value: EventTimeOfDay;
     label: string;
@@ -21,6 +25,8 @@ const timeOfDayInputItems: {
     { value: "night", label: "夜（18:00~22:00ごろ）" },
 ];
 
+// TODO: 以下の開始時刻は EVENT_TIME_OF_DAY_CONFIG の hours.start と重複している。
+// 将来的には EVENT_TIME_OF_DAY_CONFIG[時間帯].hours.start を直接参照するよう統一を検討。
 const timeOfDayHours: Record<EventTimeOfDay, number> = {
     morning: 8,
     noon: 12,
