@@ -40,7 +40,12 @@ export const createCalculateFreeTimeService = (
     );
 
     return {
-        calculateFreeTime: (scheduleRange, eventDurationMinutes, members, allowedHourRanges) =>
+        calculateFreeTime: (
+            scheduleRange,
+            eventDurationMinutes,
+            members,
+            allowedHourRanges,
+        ) =>
             ResultAsync.combine(
                 members.map((user) =>
                     calendarService.fetchFreeSlots(
