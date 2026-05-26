@@ -94,9 +94,7 @@ export async function getScheduleSuggestionsAction(
         );
         const allowedHourRanges =
             validCandidates.length > 0
-                ? validCandidates.map(
-                      (t) => EVENT_TIME_OF_DAY_CONFIG[t].hours,
-                  )
+                ? validCandidates.map((t) => EVENT_TIME_OF_DAY_CONFIG[t].hours)
                 : undefined;
 
         const scoresResult = await createCalculateFreeTimeService(
