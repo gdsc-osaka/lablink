@@ -63,11 +63,12 @@ export const createCalculateFreeTimeService = (
                     members,
                     // slotIntervalMinutes: undefined を渡して calculateTimeRangeScores の
                     // デフォルト値（30分刻み）を使用。
-                    // TODO: 現状は30分固定だが、以下の方法で柔軟化を検討できる:
+                    // TODO: 現状は30分固定で運用。柔軟化を検討する場合は以下を参照:
                     //   案A: EventDraft に slotIntervalMinutes フィールドを追加し、UIから指定できるようにする
                     //   案B: イベントの所要時間(eventDurationMinutes)に応じて自動調整する
-                    //        （例: 2時間以上なら60分刻み、30分未満なら15分刻み）
-                    //   案C: 現状の30分固定のまま運用し、必要になったときに対応する
+                    //        ただし刻みを大きくすると「13:30〜15:30は空いているのに60分刻みで
+                    //        スルーされる」問題が起きるため注意（PR #258 TITANdayo指摘）
+                    //   → 当面は30分固定を維持し、別Issueで検討する
                     undefined,
                     allowedHourRanges,
                 ),
