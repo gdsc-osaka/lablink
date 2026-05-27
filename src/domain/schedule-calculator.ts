@@ -32,6 +32,9 @@ export interface TimeRangeScore {
  * @param timeRange 時間帯
  * @param durationMinutes スロットの長さ（分）
  * @param intervalMinutes スロットの開始時刻の間隔（分）
+ * @param allowedHourRanges 許可する時間帯（JST）の配列。指定時、開始時刻がいずれの範囲にも
+ *                          含まれないスロットは生成しない。未指定の場合は全時間帯を対象とする。
+ *                          各範囲は [start, end) で半開区間。例: { start: 8, end: 12 } → 8:00〜11:59
  * @returns タイムスロット
  *
  * @example
@@ -48,6 +51,7 @@ export const createSlots = (
     timeRange: TimeRange,
     durationMinutes: number,
     intervalMinutes: number,
+    allowedHourRanges?: { start: number; end: number }[],
 ): TimeRange[] => {
     if (durationMinutes <= 0) {
         throw new RangeError(
@@ -77,6 +81,21 @@ export const createSlots = (
             break;
         }
 
+        // 時間帯フィルタ: 指定されている場合、開始時刻（JST）がいずれかの
+        // 許可範囲に含まれるスロットのみ生成する
+        if (allowedHourRanges) {
+            const hourJST = (currentStart.getUTCHours() + 9) % 24;
+            const isAllowed = allowedHourRanges.some(
+                (range) => hourJST >= range.start && hourJST < range.end,
+            );
+            if (!isAllowed) {
+                currentStart = new Date(
+                    currentStart.getTime() + slotIntervalMs,
+                );
+                continue;
+            }
+        }
+
         slots.push({
             start: currentStart,
             end: currentEnd,
@@ -103,11 +122,13 @@ export const calculateTimeRangeScores = (
     memberAvailability: UserTimeRanges[],
     members: EventMember[],
     slotIntervalMinutes: number = 30,
+    allowedHourRanges?: { start: number; end: number }[],
 ): TimeRangeScore[] => {
     const slots: TimeRangeScore[] = createSlots(
         timeRange,
         durationMinutes,
         slotIntervalMinutes,
+        allowedHourRanges,
     ).map((slot) => ({
         timeRange: slot,
         availableMemberIds: {

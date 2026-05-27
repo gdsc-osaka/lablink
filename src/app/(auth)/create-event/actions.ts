@@ -3,7 +3,8 @@
 import { requireAuth } from "@/lib/auth/server-auth";
 import { userGroupAdminRepo } from "@/infra/group/user-group-admin-repository";
 import { firestoreEventAdminRepository } from "@/infra/event/event-admin-repo";
-import type { EventDraft, NewEvent } from "@/domain/event";
+import type { EventDraft, EventTimeOfDay, NewEvent } from "@/domain/event";
+import { EVENT_TIME_OF_DAY_CONFIG } from "@/domain/event";
 import { revalidatePath } from "next/cache";
 import { parseDuration } from "@/lib/event-to-draft";
 import { findUsersByIds } from "@/infra/user/user-admin-repo";
@@ -84,10 +85,27 @@ export async function getScheduleSuggestionsAction(
 
         const scheduleRange = { start: tomorrow, end: rangeEnd };
 
+        // UI の timeOfDayCandidate（morning/noon/evening/night）を
+        // JST の時刻範囲に変換し、スロット生成時のフィルタとして渡す。
+        // ランタイムでフォームデータに無効値が混入する可能性に備え、
+        // EVENT_TIME_OF_DAY_CONFIG に存在するキーのみ使用する。
+        const validCandidates = draft.timeOfDayCandidate.filter(
+            (t): t is EventTimeOfDay => t in EVENT_TIME_OF_DAY_CONFIG,
+        );
+        const allowedHourRanges =
+            validCandidates.length > 0
+                ? validCandidates.map((t) => EVENT_TIME_OF_DAY_CONFIG[t].hours)
+                : undefined;
+
         const scoresResult = await createCalculateFreeTimeService(
             googleCalendarRepository,
             googleTokenRepository,
-        ).calculateFreeTime(scheduleRange, durationMinutes, members);
+        ).calculateFreeTime(
+            scheduleRange,
+            durationMinutes,
+            members,
+            allowedHourRanges,
+        );
 
         if (scoresResult.isErr()) {
             return {
@@ -100,15 +118,10 @@ export async function getScheduleSuggestionsAction(
 
         const requiredCount = members.filter((m) => m.isRequired).length;
 
-        const timeOfDayLabels: Record<string, string> = {
-            morning: "朝（8:00〜12:00ごろ）",
-            noon: "昼（12:00〜15:00ごろ）",
-            evening: "夕（15:00〜18:00ごろ）",
-            night: "夜（18:00〜22:00ごろ）",
-        };
+        // AIプロンプト用の時間帯ラベルも検証済みの validCandidates から導出
         const timeConstraint =
-            draft.timeOfDayCandidate.length > 0
-                ? `\n希望時間帯: ${draft.timeOfDayCandidate.map((t) => timeOfDayLabels[t] ?? t).join("、")}`
+            validCandidates.length > 0
+                ? `\n希望時間帯: ${validCandidates.map((t) => EVENT_TIME_OF_DAY_CONFIG[t].label).join("、")}`
                 : "";
         const descriptionWithTimeConstraint =
             draft.description + timeConstraint;

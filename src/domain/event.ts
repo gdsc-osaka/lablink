@@ -4,6 +4,21 @@ import { DBError } from "./error";
 export const eventTimeOfDays = ["morning", "noon", "evening", "night"] as const;
 export type EventTimeOfDay = (typeof eventTimeOfDays)[number];
 
+/**
+ * 時間帯ごとのラベルと時刻範囲（JST）の一元定義。
+ * UI表示・AIプロンプト生成・スロットフィルタリングすべてがここを参照する。
+ * 新しい時間帯を追加する場合は、eventTimeOfDays とこのオブジェクトの両方にエントリを追加すること。
+ */
+export const EVENT_TIME_OF_DAY_CONFIG: Record<
+    EventTimeOfDay,
+    { label: string; hours: { start: number; end: number } }
+> = {
+    morning: { label: "朝（8:00〜12:00ごろ）", hours: { start: 8, end: 12 } },
+    noon: { label: "昼（12:00〜15:00ごろ）", hours: { start: 12, end: 15 } },
+    evening: { label: "夕（15:00〜18:00ごろ）", hours: { start: 15, end: 18 } },
+    night: { label: "夜（18:00〜22:00ごろ）", hours: { start: 18, end: 22 } },
+};
+
 // AI提案前のユーザー入力データ
 export interface EventDraft {
     title: string;

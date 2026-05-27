@@ -26,6 +26,7 @@ export interface CalculateFreeTimeService {
         scheduleRange: TimeRange,
         eventDurationMinutes: number,
         members: EventMember[],
+        allowedHourRanges?: { start: number; end: number }[],
     ): ResultAsync<TimeRangeScore[], CalendarError>;
 }
 
@@ -39,7 +40,12 @@ export const createCalculateFreeTimeService = (
     );
 
     return {
-        calculateFreeTime: (scheduleRange, eventDurationMinutes, members) =>
+        calculateFreeTime: (
+            scheduleRange,
+            eventDurationMinutes,
+            members,
+            allowedHourRanges,
+        ) =>
             ResultAsync.combine(
                 members.map((user) =>
                     calendarService.fetchFreeSlots(
@@ -55,6 +61,16 @@ export const createCalculateFreeTimeService = (
                     eventDurationMinutes,
                     freeSlots,
                     members,
+                    // slotIntervalMinutes: undefined を渡して calculateTimeRangeScores の
+                    // デフォルト値（30分刻み）を使用。
+                    // TODO: 現状は30分固定で運用。柔軟化を検討する場合は以下を参照:
+                    //   案A: EventDraft に slotIntervalMinutes フィールドを追加し、UIから指定できるようにする
+                    //   案B: イベントの所要時間(eventDurationMinutes)に応じて自動調整する
+                    //        ただし刻みを大きくすると「13:30〜15:30は空いているのに60分刻みで
+                    //        スルーされる」問題が起きるため注意（PR #258 TITANdayo指摘）
+                    //   → 当面は30分固定を維持し、別Issueで検討する
+                    undefined,
+                    allowedHourRanges,
                 ),
             ),
     };

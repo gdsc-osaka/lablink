@@ -36,6 +36,58 @@ describe("createSlots", () => {
         const result = createSlots(timeRange, 60, 30);
         expect(result).toHaveLength(0);
     });
+
+    it("should filter slots by single allowedHourRanges (morning only)", () => {
+        // UTC 15:00 = JST 0:00 から UTC 翌日 15:00 = JST 翌日 0:00 まで（24時間）
+        const timeRange = {
+            start: new Date("2026-02-26T15:00:00.000Z"), // JST 2/27 0:00
+            end: new Date("2026-02-27T15:00:00.000Z"), // JST 2/28 0:00
+        };
+        // 朝（JST 8:00〜12:00）のみ許可 → UTC 23:00〜03:00 のスロットだけ残る
+        const result = createSlots(timeRange, 60, 60, [{ start: 8, end: 12 }]);
+
+        // JST 8:00, 9:00, 10:00, 11:00 の4スロット（duration=60分, interval=60分）
+        expect(result).toHaveLength(4);
+        // 最初のスロット: UTC 23:00 = JST 8:00
+        expect(result[0].start.toISOString()).toBe("2026-02-26T23:00:00.000Z");
+        // 最後のスロット: UTC 02:00 = JST 11:00
+        expect(result[3].start.toISOString()).toBe("2026-02-27T02:00:00.000Z");
+    });
+
+    it("should filter slots by multiple allowedHourRanges (morning + night)", () => {
+        const timeRange = {
+            start: new Date("2026-02-26T15:00:00.000Z"), // JST 2/27 0:00
+            end: new Date("2026-02-27T15:00:00.000Z"), // JST 2/28 0:00
+        };
+        // 朝（8〜12）と夜（18〜22）を許可
+        const result = createSlots(timeRange, 60, 60, [
+            { start: 8, end: 12 },
+            { start: 18, end: 22 },
+        ]);
+
+        // 朝4スロット + 夜4スロット = 8スロット
+        expect(result).toHaveLength(8);
+        // 全スロットが朝 or 夜の時間帯に含まれることを検証
+        for (const slot of result) {
+            const hourJST = (slot.start.getUTCHours() + 9) % 24;
+            const inMorning = hourJST >= 8 && hourJST < 12;
+            const inNight = hourJST >= 18 && hourJST < 22;
+            expect(inMorning || inNight).toBe(true);
+        }
+    });
+
+    it("should generate all slots when allowedHourRanges is undefined", () => {
+        const timeRange = {
+            start: new Date("2026-02-26T15:00:00.000Z"), // JST 2/27 0:00
+            end: new Date("2026-02-27T15:00:00.000Z"), // JST 2/28 0:00
+        };
+        const withFilter = createSlots(timeRange, 60, 60, undefined);
+        const withoutFilter = createSlots(timeRange, 60, 60);
+
+        // undefined を渡した場合と省略した場合で同じ結果
+        expect(withFilter).toHaveLength(withoutFilter.length);
+        expect(withFilter).toHaveLength(24);
+    });
 });
 
 describe("calculateTimeRangeScores", () => {

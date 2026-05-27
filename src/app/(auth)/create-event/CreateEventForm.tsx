@@ -13,6 +13,10 @@ import { getScheduleSuggestionsAction } from "./actions";
 
 type User = { id: string; username: string; email: string };
 
+// TODO: このリストは src/domain/event.ts の EVENT_TIME_OF_DAY_CONFIG と重複している。
+// 時間帯を追加・変更する場合は EVENT_TIME_OF_DAY_CONFIG を更新したうえで、
+// このファイルと EditEventClient.tsx の timeOfDayInputItems も合わせて更新すること。
+// 将来的には EVENT_TIME_OF_DAY_CONFIG から直接導出するよう統一を検討。
 const timeOfDayInputItems: { value: EventTimeOfDay; label: string }[] = [
     { value: "morning", label: "朝（8:00~12:00ごろ）" },
     { value: "noon", label: "昼（12:00~15:00ごろ）" },
