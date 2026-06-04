@@ -3,6 +3,7 @@ import {
     createSlots,
     calculateTimeRangeScores,
     EventMember,
+    SchedulePreferenceSchema,
 } from "../schedule-calculator";
 import { UserTimeRanges } from "@/domain/calendar";
 
@@ -87,6 +88,60 @@ describe("createSlots", () => {
         // undefined を渡した場合と省略した場合で同じ結果
         expect(withFilter).toHaveLength(withoutFilter.length);
         expect(withFilter).toHaveLength(24);
+    });
+});
+
+describe("SchedulePreferenceSchema", () => {
+    it("should parse day and hour-range preferences", () => {
+        const result = SchedulePreferenceSchema.safeParse({
+            dayWeights: [
+                {
+                    dayOfWeek: "friday",
+                    reason: "飲み会なので金曜日が適しています。",
+                },
+            ],
+            hourRangeWeights: [
+                {
+                    startHour: 19,
+                    endHour: 22,
+                    reason: "飲み会なので19時から22時が適しています。",
+                },
+            ],
+            summary: "金曜日の19時から22時を優先します。",
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("should reject unsupported days of week", () => {
+        const result = SchedulePreferenceSchema.safeParse({
+            dayWeights: [
+                {
+                    dayOfWeek: "holiday",
+                    reason: "Invalid day.",
+                },
+            ],
+            hourRangeWeights: [],
+            summary: "Invalid preference.",
+        });
+
+        expect(result.success).toBe(false);
+    });
+
+    it("should reject hour ranges where startHour is not smaller than endHour", () => {
+        const result = SchedulePreferenceSchema.safeParse({
+            dayWeights: [],
+            hourRangeWeights: [
+                {
+                    startHour: 22,
+                    endHour: 19,
+                    reason: "Invalid hour range.",
+                },
+            ],
+            summary: "Invalid preference.",
+        });
+
+        expect(result.success).toBe(false);
     });
 });
 
