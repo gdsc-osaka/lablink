@@ -1,5 +1,6 @@
 import { TimeRange, UserTimeRanges } from "./calendar";
 import { User } from "./user";
+import * as z from "zod";
 
 /**
  * イベントの参加者情報
@@ -11,6 +12,82 @@ export interface EventMember extends User {
 
 export const MEMBER_REQUIRED_SCORE = 10;
 export const MEMBER_OPTIONAL_SCORE = 1;
+
+export const SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+] as const;
+
+export const SchedulePreferenceDayOfWeekSchema = z.enum(
+    SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES,
+);
+
+export const SchedulePreferenceReasonSchema = z.string().min(1).max(160);
+
+export const SchedulePreferenceDaySchema = z.object({
+    dayOfWeek: SchedulePreferenceDayOfWeekSchema.describe(
+        "Preferred day of week for the event.",
+    ),
+    reason: SchedulePreferenceReasonSchema.describe(
+        "Why this day of week fits the event description.",
+    ),
+});
+
+export const SchedulePreferenceHourRangeSchema = z
+    .object({
+        startHour: z
+            .number()
+            .int()
+            .min(0)
+            .max(23)
+            .describe(
+                "Start hour in JST. The range is [startHour, endHour). Must be smaller than endHour.",
+            ),
+        endHour: z
+            .number()
+            .int()
+            .min(1)
+            .max(24)
+            .describe(
+                "End hour in JST. The range is [startHour, endHour). Must be greater than startHour.",
+            ),
+        reason: SchedulePreferenceReasonSchema.describe(
+            "Why this JST hour range fits the event description.",
+        ),
+    })
+    .refine((range) => range.startHour < range.endHour, {
+        message: "startHour must be smaller than endHour",
+        path: ["endHour"],
+    });
+
+export const SchedulePreferenceSchema = z.object({
+    dayWeights: z.array(SchedulePreferenceDaySchema).min(0).max(7),
+    hourRangeWeights: z
+        .array(SchedulePreferenceHourRangeSchema)
+        .min(0)
+        .max(4)
+        .describe(
+            "Preferred JST hour ranges. Keep this to the main candidate ranges; split overnight ranges such as 22-2 into 22-24 and 0-2.",
+        ),
+    summary: z.string().min(1).max(240),
+});
+
+export type SchedulePreferenceDayOfWeek = z.infer<
+    typeof SchedulePreferenceDayOfWeekSchema
+>;
+
+export type SchedulePreferenceDay = z.infer<typeof SchedulePreferenceDaySchema>;
+
+export type SchedulePreferenceHourRange = z.infer<
+    typeof SchedulePreferenceHourRangeSchema
+>;
+
+export type SchedulePreference = z.infer<typeof SchedulePreferenceSchema>;
 
 /**
  * 時間帯ごとの参加可能なユーザーとスコア
