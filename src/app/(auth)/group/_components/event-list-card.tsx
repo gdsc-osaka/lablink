@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatToJST } from "@/lib/date";
+import DeleteEventButton from "./delete-event-button";
 
 type EventListCardProps = {
     id: string;
@@ -17,8 +18,8 @@ const EventListCard = ({
     startTime,
     endTime,
 }: EventListCardProps) => {
-    const startDate = startTime;
-    const endDate = endTime;
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
 
     // 日付と時刻を指定の形式にフォーマット
     const formattedDate = formatToJST(startDate, "yyyy/MM/dd");
@@ -34,11 +35,16 @@ const EventListCard = ({
                 <h3 className="text-xl font-bold text-black mb-2">{title}</h3>
                 <p className="text-base text-black">{displayDateTime}</p>
             </div>
-            <Link href={{ pathname: "/edit-event", query: { id, groupId } }}>
-                <Button className="bg-gray-100 hover:bg-gray-200 text-black text-sm font-medium py-2 px-4 border border-gray-300 rounded-md transition-colors ml-4">
-                    編集
-                </Button>
-            </Link>
+            <div className="flex flex-col gap-2 ml-4 w-24">
+                <Link
+                    href={{ pathname: "/edit-event", query: { id, groupId } }}
+                >
+                    <Button className="w-full bg-gray-100 hover:bg-gray-200 text-black text-sm font-medium py-2 px-4 border border-gray-300 rounded-md transition-colors">
+                        編集
+                    </Button>
+                </Link>
+                <DeleteEventButton id={id} groupId={groupId} />
+            </div>
         </div>
     );
 };

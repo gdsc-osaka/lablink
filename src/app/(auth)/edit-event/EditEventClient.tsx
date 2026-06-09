@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { convertEventToDraft } from "@/lib/event-to-draft";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { updateEventAction, deleteEventAction } from "./actions";
+import { updateEventAction } from "./actions";
 
 // TODO: このリストは src/domain/event.ts の EVENT_TIME_OF_DAY_CONFIG と重複している。
 // 時間帯を追加・変更する場合は EVENT_TIME_OF_DAY_CONFIG を更新したうえで、
@@ -94,25 +94,6 @@ const EditEventClient = ({ event, groupId }: Props) => {
         } catch (err) {
             console.error("Failed to update event:", err);
             setError("イベントの保存中にエラーが発生しました");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!confirm("このイベントを削除しますか？")) return;
-        setError(null);
-        setIsSubmitting(true);
-        try {
-            const result = await deleteEventAction(groupId, event.id);
-            if (result.success) {
-                router.push("/group");
-            } else {
-                setError(result.error);
-            }
-        } catch (err) {
-            console.error("Failed to delete event:", err);
-            setError("イベントの削除中にエラーが発生しました");
         } finally {
             setIsSubmitting(false);
         }
@@ -265,16 +246,7 @@ const EditEventClient = ({ event, groupId }: Props) => {
                     )}
 
                     {/* ボタンエリア */}
-                    <div className="flex justify-between pt-6">
-                        <Button
-                            type="button"
-                            onClick={handleDelete}
-                            disabled={isSubmitting}
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            イベントを削除
-                        </Button>
-
+                    <div className="flex justify-end pt-6">
                         <Button
                             type="submit"
                             disabled={isSubmitting}
