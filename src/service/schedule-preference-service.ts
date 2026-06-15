@@ -33,7 +33,10 @@ export function generateSchedulePreferencePrompt(
 
     const validTimeOfDayCandidates = timeOfDayCandidates.filter(
         (timeOfDay): timeOfDay is EventTimeOfDay =>
-            timeOfDay in EVENT_TIME_OF_DAY_CONFIG,
+            Object.prototype.hasOwnProperty.call(
+                EVENT_TIME_OF_DAY_CONFIG,
+                timeOfDay,
+            ),
     );
 
     const timeOfDayText =
