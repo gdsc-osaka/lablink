@@ -38,32 +38,20 @@ export const SchedulePreferenceDaySchema = z.object({
     ),
 });
 
-export const SchedulePreferenceHourRangeSchema = z
-    .object({
-        startHour: z
-            .number()
-            .int()
-            .min(0)
-            .max(23)
-            .describe(
-                "Start hour in JST. The range is [startHour, endHour). Must be smaller than endHour.",
-            ),
-        endHour: z
-            .number()
-            .int()
-            .min(1)
-            .max(24)
-            .describe(
-                "End hour in JST. The range is [startHour, endHour). Must be greater than startHour.",
-            ),
-        reason: SchedulePreferenceReasonSchema.describe(
-            "Why this JST hour range fits the event description.",
+export const SchedulePreferenceHourRangeSchema = z.object({
+    startHour: z.number().int().min(0).max(23).describe("Start hour in JST."),
+    durationHours: z
+        .number()
+        .int()
+        .min(1)
+        .max(24)
+        .describe(
+            "Duration of the preferred hour range in hours. The range may cross midnight.",
         ),
-    })
-    .refine((range) => range.startHour < range.endHour, {
-        message: "startHour must be smaller than endHour",
-        path: ["endHour"],
-    });
+    reason: SchedulePreferenceReasonSchema.describe(
+        "Why this JST hour range fits the event description.",
+    ),
+});
 
 export const SchedulePreferenceSchema = z.object({
     dayWeights: z.array(SchedulePreferenceDaySchema).min(0).max(7),
@@ -72,7 +60,7 @@ export const SchedulePreferenceSchema = z.object({
         .min(0)
         .max(4)
         .describe(
-            "Preferred JST hour ranges. Keep this to the main candidate ranges; split overnight ranges such as 22-2 into 22-24 and 0-2.",
+            "Preferred JST hour ranges represented by startHour and durationHours. Keep this to the main candidate ranges.",
         ),
     summary: z.string().min(1).max(240),
 });
