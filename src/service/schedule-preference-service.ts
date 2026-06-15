@@ -63,8 +63,8 @@ ${timeOfDayText}
 - Do not return hour ranges that greatly differ from UI-selected time ranges unless the UI selection is empty.
 - For example, if the UI-selected time range is "昼（12:00〜15:00ごろ）", do not return 19:00-22:00 only because the event sounds like a drinking party.
 - Use JST hours.
-- Each hour range must satisfy startHour < endHour.
-- If an overnight range is needed, split it into separate ranges such as 22-24 and 0-2.
+- Represent each hour range with startHour and durationHours.
+- An hour range may cross midnight. For example, represent 22:00-02:00 as startHour 22 and durationHours 4 without splitting it.
 - Write all "reason" and "summary" values in Japanese.
 - Do not include numeric score weights. The application decides scoring later.
 - Return only JSON matching the schema.`;

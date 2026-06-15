@@ -23,6 +23,10 @@ describe("generateSchedulePreferencePrompt", () => {
         expect(prompt).toContain("DATA_END");
         expect(prompt).toContain("昼（12:00〜15:00ごろ）");
         expect(prompt).toContain("JST 12:00-15:00");
+        expect(prompt).toContain(
+            "represent 22:00-02:00 as startHour 22 and durationHours 4 without splitting it",
+        );
+        expect(prompt).not.toContain("split it into separate ranges");
         // Rulesセクションに常に含める、UI指定から大きく外れないための例文
         expect(prompt).toContain("do not return 19:00-22:00");
         expect(prompt).toContain(
@@ -86,7 +90,7 @@ describe("SchedulePreferenceService", () => {
                 hourRangeWeights: [
                     {
                         startHour: 12,
-                        endHour: 15,
+                        durationHours: 3,
                         reason: "UIで昼が指定されているため昼の時間帯を優先します。",
                     },
                 ],
