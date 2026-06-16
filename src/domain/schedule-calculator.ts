@@ -271,7 +271,7 @@ export const selectDiverseTopN = (
 
     const selected: TimeRangeScore[] = [];
 
-    for (const candidate of scores.toSorted((a, b) => b.score - a.score)) {
+    for (const candidate of [...scores].sort((a, b) => b.score - a.score)) {
         if (selected.length >= n) break;
 
         const overlapsWithSelected = selected.some((selectedScore) =>

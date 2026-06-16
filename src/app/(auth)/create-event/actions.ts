@@ -166,12 +166,16 @@ const createSuggestionReason = (
     requiredCount: number,
     usedSchedulePreference: boolean,
 ): string => {
-    const allRequiredMembersAvailable =
-        score.availableMemberIds.required.length >= requiredCount;
     const displayStart = formatToJST(score.timeRange.start, "M月d日 H:mm");
-    const availabilityText = allRequiredMembersAvailable
-        ? `必須メンバー全員が参加可能な${displayStart}開始の候補です。`
-        : `${displayStart}開始で、必須メンバー${score.availableMemberIds.required.length}/${requiredCount}人が参加可能な候補です。`;
+    const allRequiredMembersAvailable =
+        requiredCount > 0 &&
+        score.availableMemberIds.required.length >= requiredCount;
+    const availabilityText =
+        requiredCount === 0
+            ? `${displayStart}開始で、参加可能性をもとに選んだ候補です。`
+            : allRequiredMembersAvailable
+              ? `必須メンバー全員が参加可能な${displayStart}開始の候補です。`
+              : `${displayStart}開始で、必須メンバー${score.availableMemberIds.required.length}/${requiredCount}人が参加可能な候補です。`;
     const preferenceText = usedSchedulePreference
         ? "入力内容から抽出した曜日・時間帯の希望も加味しています。"
         : "希望時間帯の中から参加可能性をもとに選んでいます。";
