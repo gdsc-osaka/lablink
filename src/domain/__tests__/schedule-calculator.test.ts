@@ -3,6 +3,7 @@ import {
     createSlots,
     calculateTimeRangeScores,
     EventMember,
+    SchedulePreferenceSchema,
 } from "../schedule-calculator";
 import { UserTimeRanges } from "@/domain/calendar";
 
@@ -88,6 +89,79 @@ describe("createSlots", () => {
         expect(withFilter).toHaveLength(withoutFilter.length);
         expect(withFilter).toHaveLength(24);
     });
+});
+
+describe("SchedulePreferenceSchema", () => {
+    it("should parse day and hour-range preferences", () => {
+        const result = SchedulePreferenceSchema.safeParse({
+            dayWeights: [
+                {
+                    dayOfWeek: "friday",
+                    reason: "飲み会なので金曜日が適しています。",
+                },
+            ],
+            hourRangeWeights: [
+                {
+                    startHour: 19,
+                    durationHours: 3,
+                    reason: "飲み会なので19時から22時が適しています。",
+                },
+            ],
+            summary: "金曜日の19時から22時を優先します。",
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("should reject unsupported days of week", () => {
+        const result = SchedulePreferenceSchema.safeParse({
+            dayWeights: [
+                {
+                    dayOfWeek: "holiday",
+                    reason: "Invalid day.",
+                },
+            ],
+            hourRangeWeights: [],
+            summary: "Invalid preference.",
+        });
+
+        expect(result.success).toBe(false);
+    });
+
+    it("should parse an hour range that crosses midnight", () => {
+        const result = SchedulePreferenceSchema.safeParse({
+            dayWeights: [],
+            hourRangeWeights: [
+                {
+                    startHour: 22,
+                    durationHours: 4,
+                    reason: "飲み会なので22時から翌2時が適しています。",
+                },
+            ],
+            summary: "22時から翌2時を優先します。",
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it.each([0, 25])(
+        "should reject durationHours outside the supported range: %i",
+        (durationHours) => {
+            const result = SchedulePreferenceSchema.safeParse({
+                dayWeights: [],
+                hourRangeWeights: [
+                    {
+                        startHour: 22,
+                        durationHours,
+                        reason: "Invalid hour range.",
+                    },
+                ],
+                summary: "Invalid preference.",
+            });
+
+            expect(result.success).toBe(false);
+        },
+    );
 });
 
 describe("calculateTimeRangeScores", () => {
