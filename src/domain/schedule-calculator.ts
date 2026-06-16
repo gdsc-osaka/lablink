@@ -12,6 +12,8 @@ export interface EventMember extends User {
 
 export const MEMBER_REQUIRED_SCORE = 10;
 export const MEMBER_OPTIONAL_SCORE = 1;
+export const SCHEDULE_PREFERENCE_DAY_SCORE = 1;
+export const SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE = 2;
 
 export const SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES = [
     "sunday",
@@ -188,6 +190,7 @@ export const calculateTimeRangeScores = (
     members: EventMember[],
     slotIntervalMinutes: number = 30,
     allowedHourRanges?: { start: number; end: number }[],
+    schedulePreference?: SchedulePreference,
 ): TimeRangeScore[] => {
     const slots: TimeRangeScore[] = createSlots(
         timeRange,
@@ -233,5 +236,84 @@ export const calculateTimeRangeScores = (
         }
     }
 
+    if (schedulePreference) {
+        for (const slot of slots) {
+            slot.score += calculateSchedulePreferenceScore(
+                slot.timeRange,
+                schedulePreference,
+            );
+        }
+    }
+
     return slots;
+};
+
+export const calculateSchedulePreferenceScore = (
+    timeRange: TimeRange,
+    schedulePreference: SchedulePreference,
+): number => {
+    const start = timeRange.start;
+    const dayScore = matchesPreferredDay(start, schedulePreference)
+        ? SCHEDULE_PREFERENCE_DAY_SCORE
+        : 0;
+    const hourRangeScore = matchesPreferredHourRange(start, schedulePreference)
+        ? SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE
+        : 0;
+
+    return dayScore + hourRangeScore;
+};
+
+export const selectDiverseTopN = (
+    scores: TimeRangeScore[],
+    n: number,
+): TimeRangeScore[] => {
+    if (n <= 0) return [];
+
+    const selected: TimeRangeScore[] = [];
+
+    for (const candidate of scores.toSorted((a, b) => b.score - a.score)) {
+        if (selected.length >= n) break;
+
+        const overlapsWithSelected = selected.some((selectedScore) =>
+            timeRangesOverlap(candidate.timeRange, selectedScore.timeRange),
+        );
+        if (!overlapsWithSelected) {
+            selected.push(candidate);
+        }
+    }
+
+    return selected;
+};
+
+const matchesPreferredDay = (
+    start: Date,
+    schedulePreference: SchedulePreference,
+): boolean => {
+    const dayOfWeek = SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES[getJSTDay(start)];
+
+    return schedulePreference.dayWeights.some(
+        (day) => day.dayOfWeek === dayOfWeek,
+    );
+};
+
+const matchesPreferredHourRange = (
+    start: Date,
+    schedulePreference: SchedulePreference,
+): boolean => {
+    const hour = getJSTHour(start);
+
+    return schedulePreference.hourRangeWeights.some((range) => {
+        const elapsedHours = (hour - range.startHour + 24) % 24;
+        return elapsedHours < range.durationHours;
+    });
+};
+
+const timeRangesOverlap = (a: TimeRange, b: TimeRange): boolean =>
+    a.start < b.end && a.end > b.start;
+
+const getJSTHour = (date: Date): number => (date.getUTCHours() + 9) % 24;
+
+const getJSTDay = (date: Date): number => {
+    const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return jstDate.getUTCDay();
 };

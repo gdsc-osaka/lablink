@@ -12,8 +12,13 @@ import { googleCalendarRepository } from "@/infra/calendar/google-calendar-repo"
 import { googleTokenRepository } from "@/infra/token/google-token-repo";
 import { geminiRepo } from "@/infra/ai/gemini-repo";
 import { createCalculateFreeTimeService } from "@/service/calculate-free-time-service";
-import { createScheduleSuggestionService } from "@/service/schedule-suggestion-service";
-import type { EventMember } from "@/domain/schedule-calculator";
+import { createSchedulePreferenceService } from "@/service/schedule-preference-service";
+import { formatToJST } from "@/lib/date";
+import {
+    EventMember,
+    selectDiverseTopN,
+    TimeRangeScore,
+} from "@/domain/schedule-calculator";
 
 export async function getScheduleSuggestionsAction(
     groupId: string,
@@ -97,6 +102,20 @@ export async function getScheduleSuggestionsAction(
                 ? validCandidates.map((t) => EVENT_TIME_OF_DAY_CONFIG[t].hours)
                 : undefined;
 
+        const preferenceResult = await createSchedulePreferenceService(
+            geminiRepo,
+        ).extractPreference(draft.description, validCandidates);
+
+        const schedulePreference = preferenceResult.isOk()
+            ? preferenceResult.value
+            : undefined;
+        if (preferenceResult.isErr()) {
+            console.warn(
+                "Failed to extract schedule preference:",
+                preferenceResult.error.message,
+            );
+        }
+
         const scoresResult = await createCalculateFreeTimeService(
             googleCalendarRepository,
             googleTokenRepository,
@@ -105,6 +124,7 @@ export async function getScheduleSuggestionsAction(
             durationMinutes,
             members,
             allowedHourRanges,
+            schedulePreference,
         );
 
         if (scoresResult.isErr()) {
@@ -117,38 +137,18 @@ export async function getScheduleSuggestionsAction(
         }
 
         const requiredCount = members.filter((m) => m.isRequired).length;
-
-        // AIプロンプト用の時間帯ラベルも検証済みの validCandidates から導出
-        const timeConstraint =
-            validCandidates.length > 0
-                ? `\n希望時間帯: ${validCandidates.map((t) => EVENT_TIME_OF_DAY_CONFIG[t].label).join("、")}`
-                : "";
-        const descriptionWithTimeConstraint =
-            draft.description + timeConstraint;
-
-        const suggestionsResult = await createScheduleSuggestionService(
-            geminiRepo,
-        ).suggestSchedule(
-            descriptionWithTimeConstraint,
-            scoresResult.value,
-            requiredCount,
-        );
-
-        if (suggestionsResult.isErr()) {
-            return {
-                success: false,
-                error:
-                    "AI提案の生成に失敗しました: " +
-                    suggestionsResult.error.message,
-            };
-        }
+        const suggestions = selectDiverseTopN(scoresResult.value, 3);
 
         return {
             success: true,
-            suggestions: suggestionsResult.value.map((s) => ({
+            suggestions: suggestions.map((s) => ({
                 start: s.timeRange.start.toISOString(),
                 end: s.timeRange.end.toISOString(),
-                reason: s.reason,
+                reason: createSuggestionReason(
+                    s,
+                    requiredCount,
+                    Boolean(schedulePreference),
+                ),
             })),
         };
     } catch (error) {
@@ -160,6 +160,24 @@ export async function getScheduleSuggestionsAction(
         };
     }
 }
+
+const createSuggestionReason = (
+    score: TimeRangeScore,
+    requiredCount: number,
+    usedSchedulePreference: boolean,
+): string => {
+    const allRequiredMembersAvailable =
+        score.availableMemberIds.required.length >= requiredCount;
+    const displayStart = formatToJST(score.timeRange.start, "M月d日 H:mm");
+    const availabilityText = allRequiredMembersAvailable
+        ? `必須メンバー全員が参加可能な${displayStart}開始の候補です。`
+        : `${displayStart}開始で、必須メンバー${score.availableMemberIds.required.length}/${requiredCount}人が参加可能な候補です。`;
+    const preferenceText = usedSchedulePreference
+        ? "入力内容から抽出した曜日・時間帯の希望も加味しています。"
+        : "希望時間帯の中から参加可能性をもとに選んでいます。";
+
+    return `${availabilityText}${preferenceText}`;
+};
 
 export async function createEventAction(
     groupId: string,
