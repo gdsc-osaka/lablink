@@ -103,7 +103,7 @@ describe("SchedulePreferenceSchema", () => {
             hourRangeWeights: [
                 {
                     startHour: 19,
-                    endHour: 22,
+                    durationHours: 3,
                     reason: "飲み会なので19時から22時が適しています。",
                 },
             ],
@@ -128,21 +128,40 @@ describe("SchedulePreferenceSchema", () => {
         expect(result.success).toBe(false);
     });
 
-    it("should reject hour ranges where startHour is not smaller than endHour", () => {
+    it("should parse an hour range that crosses midnight", () => {
         const result = SchedulePreferenceSchema.safeParse({
             dayWeights: [],
             hourRangeWeights: [
                 {
                     startHour: 22,
-                    endHour: 19,
-                    reason: "Invalid hour range.",
+                    durationHours: 4,
+                    reason: "飲み会なので22時から翌2時が適しています。",
                 },
             ],
-            summary: "Invalid preference.",
+            summary: "22時から翌2時を優先します。",
         });
 
-        expect(result.success).toBe(false);
+        expect(result.success).toBe(true);
     });
+
+    it.each([0, 25])(
+        "should reject durationHours outside the supported range: %i",
+        (durationHours) => {
+            const result = SchedulePreferenceSchema.safeParse({
+                dayWeights: [],
+                hourRangeWeights: [
+                    {
+                        startHour: 22,
+                        durationHours,
+                        reason: "Invalid hour range.",
+                    },
+                ],
+                summary: "Invalid preference.",
+            });
+
+            expect(result.success).toBe(false);
+        },
+    );
 });
 
 describe("calculateTimeRangeScores", () => {
