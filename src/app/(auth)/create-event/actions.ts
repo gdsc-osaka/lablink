@@ -16,6 +16,8 @@ import { createSchedulePreferenceService } from "@/service/schedule-preference-s
 import { formatToJST } from "@/lib/date";
 import {
     EventMember,
+    findMatchingPreferredHourRange,
+    SchedulePreference,
     selectDiverseTopN,
     TimeRangeScore,
 } from "@/domain/schedule-calculator";
@@ -147,7 +149,7 @@ export async function getScheduleSuggestionsAction(
                 reason: createSuggestionReason(
                     s,
                     requiredCount,
-                    Boolean(schedulePreference),
+                    schedulePreference,
                 ),
             })),
         };
@@ -164,7 +166,7 @@ export async function getScheduleSuggestionsAction(
 const createSuggestionReason = (
     score: TimeRangeScore,
     requiredCount: number,
-    usedSchedulePreference: boolean,
+    schedulePreference: SchedulePreference | undefined,
 ): string => {
     const displayStart = formatToJST(score.timeRange.start, "M月d日 H:mm");
     const allRequiredMembersAvailable =
@@ -176,8 +178,11 @@ const createSuggestionReason = (
             : allRequiredMembersAvailable
               ? `必須メンバー全員が参加可能な${displayStart}開始の候補です。`
               : `${displayStart}開始で、必須メンバー${score.availableMemberIds.required.length}/${requiredCount}人が参加可能な候補です。`;
-    const preferenceText = usedSchedulePreference
-        ? "入力内容から抽出した曜日・時間帯の希望も加味しています。"
+    const matchingHourRange = schedulePreference
+        ? findMatchingPreferredHourRange(score.timeRange, schedulePreference)
+        : undefined;
+    const preferenceText = matchingHourRange
+        ? `入力内容から抽出した希望も加味しています。${matchingHourRange.reason}`
         : "希望時間帯の中から参加可能性をもとに選んでいます。";
 
     return `${availabilityText}${preferenceText}`;

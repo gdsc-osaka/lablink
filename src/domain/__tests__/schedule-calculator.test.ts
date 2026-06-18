@@ -4,6 +4,7 @@ import {
     calculateTimeRangeScores,
     calculateSchedulePreferenceScore,
     EventMember,
+    findMatchingPreferredHourRange,
     SchedulePreferenceSchema,
     selectDiverseTopN,
 } from "../schedule-calculator";
@@ -375,6 +376,50 @@ describe("calculateTimeRangeScores", () => {
 });
 
 describe("calculateSchedulePreferenceScore", () => {
+    it("should match when the whole slot is inside the preferred hour range", () => {
+        const score = calculateSchedulePreferenceScore(
+            {
+                start: new Date("2026-02-27T10:00:00.000Z"), // JST Friday 19:00
+                end: new Date("2026-02-27T12:00:00.000Z"), // JST Friday 21:00
+            },
+            {
+                dayWeights: [],
+                hourRangeWeights: [
+                    {
+                        startHour: 19,
+                        durationHours: 3,
+                        reason: "19時から22時が適しています。",
+                    },
+                ],
+                summary: "19時から22時を優先します。",
+            },
+        );
+
+        expect(score).toBe(2);
+    });
+
+    it("should not match when the slot starts inside but ends outside the preferred hour range", () => {
+        const score = calculateSchedulePreferenceScore(
+            {
+                start: new Date("2026-02-27T12:00:00.000Z"), // JST Friday 21:00
+                end: new Date("2026-02-27T14:00:00.000Z"), // JST Friday 23:00
+            },
+            {
+                dayWeights: [],
+                hourRangeWeights: [
+                    {
+                        startHour: 19,
+                        durationHours: 3,
+                        reason: "19時から22時が適しています。",
+                    },
+                ],
+                summary: "19時から22時を優先します。",
+            },
+        );
+
+        expect(score).toBe(0);
+    });
+
     it("should match hour ranges that cross midnight", () => {
         const score = calculateSchedulePreferenceScore(
             {
@@ -411,6 +456,52 @@ describe("calculateSchedulePreferenceScore", () => {
         );
 
         expect(score).toBe(0);
+    });
+});
+
+describe("findMatchingPreferredHourRange", () => {
+    it("should return the matching hour range with its reason", () => {
+        const result = findMatchingPreferredHourRange(
+            {
+                start: new Date("2026-02-27T10:00:00.000Z"), // JST Friday 19:00
+                end: new Date("2026-02-27T12:00:00.000Z"), // JST Friday 21:00
+            },
+            {
+                dayWeights: [],
+                hourRangeWeights: [
+                    {
+                        startHour: 19,
+                        durationHours: 3,
+                        reason: "飲み会なので19時から22時が適しています。",
+                    },
+                ],
+                summary: "19時から22時を優先します。",
+            },
+        );
+
+        expect(result?.reason).toBe("飲み会なので19時から22時が適しています。");
+    });
+
+    it("should return undefined when no hour range contains the whole slot", () => {
+        const result = findMatchingPreferredHourRange(
+            {
+                start: new Date("2026-02-27T12:00:00.000Z"), // JST Friday 21:00
+                end: new Date("2026-02-27T14:00:00.000Z"), // JST Friday 23:00
+            },
+            {
+                dayWeights: [],
+                hourRangeWeights: [
+                    {
+                        startHour: 19,
+                        durationHours: 3,
+                        reason: "19時から22時が適しています。",
+                    },
+                ],
+                summary: "19時から22時を優先します。",
+            },
+        );
+
+        expect(result).toBeUndefined();
     });
 });
 

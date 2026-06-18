@@ -256,12 +256,23 @@ export const calculateSchedulePreferenceScore = (
     const dayScore = matchesPreferredDay(start, schedulePreference)
         ? SCHEDULE_PREFERENCE_DAY_SCORE
         : 0;
-    const hourRangeScore = matchesPreferredHourRange(start, schedulePreference)
+    const hourRangeScore = findMatchingPreferredHourRange(
+        timeRange,
+        schedulePreference,
+    )
         ? SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE
         : 0;
 
     return dayScore + hourRangeScore;
 };
+
+export const findMatchingPreferredHourRange = (
+    timeRange: TimeRange,
+    schedulePreference: SchedulePreference,
+): SchedulePreferenceHourRange | undefined =>
+    schedulePreference.hourRangeWeights.find((range) =>
+        containsWholeTimeRange(timeRange, range),
+    );
 
 export const selectDiverseTopN = (
     scores: TimeRangeScore[],
@@ -296,22 +307,37 @@ const matchesPreferredDay = (
     );
 };
 
-const matchesPreferredHourRange = (
-    start: Date,
-    schedulePreference: SchedulePreference,
+const containsWholeTimeRange = (
+    timeRange: TimeRange,
+    range: SchedulePreferenceHourRange,
 ): boolean => {
-    const hour = getJSTHour(start);
+    const slotDurationMinutes =
+        (timeRange.end.getTime() - timeRange.start.getTime()) / (60 * 1000);
+    const durationMinutes = range.durationHours * 60;
+    if (slotDurationMinutes <= 0 || slotDurationMinutes > durationMinutes) {
+        return false;
+    }
 
-    return schedulePreference.hourRangeWeights.some((range) => {
-        const elapsedHours = (hour - range.startHour + 24) % 24;
-        return elapsedHours < range.durationHours;
-    });
+    const startOffsetMinutes = getMinutesSinceJSTHour(
+        timeRange.start,
+        range.startHour,
+    );
+
+    return startOffsetMinutes + slotDurationMinutes <= durationMinutes;
 };
 
 const timeRangesOverlap = (a: TimeRange, b: TimeRange): boolean =>
     a.start < b.end && a.end > b.start;
 
 const getJSTHour = (date: Date): number => (date.getUTCHours() + 9) % 24;
+
+const getJSTMinuteOfDay = (date: Date): number =>
+    getJSTHour(date) * 60 + date.getUTCMinutes();
+
+const getMinutesSinceJSTHour = (date: Date, startHour: number): number => {
+    const startMinuteOfDay = startHour * 60;
+    return (getJSTMinuteOfDay(date) - startMinuteOfDay + 24 * 60) % (24 * 60);
+};
 
 const getJSTDay = (date: Date): number => {
     const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
