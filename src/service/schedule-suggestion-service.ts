@@ -27,8 +27,8 @@ export function generatePrompt(
     description: string,
     requiredMemberCount: number,
 ): string {
-    const candidatesText = candidates
-        .toSorted((a, b) => b.score - a.score)
+    const candidatesText = [...candidates]
+        .sort((a, b) => b.score - a.score)
         .slice(0, 30) // スコア上位30件
         .map((c, idx) => {
             const start = c.timeRange.start;
