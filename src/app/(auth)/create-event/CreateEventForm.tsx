@@ -10,6 +10,10 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
 import { getScheduleSuggestionsAction } from "./actions";
+import {
+    getDefaultSuggestionSearchDateValues,
+    MAX_SUGGESTION_SEARCH_DAYS,
+} from "@/domain/suggestion-search-range";
 
 type User = { id: string; username: string; email: string };
 
@@ -28,6 +32,8 @@ type Props = { groupId: string; users: User[] };
 
 export default function CreateEventForm({ groupId, users }: Props) {
     const router = useRouter();
+    const defaultSuggestionSearchDateValues =
+        getDefaultSuggestionSearchDateValues();
     const {
         register,
         handleSubmit,
@@ -38,6 +44,8 @@ export default function CreateEventForm({ groupId, users }: Props) {
             title: "",
             duration: "",
             timeOfDayCandidate: [],
+            searchStartDate: defaultSuggestionSearchDateValues.searchStartDate,
+            searchEndDate: defaultSuggestionSearchDateValues.searchEndDate,
             priorityParticipants: "",
             description: "",
         },
@@ -132,6 +140,75 @@ export default function CreateEventForm({ groupId, users }: Props) {
                         {errors.duration.message}
                     </p>
                 )}
+            </div>
+            <div>
+                <Label className="event-form-label">候補検索期間</Label>
+                <div className="mt-2 grid gap-4 md:grid-cols-2">
+                    <div>
+                        <Label
+                            htmlFor="searchStartDate"
+                            className="text-sm text-black"
+                        >
+                            開始日
+                        </Label>
+                        <Input
+                            type="date"
+                            id="searchStartDate"
+                            min={
+                                defaultSuggestionSearchDateValues.searchStartDate
+                            }
+                            {...register("searchStartDate", {
+                                required: "検索開始日は必須です",
+                            })}
+                            className="event-form-input mt-1"
+                        />
+                        {errors.searchStartDate && (
+                            <p className="event-form-error">
+                                {errors.searchStartDate.message}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <Label
+                            htmlFor="searchEndDate"
+                            className="text-sm text-black"
+                        >
+                            終了日
+                        </Label>
+                        <Input
+                            type="date"
+                            id="searchEndDate"
+                            min={
+                                defaultSuggestionSearchDateValues.searchStartDate
+                            }
+                            {...register("searchEndDate", {
+                                required: "検索終了日は必須です",
+                                validate: (value, formValues) => {
+                                    if (!value) {
+                                        return "検索終了日は必須です";
+                                    }
+                                    if (
+                                        formValues.searchStartDate &&
+                                        value < formValues.searchStartDate
+                                    ) {
+                                        return "検索終了日は検索開始日以降の日付を指定してください";
+                                    }
+                                    return true;
+                                },
+                            })}
+                            className="event-form-input mt-1"
+                        />
+                        {errors.searchEndDate && (
+                            <p className="event-form-error">
+                                {errors.searchEndDate.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                    最大{MAX_SUGGESTION_SEARCH_DAYS}
+                    日間までの範囲で候補を探します。
+                </p>
             </div>
             <div>
                 <Label className="event-form-label">時間帯</Label>
