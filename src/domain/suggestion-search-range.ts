@@ -62,7 +62,11 @@ export const buildSuggestionSearchRange = (
         };
     }
 
-    const selectedDays = getInclusiveJSTDayCount(start, end);
+    // end is exclusive, so subtract 1ms to count the selected end date itself.
+    const selectedDays = getInclusiveJSTDayCount(
+        start,
+        new Date(end.getTime() - 1),
+    );
     if (selectedDays > MAX_SUGGESTION_SEARCH_DAYS) {
         return {
             success: false,
@@ -71,6 +75,18 @@ export const buildSuggestionSearchRange = (
     }
 
     return { success: true, range: { start, end } };
+};
+
+export const getInclusiveDateInputDayCount = (
+    startDate: string,
+    endDate: string,
+): number => {
+    const [startYear, startMonth, startDay] = startDate.split("-").map(Number);
+    const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
+    const startTime = Date.UTC(startYear, startMonth - 1, startDay);
+    const endTime = Date.UTC(endYear, endMonth - 1, endDay);
+
+    return Math.floor((endTime - startTime) / DAY_MS) + 1;
 };
 
 const parseJSTDateOnly = (
@@ -85,11 +101,12 @@ const parseJSTDateOnly = (
     const date =
         boundary === "start"
             ? new Date(Date.UTC(year, month - 1, day, -JST_OFFSET_HOURS))
-            : new Date(
-                  Date.UTC(year, month - 1, day, 24 - JST_OFFSET_HOURS) - 1,
-              );
+            : new Date(Date.UTC(year, month - 1, day, 24 - JST_OFFSET_HOURS));
 
-    return formatJSTDateInput(date) === value ? date : undefined;
+    const dateToValidate =
+        boundary === "start" ? date : new Date(date.getTime() - 1);
+
+    return formatJSTDateInput(dateToValidate) === value ? date : undefined;
 };
 
 const startOfJSTDate = (date: Date): Date => {

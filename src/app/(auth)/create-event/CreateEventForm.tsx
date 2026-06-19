@@ -6,12 +6,13 @@ import type { EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
 import { getScheduleSuggestionsAction } from "./actions";
 import {
     getDefaultSuggestionSearchDateValues,
+    getInclusiveDateInputDayCount,
     MAX_SUGGESTION_SEARCH_DAYS,
 } from "@/domain/suggestion-search-range";
 
@@ -32,13 +33,16 @@ type Props = { groupId: string; users: User[] };
 
 export default function CreateEventForm({ groupId, users }: Props) {
     const router = useRouter();
-    const defaultSuggestionSearchDateValues =
-        getDefaultSuggestionSearchDateValues();
+    const defaultSuggestionSearchDateValues = useMemo(
+        () => getDefaultSuggestionSearchDateValues(),
+        [],
+    );
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
+        control,
     } = useForm<EventDraft>({
         defaultValues: {
             title: "",
@@ -53,6 +57,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const watchedSearchStartDate = useWatch({
+        control,
+        name: "searchStartDate",
+    });
 
     const fuse = useMemo(
         () => new Fuse(users, { keys: ["username", "email"], threshold: 0.3 }),
@@ -159,6 +167,18 @@ export default function CreateEventForm({ groupId, users }: Props) {
                             }
                             {...register("searchStartDate", {
                                 required: "検索開始日は必須です",
+                                validate: (value) => {
+                                    if (!value) {
+                                        return "検索開始日は必須です";
+                                    }
+                                    if (
+                                        value <
+                                        defaultSuggestionSearchDateValues.searchStartDate
+                                    ) {
+                                        return "検索開始日は明日以降の日付を指定してください";
+                                    }
+                                    return true;
+                                },
                             })}
                             className="event-form-input mt-1"
                         />
@@ -179,6 +199,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
                             type="date"
                             id="searchEndDate"
                             min={
+                                watchedSearchStartDate ||
                                 defaultSuggestionSearchDateValues.searchStartDate
                             }
                             {...register("searchEndDate", {
@@ -192,6 +213,19 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                         value < formValues.searchStartDate
                                     ) {
                                         return "検索終了日は検索開始日以降の日付を指定してください";
+                                    }
+                                    if (formValues.searchStartDate) {
+                                        const selectedDays =
+                                            getInclusiveDateInputDayCount(
+                                                formValues.searchStartDate,
+                                                value,
+                                            );
+                                        if (
+                                            selectedDays >
+                                            MAX_SUGGESTION_SEARCH_DAYS
+                                        ) {
+                                            return `検索期間は最大${MAX_SUGGESTION_SEARCH_DAYS}日まで指定できます`;
+                                        }
                                     }
                                     return true;
                                 },

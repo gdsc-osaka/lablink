@@ -1,6 +1,7 @@
 import {
     buildSuggestionSearchRange,
     getDefaultSuggestionSearchDateValues,
+    getInclusiveDateInputDayCount,
     MAX_SUGGESTION_SEARCH_DAYS,
 } from "../suggestion-search-range";
 
@@ -17,6 +18,20 @@ describe("getDefaultSuggestionSearchDateValues", () => {
     });
 });
 
+describe("getInclusiveDateInputDayCount", () => {
+    it("should count the start and end date inclusively", () => {
+        expect(getInclusiveDateInputDayCount("2026-07-10", "2026-07-12")).toBe(
+            3,
+        );
+    });
+
+    it("should return 1 when start and end are the same date", () => {
+        expect(getInclusiveDateInputDayCount("2026-07-10", "2026-07-10")).toBe(
+            1,
+        );
+    });
+});
+
 describe("buildSuggestionSearchRange", () => {
     const now = new Date("2026-06-18T10:00:00.000Z");
 
@@ -28,7 +43,7 @@ describe("buildSuggestionSearchRange", () => {
         expect(result.range.start.toISOString()).toBe(
             "2026-06-18T15:00:00.000Z",
         );
-        expect(result.range.end.toISOString()).toBe("2026-07-02T14:59:59.999Z");
+        expect(result.range.end.toISOString()).toBe("2026-07-02T15:00:00.000Z");
     });
 
     it("should build a custom JST date range", () => {
@@ -45,7 +60,7 @@ describe("buildSuggestionSearchRange", () => {
         expect(result.range.start.toISOString()).toBe(
             "2026-07-09T15:00:00.000Z",
         );
-        expect(result.range.end.toISOString()).toBe("2026-07-12T14:59:59.999Z");
+        expect(result.range.end.toISOString()).toBe("2026-07-12T15:00:00.000Z");
     });
 
     it("should reject malformed date strings", () => {
