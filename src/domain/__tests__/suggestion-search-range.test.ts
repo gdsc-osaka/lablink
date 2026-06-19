@@ -99,6 +99,18 @@ describe("buildSuggestionSearchRange", () => {
         expect(result.success).toBe(false);
     });
 
+    it("should reject when end date is exactly one day before start date", () => {
+        const result = buildSuggestionSearchRange(
+            {
+                searchStartDate: "2026-07-12",
+                searchEndDate: "2026-07-11",
+            },
+            now,
+        );
+
+        expect(result.success).toBe(false);
+    });
+
     it("should reject ranges longer than the maximum search days", () => {
         const result = buildSuggestionSearchRange(
             {

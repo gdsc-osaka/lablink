@@ -55,7 +55,7 @@ export const buildSuggestionSearchRange = (
         };
     }
 
-    if (start.getTime() > end.getTime()) {
+    if (start.getTime() >= end.getTime()) {
         return {
             success: false,
             error: "検索終了日は検索開始日以降の日付を指定してください",
