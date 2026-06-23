@@ -12,6 +12,8 @@ export interface EventMember extends User {
 
 export const MEMBER_REQUIRED_SCORE = 10;
 export const MEMBER_OPTIONAL_SCORE = 1;
+export const SCHEDULE_PREFERENCE_DAY_SCORE = 1;
+export const SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE = 2;
 
 export const SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES = [
     "sunday",
@@ -188,6 +190,7 @@ export const calculateTimeRangeScores = (
     members: EventMember[],
     slotIntervalMinutes: number = 30,
     allowedHourRanges?: { start: number; end: number }[],
+    schedulePreference?: SchedulePreference,
 ): TimeRangeScore[] => {
     const slots: TimeRangeScore[] = createSlots(
         timeRange,
@@ -233,5 +236,110 @@ export const calculateTimeRangeScores = (
         }
     }
 
+    if (schedulePreference) {
+        for (const slot of slots) {
+            slot.score += calculateSchedulePreferenceScore(
+                slot.timeRange,
+                schedulePreference,
+            );
+        }
+    }
+
     return slots;
+};
+
+export const calculateSchedulePreferenceScore = (
+    timeRange: TimeRange,
+    schedulePreference: SchedulePreference,
+): number => {
+    const start = timeRange.start;
+    const dayScore = matchesPreferredDay(start, schedulePreference)
+        ? SCHEDULE_PREFERENCE_DAY_SCORE
+        : 0;
+    const hourRangeScore = findMatchingPreferredHourRange(
+        timeRange,
+        schedulePreference,
+    )
+        ? SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE
+        : 0;
+
+    return dayScore + hourRangeScore;
+};
+
+export const findMatchingPreferredHourRange = (
+    timeRange: TimeRange,
+    schedulePreference: SchedulePreference,
+): SchedulePreferenceHourRange | undefined =>
+    schedulePreference.hourRangeWeights.find((range) =>
+        containsWholeTimeRange(timeRange, range),
+    );
+
+export const selectDiverseTopN = (
+    scores: TimeRangeScore[],
+    n: number,
+): TimeRangeScore[] => {
+    if (n <= 0) return [];
+
+    const selected: TimeRangeScore[] = [];
+
+    for (const candidate of [...scores].sort((a, b) => b.score - a.score)) {
+        if (selected.length >= n) break;
+
+        const overlapsWithSelected = selected.some((selectedScore) =>
+            timeRangesOverlap(candidate.timeRange, selectedScore.timeRange),
+        );
+        if (!overlapsWithSelected) {
+            selected.push(candidate);
+        }
+    }
+
+    return selected;
+};
+
+const matchesPreferredDay = (
+    start: Date,
+    schedulePreference: SchedulePreference,
+): boolean => {
+    const dayOfWeek = SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES[getJSTDay(start)];
+
+    return schedulePreference.dayWeights.some(
+        (day) => day.dayOfWeek === dayOfWeek,
+    );
+};
+
+const containsWholeTimeRange = (
+    timeRange: TimeRange,
+    range: SchedulePreferenceHourRange,
+): boolean => {
+    const slotDurationMinutes =
+        (timeRange.end.getTime() - timeRange.start.getTime()) / (60 * 1000);
+    const durationMinutes = range.durationHours * 60;
+    if (slotDurationMinutes <= 0 || slotDurationMinutes > durationMinutes) {
+        return false;
+    }
+
+    const startOffsetMinutes = getMinutesSinceJSTHour(
+        timeRange.start,
+        range.startHour,
+    );
+
+    return startOffsetMinutes + slotDurationMinutes <= durationMinutes;
+};
+
+const timeRangesOverlap = (a: TimeRange, b: TimeRange): boolean =>
+    a.start < b.end && a.end > b.start;
+
+const getJSTHour = (date: Date): number => (date.getUTCHours() + 9) % 24;
+
+const getJSTMinuteOfDay = (date: Date): number =>
+    getJSTHour(date) * 60 + date.getUTCMinutes();
+
+const getMinutesSinceJSTHour = (date: Date, startHour: number): number => {
+    const startMinuteOfDay = startHour * 60;
+    return (getJSTMinuteOfDay(date) - startMinuteOfDay + 24 * 60) % (24 * 60);
+};
+
+const getJSTDay = (date: Date): number => {
+    const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return jstDate.getUTCDay();
 };
