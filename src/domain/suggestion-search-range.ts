@@ -2,6 +2,7 @@ import type { TimeRange } from "./calendar";
 
 export const DEFAULT_SUGGESTION_SEARCH_DAYS = 14;
 export const MAX_SUGGESTION_SEARCH_DAYS = 60;
+export const MAX_DATE_INPUT_VALUE = "9999-12-31";
 
 type SuggestionSearchRangeInput = {
     searchStartDate?: string;
@@ -15,6 +16,7 @@ type SuggestionSearchRangeResult =
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const JST_OFFSET_HOURS = 9;
+const MAX_DATE_INPUT_TIME = Date.UTC(9999, 11, 31);
 
 export const getDefaultSuggestionSearchDateValues = (
     now: Date = new Date(),
@@ -87,6 +89,29 @@ export const getInclusiveDateInputDayCount = (
     const endTime = Date.UTC(endYear, endMonth - 1, endDay);
 
     return Math.floor((endTime - startTime) / DAY_MS) + 1;
+};
+
+export const calculateMaxSearchEndDate = (startDate: string): string => {
+    if (!DATE_ONLY_PATTERN.test(startDate)) {
+        return MAX_DATE_INPUT_VALUE;
+    }
+
+    const [year, month, day] = startDate.split("-").map(Number);
+    const startTime = Date.UTC(year, month - 1, day);
+    const maxEndDate = new Date(
+        startTime + (MAX_SUGGESTION_SEARCH_DAYS - 1) * DAY_MS,
+    );
+    if (maxEndDate.getTime() > MAX_DATE_INPUT_TIME) {
+        return MAX_DATE_INPUT_VALUE;
+    }
+
+    const maxEndDateInput = [
+        maxEndDate.getUTCFullYear(),
+        String(maxEndDate.getUTCMonth() + 1).padStart(2, "0"),
+        String(maxEndDate.getUTCDate()).padStart(2, "0"),
+    ].join("-");
+
+    return maxEndDateInput;
 };
 
 const parseJSTDateOnly = (

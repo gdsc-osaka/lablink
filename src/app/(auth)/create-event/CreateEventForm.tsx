@@ -11,8 +11,10 @@ import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
 import { getScheduleSuggestionsAction } from "./actions";
 import {
+    calculateMaxSearchEndDate,
     getDefaultSuggestionSearchDateValues,
     getInclusiveDateInputDayCount,
+    MAX_DATE_INPUT_VALUE,
     MAX_SUGGESTION_SEARCH_DAYS,
 } from "@/domain/suggestion-search-range";
 
@@ -61,6 +63,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
         control,
         name: "searchStartDate",
     });
+    const searchEndDateMax = calculateMaxSearchEndDate(
+        watchedSearchStartDate ||
+            defaultSuggestionSearchDateValues.searchStartDate,
+    );
 
     const fuse = useMemo(
         () => new Fuse(users, { keys: ["username", "email"], threshold: 0.3 }),
@@ -165,6 +171,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
                             min={
                                 defaultSuggestionSearchDateValues.searchStartDate
                             }
+                            max={MAX_DATE_INPUT_VALUE}
                             {...register("searchStartDate", {
                                 required: "検索開始日は必須です",
                                 validate: (value) => {
@@ -202,6 +209,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                 watchedSearchStartDate ||
                                 defaultSuggestionSearchDateValues.searchStartDate
                             }
+                            max={searchEndDateMax}
                             {...register("searchEndDate", {
                                 required: "検索終了日は必須です",
                                 validate: (value, formValues) => {

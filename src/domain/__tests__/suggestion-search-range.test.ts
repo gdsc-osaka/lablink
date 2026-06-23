@@ -1,7 +1,9 @@
 import {
     buildSuggestionSearchRange,
+    calculateMaxSearchEndDate,
     getDefaultSuggestionSearchDateValues,
     getInclusiveDateInputDayCount,
+    MAX_DATE_INPUT_VALUE,
     MAX_SUGGESTION_SEARCH_DAYS,
 } from "../suggestion-search-range";
 
@@ -28,6 +30,18 @@ describe("getInclusiveDateInputDayCount", () => {
     it("should return 1 when start and end are the same date", () => {
         expect(getInclusiveDateInputDayCount("2026-07-10", "2026-07-10")).toBe(
             1,
+        );
+    });
+});
+
+describe("calculateMaxSearchEndDate", () => {
+    it("should return the inclusive maximum end date from the start date", () => {
+        expect(calculateMaxSearchEndDate("2026-07-10")).toBe("2026-09-07");
+    });
+
+    it("should not return a date after the supported input maximum", () => {
+        expect(calculateMaxSearchEndDate("9999-12-31")).toBe(
+            MAX_DATE_INPUT_VALUE,
         );
     });
 });
