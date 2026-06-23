@@ -311,7 +311,7 @@ export const createGroupService = ({
                                                         }
                                                         return {
                                                             id,
-                                                            name: user.email,
+                                                            name: user.name,
                                                             role,
                                                         };
                                                     },

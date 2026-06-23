@@ -11,6 +11,7 @@ const toUser = (uid: string, data: FirebaseFirestore.DocumentData): User => {
     return {
         uid,
         email: data.email || "Unknown Email",
+        name: data.name || data.email || "Unknown User",
         created_at: data.created_at?.toDate() ?? new Date(),
         updated_at: data.updated_at?.toDate() ?? new Date(),
     };
@@ -26,11 +27,13 @@ export const userAdminRepo: UserRepository = {
                 if (snapshot.exists) {
                     transaction.update(docRef, {
                         email: user.email,
+                        name: user.name,
                         updated_at: FieldValue.serverTimestamp(),
                     });
                 } else {
                     transaction.set(docRef, {
                         email: user.email,
+                        name: user.name,
                         created_at: FieldValue.serverTimestamp(),
                         updated_at: FieldValue.serverTimestamp(),
                     });
