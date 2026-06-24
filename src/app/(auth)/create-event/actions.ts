@@ -8,7 +8,10 @@ import { EVENT_TIME_OF_DAY_CONFIG } from "@/domain/event";
 import { revalidatePath } from "next/cache";
 import { parseDuration } from "@/lib/event-to-draft";
 import { findUsersByIds } from "@/infra/user/user-admin-repo";
-import { googleCalendarRepository } from "@/infra/calendar/google-calendar-repo";
+import {
+    googleCalendarRepository,
+    googleHolidayRepository,
+} from "@/infra/calendar/google-calendar-repo";
 import { googleTokenRepository } from "@/infra/token/google-token-repo";
 import { geminiRepo } from "@/infra/ai/gemini-repo";
 import { createCalculateFreeTimeService } from "@/service/calculate-free-time-service";
@@ -103,9 +106,24 @@ export async function getScheduleSuggestionsAction(
                 ? validCandidates.map((t) => EVENT_TIME_OF_DAY_CONFIG[t].hours)
                 : undefined;
 
+        const holidaysResult =
+            await googleHolidayRepository.fetchJapaneseHolidays(
+                userId,
+                scheduleRange.start,
+                scheduleRange.end,
+                googleTokenRepository,
+            );
+        const holidays = holidaysResult.isOk() ? holidaysResult.value : [];
+        if (holidaysResult.isErr()) {
+            console.warn(
+                "Failed to fetch Japanese holidays:",
+                holidaysResult.error.message,
+            );
+        }
+
         const preferenceResult = await createSchedulePreferenceService(
             geminiRepo,
-        ).extractPreference(draft.description, validCandidates);
+        ).extractPreference(draft.description, validCandidates, holidays);
 
         const schedulePreference = preferenceResult.isOk()
             ? preferenceResult.value

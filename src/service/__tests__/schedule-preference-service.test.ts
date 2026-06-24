@@ -75,6 +75,23 @@ describe("generateSchedulePreferencePrompt", () => {
 
         expect(descriptionBlock).toHaveLength(2000);
     });
+    it("should include Japanese holidays as reference-only context", () => {
+        const prompt = generateSchedulePreferencePrompt(
+            "懇親会",
+            ["night"],
+            [{ date: "2026-07-20", name: "海の日" }],
+        );
+
+        expect(prompt).toContain("Japanese Public Holidays in Search Range");
+        expect(prompt).toContain("2026-07-20 (月): 海の日");
+        expect(prompt).toContain("reference data only");
+        expect(prompt).toContain(
+            "do not recommend a day only because it is a holiday",
+        );
+        expect(prompt).toContain(
+            "Actual participant availability is more important",
+        );
+    });
 });
 
 describe("SchedulePreferenceService", () => {
@@ -114,6 +131,7 @@ describe("SchedulePreferenceService", () => {
             const result = await service.extractPreference(
                 "研究室の歓迎会をしたい",
                 ["noon"],
+                [],
             );
 
             expect(result.isOk()).toBe(true);
@@ -126,6 +144,28 @@ describe("SchedulePreferenceService", () => {
             expect(callArgs[0]).toContain("研究室の歓迎会をしたい");
             expect(callArgs[0]).toContain("JST 12:00-15:00");
             expect(callArgs[1]).toBe(SchedulePreferenceSchema);
+        });
+
+        it("should pass holidays into the generated prompt", async () => {
+            const mockPreference = {
+                dayWeights: [],
+                hourRangeWeights: [],
+                summary: "祝日情報を参考にします。",
+            };
+            mockGenAIRepo.generateStructured.mockReturnValue(
+                okAsync(mockPreference),
+            );
+
+            const service = createSchedulePreferenceService(mockGenAIRepo);
+            await service.extractPreference(
+                "party",
+                ["night"],
+                [{ date: "2026-07-20", name: "海の日" }],
+            );
+
+            const callArgs = mockGenAIRepo.generateStructured.mock.calls[0];
+            expect(callArgs[0]).toContain("2026-07-20");
+            expect(callArgs[0]).toContain("海の日");
         });
 
         it("should forward GenAI errors", async () => {
@@ -141,6 +181,7 @@ describe("SchedulePreferenceService", () => {
             const result = await service.extractPreference(
                 "研究室の歓迎会をしたい",
                 ["noon"],
+                [],
             );
 
             expect(result.isErr()).toBe(true);
