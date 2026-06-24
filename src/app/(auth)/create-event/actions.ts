@@ -14,6 +14,7 @@ import { geminiRepo } from "@/infra/ai/gemini-repo";
 import { createCalculateFreeTimeService } from "@/service/calculate-free-time-service";
 import { createSchedulePreferenceService } from "@/service/schedule-preference-service";
 import { formatToJST } from "@/lib/date";
+import { buildSuggestionSearchRange } from "@/domain/suggestion-search-range";
 import {
     EventMember,
     findMatchingPreferredHourRange,
@@ -81,16 +82,14 @@ export async function getScheduleSuggestionsAction(
 
         const durationMinutes = parseDuration(draft.duration);
 
-        const now = new Date();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-
-        const rangeEnd = new Date(now);
-        rangeEnd.setDate(rangeEnd.getDate() + 14);
-        rangeEnd.setHours(23, 59, 59, 999);
-
-        const scheduleRange = { start: tomorrow, end: rangeEnd };
+        const scheduleRangeResult = buildSuggestionSearchRange(draft);
+        if (!scheduleRangeResult.success) {
+            return {
+                success: false,
+                error: scheduleRangeResult.error,
+            };
+        }
+        const scheduleRange = scheduleRangeResult.range;
 
         // UI の timeOfDayCandidate（morning/noon/evening/night）を
         // JST の時刻範囲に変換し、スロット生成時のフィルタとして渡す。

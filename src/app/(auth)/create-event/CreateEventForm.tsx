@@ -6,10 +6,17 @@ import type { EventTimeOfDay, EventDraft } from "@/domain/event";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
 import { getScheduleSuggestionsAction } from "./actions";
+import {
+    calculateMaxSearchEndDate,
+    getDefaultSuggestionSearchDateValues,
+    getInclusiveDateInputDayCount,
+    MAX_DATE_INPUT_VALUE,
+    MAX_SUGGESTION_SEARCH_DAYS,
+} from "@/domain/suggestion-search-range";
 
 type User = { id: string; username: string; email: string };
 
@@ -28,16 +35,23 @@ type Props = { groupId: string; users: User[] };
 
 export default function CreateEventForm({ groupId, users }: Props) {
     const router = useRouter();
+    const defaultSuggestionSearchDateValues = useMemo(
+        () => getDefaultSuggestionSearchDateValues(),
+        [],
+    );
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
+        control,
     } = useForm<EventDraft>({
         defaultValues: {
             title: "",
             duration: "",
             timeOfDayCandidate: [],
+            searchStartDate: defaultSuggestionSearchDateValues.searchStartDate,
+            searchEndDate: defaultSuggestionSearchDateValues.searchEndDate,
             priorityParticipants: "",
             description: "",
         },
@@ -45,6 +59,14 @@ export default function CreateEventForm({ groupId, users }: Props) {
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const watchedSearchStartDate = useWatch({
+        control,
+        name: "searchStartDate",
+    });
+    const searchEndDateMax = calculateMaxSearchEndDate(
+        watchedSearchStartDate ||
+            defaultSuggestionSearchDateValues.searchStartDate,
+    );
 
     const fuse = useMemo(
         () => new Fuse(users, { keys: ["username", "email"], threshold: 0.3 }),
@@ -132,6 +154,103 @@ export default function CreateEventForm({ groupId, users }: Props) {
                         {errors.duration.message}
                     </p>
                 )}
+            </div>
+            <div>
+                <Label className="event-form-label">候補検索期間</Label>
+                <div className="mt-2 grid gap-4 md:grid-cols-2">
+                    <div>
+                        <Label
+                            htmlFor="searchStartDate"
+                            className="text-sm text-black"
+                        >
+                            開始日
+                        </Label>
+                        <Input
+                            type="date"
+                            id="searchStartDate"
+                            min={
+                                defaultSuggestionSearchDateValues.searchStartDate
+                            }
+                            max={MAX_DATE_INPUT_VALUE}
+                            {...register("searchStartDate", {
+                                required: "検索開始日は必須です",
+                                validate: (value) => {
+                                    if (!value) {
+                                        return "検索開始日は必須です";
+                                    }
+                                    if (
+                                        value <
+                                        defaultSuggestionSearchDateValues.searchStartDate
+                                    ) {
+                                        return "検索開始日は明日以降の日付を指定してください";
+                                    }
+                                    return true;
+                                },
+                            })}
+                            className="event-form-input mt-1"
+                        />
+                        {errors.searchStartDate && (
+                            <p className="event-form-error">
+                                {errors.searchStartDate.message}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <Label
+                            htmlFor="searchEndDate"
+                            className="text-sm text-black"
+                        >
+                            終了日
+                        </Label>
+                        <Input
+                            type="date"
+                            id="searchEndDate"
+                            min={
+                                watchedSearchStartDate ||
+                                defaultSuggestionSearchDateValues.searchStartDate
+                            }
+                            max={searchEndDateMax}
+                            {...register("searchEndDate", {
+                                required: "検索終了日は必須です",
+                                validate: (value, formValues) => {
+                                    if (!value) {
+                                        return "検索終了日は必須です";
+                                    }
+                                    if (
+                                        formValues.searchStartDate &&
+                                        value < formValues.searchStartDate
+                                    ) {
+                                        return "検索終了日は検索開始日以降の日付を指定してください";
+                                    }
+                                    if (formValues.searchStartDate) {
+                                        const selectedDays =
+                                            getInclusiveDateInputDayCount(
+                                                formValues.searchStartDate,
+                                                value,
+                                            );
+                                        if (
+                                            selectedDays >
+                                            MAX_SUGGESTION_SEARCH_DAYS
+                                        ) {
+                                            return `検索期間は最大${MAX_SUGGESTION_SEARCH_DAYS}日まで指定できます`;
+                                        }
+                                    }
+                                    return true;
+                                },
+                            })}
+                            className="event-form-input mt-1"
+                        />
+                        {errors.searchEndDate && (
+                            <p className="event-form-error">
+                                {errors.searchEndDate.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                    最大{MAX_SUGGESTION_SEARCH_DAYS}
+                    日間までの範囲で候補を探します。
+                </p>
             </div>
             <div>
                 <Label className="event-form-label">時間帯</Label>
