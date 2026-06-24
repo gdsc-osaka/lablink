@@ -22,9 +22,14 @@ import {
     EventMember,
     findMatchingPreferredHourRange,
     SchedulePreference,
-    selectDiverseTopN,
+    selectPreferredAndFallbackScores,
     TimeRangeScore,
 } from "@/domain/schedule-calculator";
+import {
+    ScheduleSuggestion,
+    ScheduleSuggestionSection,
+    ScheduleSuggestionSectionKind,
+} from "@/domain/schedule-suggestion";
 
 export async function getScheduleSuggestionsAction(
     groupId: string,
@@ -32,7 +37,7 @@ export async function getScheduleSuggestionsAction(
 ): Promise<
     | {
           success: true;
-          suggestions: { start: string; end: string; reason: string }[];
+          sections: ScheduleSuggestionSection[];
       }
     | { success: false; error: string }
 > {
@@ -142,7 +147,8 @@ export async function getScheduleSuggestionsAction(
             scheduleRange,
             durationMinutes,
             members,
-            allowedHourRanges,
+            // UI時間帯フィルタは候補分割時に適用するため、ここでは全スロットを生成する。
+            undefined,
             schedulePreference,
         );
 
@@ -156,19 +162,20 @@ export async function getScheduleSuggestionsAction(
         }
 
         const requiredCount = members.filter((m) => m.isRequired).length;
-        const suggestions = selectDiverseTopN(scoresResult.value, 3);
+        const suggestionScores = selectPreferredAndFallbackScores(
+            scoresResult.value,
+            3,
+            allowedHourRanges,
+            requiredCount,
+        );
 
         return {
             success: true,
-            suggestions: suggestions.map((s) => ({
-                start: s.timeRange.start.toISOString(),
-                end: s.timeRange.end.toISOString(),
-                reason: createSuggestionReason(
-                    s,
-                    requiredCount,
-                    schedulePreference,
-                ),
-            })),
+            sections: createSuggestionSections(
+                suggestionScores,
+                requiredCount,
+                schedulePreference,
+            ),
         };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -184,6 +191,7 @@ const createSuggestionReason = (
     score: TimeRangeScore,
     requiredCount: number,
     schedulePreference: SchedulePreference | undefined,
+    sectionKind: ScheduleSuggestionSectionKind,
 ): string => {
     const displayStart = formatToJST(score.timeRange.start, "M月d日 H:mm");
     const allRequiredMembersAvailable =
@@ -200,10 +208,72 @@ const createSuggestionReason = (
         : undefined;
     const preferenceText = matchingHourRange
         ? `入力内容から抽出した希望も加味しています。${matchingHourRange.reason}`
-        : "希望時間帯の中から参加可能性をもとに選んでいます。";
+        : sectionKind === "fallback"
+          ? "希望時間帯からは外れますが、参加可能性を優先して提示しています。"
+          : "希望時間帯の中から参加可能性をもとに選んでいます。";
 
     return `${availabilityText}${preferenceText}`;
 };
+
+const createSuggestionSections = (
+    scores: {
+        preferred: TimeRangeScore[];
+        fallback: TimeRangeScore[];
+    },
+    requiredCount: number,
+    schedulePreference: SchedulePreference | undefined,
+): ScheduleSuggestionSection[] => {
+    const sections: ScheduleSuggestionSection[] = [
+        {
+            kind: "preferred",
+            title: "希望時間帯の候補",
+            description: "入力内容と選択した時間帯に沿った候補です。",
+            suggestions: scores.preferred.map((score) =>
+                createSuggestion(
+                    score,
+                    requiredCount,
+                    schedulePreference,
+                    "preferred",
+                ),
+            ),
+        },
+    ];
+
+    if (scores.fallback.length > 0) {
+        sections.push({
+            kind: "fallback",
+            title: "参加可能性を優先した候補",
+            description:
+                "希望時間帯では必須メンバーの都合が合いにくいため、別時間帯の候補も表示しています。",
+            suggestions: scores.fallback.map((score) =>
+                createSuggestion(
+                    score,
+                    requiredCount,
+                    schedulePreference,
+                    "fallback",
+                ),
+            ),
+        });
+    }
+
+    return sections;
+};
+
+const createSuggestion = (
+    score: TimeRangeScore,
+    requiredCount: number,
+    schedulePreference: SchedulePreference | undefined,
+    sectionKind: ScheduleSuggestionSectionKind,
+): ScheduleSuggestion => ({
+    start: score.timeRange.start.toISOString(),
+    end: score.timeRange.end.toISOString(),
+    reason: createSuggestionReason(
+        score,
+        requiredCount,
+        schedulePreference,
+        sectionKind,
+    ),
+});
 
 export async function createEventAction(
     groupId: string,

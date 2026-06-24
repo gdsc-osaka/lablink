@@ -97,7 +97,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                 title: data.title,
                                 description: data.description,
                             },
-                            suggestions: result.suggestions,
+                            sections: result.sections,
                         }),
                     );
                 } catch (storageErr) {
