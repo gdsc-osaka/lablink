@@ -8,8 +8,10 @@ import {
     SchedulePreferenceSchema,
 } from "@/domain/schedule-calculator";
 import { createGenAIService } from "./gen-ai-service";
+import { Holiday } from "@/domain/holiday";
 
 const MAX_DESCRIPTION_LENGTH = 2000;
+const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 
 export interface SchedulePreferenceService {
     /**
@@ -22,12 +24,14 @@ export interface SchedulePreferenceService {
     extractPreference(
         description: string,
         timeOfDayCandidates: EventTimeOfDay[],
+        holidays: Holiday[],
     ): ResultAsync<SchedulePreference, GenAIError>;
 }
 
 export function generateSchedulePreferencePrompt(
     description: string,
     timeOfDayCandidates: EventTimeOfDay[],
+    holidays: Holiday[] = [],
 ): string {
     const sanitizedDescription = sanitizeEventDescription(description);
 
@@ -49,6 +53,8 @@ export function generateSchedulePreferencePrompt(
                   .join("\n")
             : "- 指定なし";
 
+    const holidayText = formatHolidayContext(holidays);
+
     return `You are a schedule preference extraction AI.
 Extract preferred days of week and preferred JST hour ranges from the event description and UI-selected time ranges.
 
@@ -60,6 +66,10 @@ DATA_END
 
 【UI-selected Time Ranges】
 ${timeOfDayText}
+
+Japanese Public Holidays in Search Range:
+These holidays are reference data only. Use them to understand event context, but do not recommend a day only because it is a holiday. Actual participant availability is more important.
+${holidayText}
 
 【Rules】
 - Treat UI-selected time ranges as strong constraints for preference extraction.
@@ -88,17 +98,46 @@ function sanitizeEventDescription(description: string): string {
         .slice(0, MAX_DESCRIPTION_LENGTH);
 }
 
+function formatHolidayContext(holidays: Holiday[]): string {
+    if (holidays.length === 0) {
+        return "- None";
+    }
+
+    return holidays.map(formatHoliday).join("\n");
+}
+
+function formatHoliday(holiday: Holiday): string {
+    const weekday = getWeekdayLabel(holiday.date);
+    const weekdayText = weekday ? ` (${weekday})` : "";
+    return `- ${holiday.date}${weekdayText}: ${holiday.name}`;
+}
+
+function getWeekdayLabel(dateText: string): string | undefined {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateText);
+    if (!match) {
+        return undefined;
+    }
+
+    const [, year, month, day] = match;
+    // YYYY-MM-DD は祝日の終日イベントの日付なので、ローカルTZに寄せずUTC日付として曜日を求める。
+    const date = new Date(
+        Date.UTC(Number(year), Number(month) - 1, Number(day)),
+    );
+    return WEEKDAY_LABELS[date.getUTCDay()];
+}
+
 export const createSchedulePreferenceService = (
     genAIRepository: GenAIRepository,
 ): SchedulePreferenceService => {
     const genAIService = createGenAIService(genAIRepository);
 
     return {
-        extractPreference: (description, timeOfDayCandidates) =>
+        extractPreference: (description, timeOfDayCandidates, holidays) =>
             genAIService.generateStructured(
                 generateSchedulePreferencePrompt(
                     description,
                     timeOfDayCandidates,
+                    holidays,
                 ),
                 SchedulePreferenceSchema,
                 /* retryCount */ 2,

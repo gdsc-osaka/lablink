@@ -13,6 +13,12 @@ import {
     toCalendarError,
 } from "./google-calendar-converter";
 import { decryptToken, Token } from "@/domain/token";
+import { HolidayRepository } from "@/domain/holiday";
+
+// Google Calendar の日本の祝日カレンダーID。
+// 祝日は freebusy には混ぜず、events.list で補助情報としてだけ取得する。
+const JAPANESE_HOLIDAY_CALENDAR_ID =
+    "ja.japanese#holiday@group.v.calendar.google.com";
 
 const initCalendar = (userId: string, token: Token) => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -83,4 +89,40 @@ export const googleCalendarRepository: CalendarRepository = {
                             ) || [],
                 ),
             })),
+};
+
+export const googleHolidayRepository: HolidayRepository = {
+    fetchJapaneseHolidays: (userId, timeMin, timeMax, tokenRepository) =>
+        tokenRepository
+            .get(userId, "google")
+            .andThen(decryptToken)
+            .andThen((token) => initCalendar(userId, token))
+            .andThen((calendar) =>
+                ResultAsync.fromPromise(
+                    calendar.events.list({
+                        calendarId: JAPANESE_HOLIDAY_CALENDAR_ID,
+                        timeMin: timeMin.toISOString(),
+                        timeMax: timeMax.toISOString(),
+                        timeZone: "Asia/Tokyo",
+                        singleEvents: true,
+                        orderBy: "startTime",
+                    }),
+                    (error) => {
+                        const _error =
+                            error as GaxiosError<GoogleCalendarErrorResponse>;
+                        return toCalendarError(_error, userId, [
+                            JAPANESE_HOLIDAY_CALENDAR_ID,
+                        ]);
+                    },
+                ),
+            )
+            .map((response) =>
+                (response.data.items ?? []).flatMap((event) => {
+                    const date = event.start?.date;
+                    const name = event.summary;
+                    return typeof date === "string" && typeof name === "string"
+                        ? [{ date, name }]
+                        : [];
+                }),
+            ),
 };
