@@ -14,6 +14,10 @@ export const MEMBER_REQUIRED_SCORE = 10;
 export const MEMBER_OPTIONAL_SCORE = 1;
 export const SCHEDULE_PREFERENCE_DAY_SCORE = 1;
 export const SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE = 2;
+const FALLBACK_CANDIDATE_MIN_START_HOUR = 8;
+const FALLBACK_CANDIDATE_MAX_START_HOUR = 22;
+const FALLBACK_CANDIDATE_MAX_END_HOUR = FALLBACK_CANDIDATE_MAX_START_HOUR + 1;
+const FALLBACK_CANDIDATE_HOUR_RANGE_PADDING = 3;
 
 export const SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES = [
     "sunday",
@@ -94,6 +98,11 @@ export interface TimeRangeScore {
     score: number;
 }
 
+export interface PreferredFallbackScoreSections {
+    preferred: TimeRangeScore[];
+    fallback: TimeRangeScore[];
+}
+
 /**
  * 指定された時間帯に、指定された間隔でタイムスロットを作成する。
  * @param timeRange 時間帯
@@ -151,11 +160,12 @@ export const createSlots = (
         // 時間帯フィルタ: 指定されている場合、開始時刻（JST）がいずれかの
         // 許可範囲に含まれるスロットのみ生成する
         if (allowedHourRanges) {
-            const hourJST = (currentStart.getUTCHours() + 9) % 24;
-            const isAllowed = allowedHourRanges.some(
-                (range) => hourJST >= range.start && hourJST < range.end,
-            );
-            if (!isAllowed) {
+            if (
+                !isTimeRangeStartInAllowedHourRanges(
+                    { start: currentStart, end: currentEnd },
+                    allowedHourRanges,
+                )
+            ) {
                 currentStart = new Date(
                     currentStart.getTime() + slotIntervalMs,
                 );
@@ -294,6 +304,108 @@ export const selectDiverseTopN = (
     }
 
     return selected;
+};
+
+export const selectPreferredAndFallbackScores = (
+    scores: TimeRangeScore[],
+    n: number,
+    allowedHourRanges: { start: number; end: number }[] | undefined,
+    requiredCount: number,
+): PreferredFallbackScoreSections => {
+    const hasHourRangeConstraint =
+        allowedHourRanges !== undefined && allowedHourRanges.length > 0;
+    const preferredCandidates = hasHourRangeConstraint
+        ? scores.filter((score) =>
+              isTimeRangeStartInAllowedHourRanges(
+                  score.timeRange,
+                  allowedHourRanges,
+              ),
+          )
+        : scores;
+    const preferred = selectDiverseTopN(preferredCandidates, n);
+
+    if (!hasHourRangeConstraint || requiredCount === 0) {
+        return { preferred, fallback: [] };
+    }
+
+    const maxPreferredRequiredCount =
+        preferred.length > 0
+            ? Math.max(
+                  ...preferred.map(
+                      (score) => score.availableMemberIds.required.length,
+                  ),
+              )
+            : 0;
+    const fallbackAllowedHourRanges =
+        createFallbackAllowedHourRanges(allowedHourRanges);
+    const fallbackCandidates = scores.filter(
+        (score) =>
+            !isTimeRangeStartInAllowedHourRanges(
+                score.timeRange,
+                allowedHourRanges,
+            ) &&
+            isTimeRangeStartInAllowedHourRanges(
+                score.timeRange,
+                fallbackAllowedHourRanges,
+            ) &&
+            score.availableMemberIds.required.length >
+                maxPreferredRequiredCount,
+    );
+
+    return {
+        preferred,
+        fallback: selectDiverseTopN(fallbackCandidates, n),
+    };
+};
+
+export const isTimeRangeStartInAllowedHourRanges = (
+    timeRange: TimeRange,
+    allowedHourRanges: { start: number; end: number }[] | undefined,
+): boolean => {
+    if (!allowedHourRanges || allowedHourRanges.length === 0) {
+        return true;
+    }
+
+    const hourJST = getJSTHour(timeRange.start);
+    return allowedHourRanges.some(
+        (range) => hourJST >= range.start && hourJST < range.end,
+    );
+};
+
+const createFallbackAllowedHourRanges = (
+    allowedHourRanges: { start: number; end: number }[],
+): { start: number; end: number }[] =>
+    mergeHourRanges(
+        allowedHourRanges.flatMap((range) => {
+            const start = Math.max(
+                FALLBACK_CANDIDATE_MIN_START_HOUR,
+                range.start - FALLBACK_CANDIDATE_HOUR_RANGE_PADDING,
+            );
+            const end = Math.min(
+                FALLBACK_CANDIDATE_MAX_END_HOUR,
+                range.end + FALLBACK_CANDIDATE_HOUR_RANGE_PADDING + 1,
+            );
+
+            return start < end ? [{ start, end }] : [];
+        }),
+    );
+
+const mergeHourRanges = (
+    ranges: { start: number; end: number }[],
+): { start: number; end: number }[] => {
+    const sortedRanges = [...ranges].sort((a, b) => a.start - b.start);
+    const mergedRanges: { start: number; end: number }[] = [];
+
+    for (const range of sortedRanges) {
+        const previous = mergedRanges.at(-1);
+        if (previous && range.start <= previous.end) {
+            previous.end = Math.max(previous.end, range.end);
+        } else {
+            mergedRanges.push({ ...range });
+        }
+    }
+
+    return mergedRanges;
 };
 
 const matchesPreferredDay = (

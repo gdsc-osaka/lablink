@@ -5,6 +5,7 @@ import {
     calculateSchedulePreferenceScore,
     EventMember,
     findMatchingPreferredHourRange,
+    selectPreferredAndFallbackScores,
     SchedulePreferenceSchema,
     selectDiverseTopN,
 } from "../schedule-calculator";
@@ -596,5 +597,241 @@ describe("selectDiverseTopN", () => {
 
         expect(result).toHaveLength(1);
         expect(result[0].score).toBe(13);
+    });
+});
+
+describe("selectPreferredAndFallbackScores", () => {
+    const createScore = (
+        start: string,
+        end: string,
+        required: string[],
+        score: number,
+    ) => ({
+        timeRange: {
+            start: new Date(start),
+            end: new Date(end),
+        },
+        availableMemberIds: { required, optional: [] },
+        score,
+    });
+
+    it("should return fallback candidates only when they improve required member availability", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T03:00:00.000Z",
+                "2026-02-27T04:00:00.000Z",
+                ["user1"],
+                10,
+            ), // JST 12:00
+            createScore(
+                "2026-02-27T08:00:00.000Z",
+                "2026-02-27T09:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ), // JST 17:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 12, end: 15 }],
+            2,
+        );
+
+        expect(result.preferred).toHaveLength(1);
+        expect(result.preferred[0].timeRange.start.toISOString()).toBe(
+            "2026-02-27T03:00:00.000Z",
+        );
+        expect(result.fallback).toHaveLength(1);
+        expect(result.fallback[0].timeRange.start.toISOString()).toBe(
+            "2026-02-27T08:00:00.000Z",
+        );
+    });
+
+    it("should not return fallback candidates that are far from the selected UI hour range", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T03:00:00.000Z",
+                "2026-02-27T04:00:00.000Z",
+                ["user1"],
+                10,
+            ), // JST 12:00
+            createScore(
+                "2026-02-27T10:00:00.000Z",
+                "2026-02-27T11:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ), // JST 19:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 12, end: 15 }],
+            2,
+        );
+
+        expect(result.preferred).toHaveLength(1);
+        expect(result.fallback).toHaveLength(0);
+    });
+
+    it("should include fallback candidates exactly three hours after the selected UI hour range", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T03:00:00.000Z",
+                "2026-02-27T04:00:00.000Z",
+                ["user1"],
+                10,
+            ), // JST 12:00
+            createScore(
+                "2026-02-27T09:00:00.000Z",
+                "2026-02-27T10:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ), // JST 18:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 12, end: 15 }],
+            2,
+        );
+
+        expect(result.fallback).toHaveLength(1);
+        expect(result.fallback[0].timeRange.start.toISOString()).toBe(
+            "2026-02-27T09:00:00.000Z",
+        );
+    });
+
+    it("should include fallback candidates that start at 22:00", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T10:00:00.000Z",
+                "2026-02-27T11:00:00.000Z",
+                ["user1"],
+                10,
+            ), // JST 19:00
+            createScore(
+                "2026-02-27T13:00:00.000Z",
+                "2026-02-27T14:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ), // JST 22:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 18, end: 22 }],
+            2,
+        );
+
+        expect(result.fallback).toHaveLength(1);
+        expect(result.fallback[0].timeRange.start.toISOString()).toBe(
+            "2026-02-27T13:00:00.000Z",
+        );
+    });
+
+    it("should not return late-night fallback candidates", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T10:00:00.000Z",
+                "2026-02-27T11:00:00.000Z",
+                ["user1"],
+                10,
+            ), // JST 19:00
+            createScore(
+                "2026-02-27T17:00:00.000Z",
+                "2026-02-27T18:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ), // JST 02:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 18, end: 22 }],
+            2,
+        );
+
+        expect(result.preferred).toHaveLength(1);
+        expect(result.fallback).toHaveLength(0);
+    });
+
+    it("should not return fallback candidates when required member availability does not improve", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T03:00:00.000Z",
+                "2026-02-27T04:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ), // JST 12:00
+            createScore(
+                "2026-02-27T10:00:00.000Z",
+                "2026-02-27T11:00:00.000Z",
+                ["user1", "user2"],
+                23,
+            ), // JST 19:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 12, end: 15 }],
+            2,
+        );
+
+        expect(result.preferred).toHaveLength(1);
+        expect(result.fallback).toHaveLength(0);
+    });
+
+    it("should not return fallback candidates with no required member availability when preferred candidates are empty", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T10:00:00.000Z",
+                "2026-02-27T11:00:00.000Z",
+                [],
+                0,
+            ), // JST 19:00
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            [{ start: 12, end: 15 }],
+            2,
+        );
+
+        expect(result.preferred).toHaveLength(0);
+        expect(result.fallback).toHaveLength(0);
+    });
+
+    it("should not return fallback candidates when no UI hour range is specified", () => {
+        const scores = [
+            createScore(
+                "2026-02-27T03:00:00.000Z",
+                "2026-02-27T04:00:00.000Z",
+                ["user1"],
+                10,
+            ),
+            createScore(
+                "2026-02-27T10:00:00.000Z",
+                "2026-02-27T11:00:00.000Z",
+                ["user1", "user2"],
+                20,
+            ),
+        ];
+
+        const result = selectPreferredAndFallbackScores(
+            scores,
+            3,
+            undefined,
+            2,
+        );
+
+        expect(result.preferred).toHaveLength(2);
+        expect(result.fallback).toHaveLength(0);
     });
 });
