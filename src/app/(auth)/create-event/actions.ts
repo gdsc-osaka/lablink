@@ -206,14 +206,58 @@ const createSuggestionReason = (
     const matchingHourRange = schedulePreference
         ? findMatchingPreferredHourRange(score.timeRange, schedulePreference)
         : undefined;
-    const preferenceText = matchingHourRange
-        ? `入力内容から抽出した希望も加味しています。${matchingHourRange.reason}`
-        : sectionKind === "fallback"
-          ? "希望時間帯からは外れますが、参加可能性を優先して提示しています。"
-          : "希望時間帯の中から参加可能性をもとに選んでいます。";
+    const preferenceText =
+        sectionKind === "fallback"
+            ? createFallbackPreferenceText(
+                  schedulePreference,
+                  matchingHourRange?.reason,
+              )
+            : createPreferredPreferenceText(matchingHourRange?.reason);
 
     return `${availabilityText}${preferenceText}`;
 };
+
+const createPreferredPreferenceText = (matchingReason: string | undefined) =>
+    matchingReason
+        ? `入力内容から推察されるご要望も加味しています。${matchingReason}`
+        : "希望時間帯の中からメンバーが集まりやすい日時として提案しています。";
+
+const createFallbackPreferenceText = (
+    schedulePreference: SchedulePreference | undefined,
+    matchingReason: string | undefined,
+) => {
+    if (matchingReason) {
+        return `希望時間帯からは外れますが、入力内容から推察されるご要望にも合っています。メンバーが集まりやすい日時として提案しています。理由: ${matchingReason}`;
+    }
+
+    const preferredHourRangeText =
+        formatPreferredHourRanges(schedulePreference);
+    if (preferredHourRangeText) {
+        return `入力内容からは${preferredHourRangeText}ごろが合いそうですが、希望時間帯では必須メンバーの都合が合いにくいため、メンバーが集まりやすい日時として提案しています。`;
+    }
+
+    return "希望時間帯からは外れますが、メンバーが集まりやすい日時として提案しています。";
+};
+
+const formatPreferredHourRanges = (
+    schedulePreference: SchedulePreference | undefined,
+): string | undefined => {
+    const ranges = schedulePreference?.hourRangeWeights ?? [];
+    if (ranges.length === 0) {
+        return undefined;
+    }
+
+    return ranges.map(formatPreferredHourRange).join("、");
+};
+
+const formatPreferredHourRange = (
+    range: SchedulePreference["hourRangeWeights"][number],
+): string => {
+    const endHour = (range.startHour + range.durationHours) % 24;
+    return `${formatHour(range.startHour)}〜${formatHour(endHour)}`;
+};
+
+const formatHour = (hour: number): string => `${hour}:00`;
 
 const createSuggestionSections = (
     scores: {
@@ -244,7 +288,7 @@ const createSuggestionSections = (
             kind: "fallback",
             title: "参加可能性を優先した候補",
             description:
-                "希望時間帯では必須メンバーの都合が合いにくいため、別時間帯の候補も表示しています。",
+                "希望時間帯では必須メンバーが揃いにくいため、別時間帯の候補も表示しています。",
             suggestions: scores.fallback.map((score) =>
                 createSuggestion(
                     score,
