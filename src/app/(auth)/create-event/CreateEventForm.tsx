@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import Fuse from "fuse.js";
-import { getScheduleSuggestionsAction } from "./actions";
+import { getScheduleSuggestionsAction, createEventAction } from "./actions";
 import {
     calculateMaxSearchEndDate,
     getDefaultSuggestionSearchDateValues,
@@ -20,7 +20,12 @@ import {
 
 type User = { id: string; username: string; email: string };
 
-// TODO: このリストは src/domain/event.ts の EVENT_TIME_OF_DAY_CONFIG と重複している。
+interface CreateEventFormValues extends EventDraft {
+    manualStartDate?: string;
+    manualEndDate?: string;
+}
+
+// TODO: このリストは src/domain/event.ts の EVENT_TIME_OF_DAY_CONFIG と重複しており、
 // 時間帯を追加・変更する場合は EVENT_TIME_OF_DAY_CONFIG を更新したうえで、
 // このファイルと EditEventClient.tsx の timeOfDayInputItems も合わせて更新すること。
 // 将来的には EVENT_TIME_OF_DAY_CONFIG から直接導出するよう統一を検討。
@@ -45,7 +50,7 @@ export default function CreateEventForm({ groupId, users }: Props) {
         formState: { errors, isSubmitting },
         setValue,
         control,
-    } = useForm<EventDraft>({
+    } = useForm<CreateEventFormValues>({
         defaultValues: {
             title: "",
             duration: "",
@@ -54,11 +59,14 @@ export default function CreateEventForm({ groupId, users }: Props) {
             searchEndDate: defaultSuggestionSearchDateValues.searchEndDate,
             priorityParticipants: "",
             description: "",
+            manualStartDate: "",
+            manualEndDate: "",
         },
     });
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [mode, setMode] = useState<"ai" | "manual">("ai");
     const watchedSearchStartDate = useWatch({
         control,
         name: "searchStartDate",
@@ -82,37 +90,68 @@ export default function CreateEventForm({ groupId, users }: Props) {
         setValue("priorityParticipants", csv);
     }, [selected, setValue]);
 
-    const onSubmit: SubmitHandler<EventDraft> = async (data) => {
+    const onSubmit: SubmitHandler<CreateEventFormValues> = async (data) => {
         setError(null);
         try {
-            const result = await getScheduleSuggestionsAction(groupId, data);
-
-            if (result.success) {
-                try {
-                    sessionStorage.setItem(
-                        "lablink_event_session",
-                        JSON.stringify({
-                            groupId,
-                            draft: {
-                                title: data.title,
-                                description: data.description,
-                            },
-                            sections: result.sections,
-                        }),
-                    );
-                } catch (storageErr) {
-                    console.error(
-                        "Failed to save session to sessionStorage:",
-                        storageErr,
-                    );
+            if (mode === "manual") {
+                if (!data.manualStartDate || !data.manualEndDate) {
+                    setError("開始日時と終了日時を指定してください");
+                    return;
                 }
-                router.push("/ai-suggest");
+                const beginAt = new Date(data.manualStartDate);
+                const endAt = new Date(data.manualEndDate);
+
+                const result = await createEventAction(groupId, {
+                    title: data.title,
+                    description: "", // 手動登録では詳細は空
+                    begin_at: beginAt,
+                    end_at: endAt,
+                });
+
+                if (result.success) {
+                    router.push(
+                        `/group?groupId=${encodeURIComponent(groupId)}`,
+                    );
+                } else {
+                    setError(result.error);
+                }
             } else {
-                setError(result.error);
+                const result = await getScheduleSuggestionsAction(
+                    groupId,
+                    data,
+                );
+
+                if (result.success) {
+                    try {
+                        sessionStorage.setItem(
+                            "lablink_event_session",
+                            JSON.stringify({
+                                groupId,
+                                draft: {
+                                    title: data.title,
+                                    description: data.description,
+                                },
+                                sections: result.sections,
+                            }),
+                        );
+                    } catch (storageErr) {
+                        console.error(
+                            "Failed to save session to sessionStorage:",
+                            storageErr,
+                        );
+                    }
+                    router.push("/ai-suggest");
+                } else {
+                    setError(result.error);
+                }
             }
         } catch (err) {
-            console.error("Error getting suggestions:", err);
-            setError("日程提案の取得中にエラーが発生しました");
+            console.error("Error saving event:", err);
+            setError(
+                mode === "manual"
+                    ? "イベントの登録中にエラーが発生しました"
+                    : "日程提案の取得中にエラーが発生しました",
+            );
         }
     };
 
@@ -121,6 +160,32 @@ export default function CreateEventForm({ groupId, users }: Props) {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6 px-15 mt-9"
         >
+            {/* 登録モード切り替えタブ */}
+            <div className="flex border-b border-gray-200">
+                <button
+                    type="button"
+                    onClick={() => setMode("ai")}
+                    className={`flex-1 pb-3 text-center font-bold text-sm border-b-2 transition-all duration-200 ${
+                        mode === "ai"
+                            ? "border-blue-500 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                >
+                    AI日程調整
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setMode("manual")}
+                    className={`flex-1 pb-3 text-center font-bold text-sm border-b-2 transition-all duration-200 ${
+                        mode === "manual"
+                            ? "border-blue-500 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                >
+                    手動登録
+                </button>
+            </div>
+
             <div>
                 <Label htmlFor="title" className="event-form-label">
                     タイトル
@@ -136,238 +201,345 @@ export default function CreateEventForm({ groupId, users }: Props) {
                     <p className="event-form-error">{errors.title.message}</p>
                 )}
             </div>
-            <div>
-                <Label htmlFor="duration" className="event-form-label">
-                    所要時間
-                </Label>
-                <Input
-                    type="text"
-                    id="duration"
-                    {...register("duration", {
-                        required: "所要時間は必須です",
-                    })}
-                    placeholder="イベントの所要時間 (例: 30分、2時間)"
-                    className="event-form-input"
-                />
-                {errors.duration && (
-                    <p className="event-form-error">
-                        {errors.duration.message}
-                    </p>
-                )}
-            </div>
-            <div>
-                <Label className="event-form-label">候補検索期間</Label>
-                <div className="mt-2 grid gap-4 md:grid-cols-2">
+
+            {/* AI日程調整モードの入力エリア */}
+            {mode === "ai" && (
+                <>
                     <div>
-                        <Label
-                            htmlFor="searchStartDate"
-                            className="text-sm text-black"
-                        >
-                            開始日
+                        <Label htmlFor="duration" className="event-form-label">
+                            所要時間
                         </Label>
                         <Input
-                            type="date"
-                            id="searchStartDate"
-                            min={
-                                defaultSuggestionSearchDateValues.searchStartDate
-                            }
-                            max={MAX_DATE_INPUT_VALUE}
-                            {...register("searchStartDate", {
-                                required: "検索開始日は必須です",
-                                validate: (value) => {
-                                    if (!value) {
-                                        return "検索開始日は必須です";
-                                    }
-                                    if (
-                                        value <
+                            type="text"
+                            id="duration"
+                            {...register("duration", {
+                                required:
+                                    mode === "ai"
+                                        ? "所要時間は必須です"
+                                        : false,
+                            })}
+                            placeholder="イベントの所要時間（例: 30分, 2時間）"
+                            className="event-form-input"
+                        />
+                        {errors.duration && (
+                            <p className="event-form-error">
+                                {errors.duration.message}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <Label className="event-form-label">候補検索期間</Label>
+                        <div className="mt-2 grid gap-4 md:grid-cols-2">
+                            <div>
+                                <Label
+                                    htmlFor="searchStartDate"
+                                    className="text-sm text-black"
+                                >
+                                    開始日
+                                </Label>
+                                <Input
+                                    type="date"
+                                    id="searchStartDate"
+                                    min={
                                         defaultSuggestionSearchDateValues.searchStartDate
-                                    ) {
-                                        return "検索開始日は明日以降の日付を指定してください";
                                     }
-                                    return true;
-                                },
-                            })}
-                            className="event-form-input mt-1"
-                        />
-                        {errors.searchStartDate && (
+                                    max={MAX_DATE_INPUT_VALUE}
+                                    {...register("searchStartDate", {
+                                        required:
+                                            mode === "ai"
+                                                ? "検索開始日は必須です"
+                                                : false,
+                                        validate: (value) => {
+                                            if (mode !== "ai") return true;
+                                            if (!value) {
+                                                return "検索開始日は必須です";
+                                            }
+                                            if (
+                                                value <
+                                                defaultSuggestionSearchDateValues.searchStartDate
+                                            ) {
+                                                return "検索開始日は明日以降の日付を指定してください";
+                                            }
+                                            return true;
+                                        },
+                                    })}
+                                    className="event-form-input mt-1"
+                                />
+                                {errors.searchStartDate && (
+                                    <p className="event-form-error">
+                                        {errors.searchStartDate.message}
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <Label
+                                    htmlFor="searchEndDate"
+                                    className="text-sm text-black"
+                                >
+                                    終了日
+                                </Label>
+                                <Input
+                                    type="date"
+                                    id="searchEndDate"
+                                    min={
+                                        watchedSearchStartDate ||
+                                        defaultSuggestionSearchDateValues.searchStartDate
+                                    }
+                                    max={searchEndDateMax}
+                                    {...register("searchEndDate", {
+                                        required:
+                                            mode === "ai"
+                                                ? "検索終了日は必須です"
+                                                : false,
+                                        validate: (value, formValues) => {
+                                            if (mode !== "ai") return true;
+                                            if (!value) {
+                                                return "検索終了日は必須です";
+                                            }
+                                            if (
+                                                formValues.searchStartDate &&
+                                                value <
+                                                    formValues.searchStartDate
+                                            ) {
+                                                return "検索終了日は検索開始日以降の日付を指定してください";
+                                            }
+                                            if (formValues.searchStartDate) {
+                                                const selectedDays =
+                                                    getInclusiveDateInputDayCount(
+                                                        formValues.searchStartDate,
+                                                        value,
+                                                    );
+                                                if (
+                                                    selectedDays >
+                                                    MAX_SUGGESTION_SEARCH_DAYS
+                                                ) {
+                                                    return `検索期間は最大${MAX_SUGGESTION_SEARCH_DAYS}日まで指定できます`;
+                                                }
+                                            }
+                                            return true;
+                                        },
+                                    })}
+                                    className="event-form-input mt-1"
+                                />
+                                {errors.searchEndDate && (
+                                    <p className="event-form-error">
+                                        {errors.searchEndDate.message}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                            最大{MAX_SUGGESTION_SEARCH_DAYS}
+                            日間までの範囲で候補を探します。
+                        </p>
+                    </div>
+                    <div>
+                        <Label className="event-form-label">時間帯</Label>
+                        <div className="mt-2 space-y-2">
+                            {timeOfDayInputItems.map((item) => (
+                                <div
+                                    key={item.value}
+                                    className="flex items-center"
+                                >
+                                    <Input
+                                        type="checkbox"
+                                        id={item.value}
+                                        value={item.value}
+                                        {...register("timeOfDayCandidate", {
+                                            required:
+                                                mode === "ai"
+                                                    ? "時間帯を少なくとも1つ選択してください"
+                                                    : false,
+                                        })}
+                                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <Label
+                                        htmlFor={item.value}
+                                        className="text-black"
+                                    >
+                                        {item.label}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                        {errors.timeOfDayCandidate && (
                             <p className="event-form-error">
-                                {errors.searchStartDate.message}
+                                {errors.timeOfDayCandidate.message}
                             </p>
                         )}
                     </div>
                     <div>
                         <Label
-                            htmlFor="searchEndDate"
-                            className="text-sm text-black"
+                            htmlFor="userSearch"
+                            className="event-form-label"
                         >
-                            終了日
+                            優先参加者を検索して追加
+                        </Label>
+                        <input
+                            id="userSearch"
+                            type="search"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="メールアドレスで検索"
+                            className="event-form-input"
+                        />
+                        {results.length > 0 && (
+                            <div className="mt-2 space-y-1 max-h-48 overflow-auto border rounded p-2 bg-white">
+                                {results.map((u) => (
+                                    <div
+                                        key={u.id}
+                                        className="flex items-center justify-between py-1"
+                                    >
+                                        <div>
+                                            <div className="text-sm font-medium">
+                                                {u.email}
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
+                                            onClick={() => {
+                                                setSelected((prev) =>
+                                                    prev.find(
+                                                        (p) => p.id === u.id,
+                                                    )
+                                                        ? prev
+                                                        : [...prev, u],
+                                                );
+                                                setQuery("");
+                                            }}
+                                        >
+                                            追加
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {selected.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {selected.map((s) => (
+                                    <div
+                                        key={s.id}
+                                        className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm"
+                                    >
+                                        <span className="mr-2">
+                                            {s.username}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSelected((prev) =>
+                                                    prev.filter(
+                                                        (p) => p.id !== s.id,
+                                                    ),
+                                                )
+                                            }
+                                            className="text-xs text-gray-600 hover:text-gray-800"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <input
+                            type="hidden"
+                            {...register("priorityParticipants")}
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                            検索してユーザーを一人ずつ追加してください（任意）。
+                        </p>
+                    </div>
+                    <div>
+                        <Label htmlFor="details" className="event-form-label">
+                            イベントの詳細
+                        </Label>
+                        <Textarea
+                            id="details"
+                            rows={4}
+                            {...register("description", {
+                                required:
+                                    mode === "ai"
+                                        ? "イベントの詳細は必須です"
+                                        : false,
+                            })}
+                            placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
+                            className="event-form-input"
+                        />
+                        {errors.description && (
+                            <p className="event-form-error">
+                                {errors.description.message}
+                            </p>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* 手動登録モードの入力エリア */}
+            {mode === "manual" && (
+                <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                        <Label
+                            htmlFor="manualStartDate"
+                            className="event-form-label"
+                        >
+                            開始日時
                         </Label>
                         <Input
-                            type="date"
-                            id="searchEndDate"
-                            min={
-                                watchedSearchStartDate ||
-                                defaultSuggestionSearchDateValues.searchStartDate
-                            }
-                            max={searchEndDateMax}
-                            {...register("searchEndDate", {
-                                required: "検索終了日は必須です",
+                            type="datetime-local"
+                            id="manualStartDate"
+                            {...register("manualStartDate", {
+                                required:
+                                    mode === "manual"
+                                        ? "開始日時は必須です"
+                                        : false,
+                            })}
+                            className="event-form-input mt-1"
+                        />
+                        {errors.manualStartDate && (
+                            <p className="event-form-error">
+                                {errors.manualStartDate.message}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <Label
+                            htmlFor="manualEndDate"
+                            className="event-form-label"
+                        >
+                            終了日時
+                        </Label>
+                        <Input
+                            type="datetime-local"
+                            id="manualEndDate"
+                            {...register("manualEndDate", {
+                                required:
+                                    mode === "manual"
+                                        ? "終了日時は必須です"
+                                        : false,
                                 validate: (value, formValues) => {
-                                    if (!value) {
-                                        return "検索終了日は必須です";
-                                    }
+                                    if (mode !== "manual") return true;
+                                    if (!value) return "終了日時は必須です";
                                     if (
-                                        formValues.searchStartDate &&
-                                        value < formValues.searchStartDate
+                                        formValues.manualStartDate &&
+                                        value < formValues.manualStartDate
                                     ) {
-                                        return "検索終了日は検索開始日以降の日付を指定してください";
-                                    }
-                                    if (formValues.searchStartDate) {
-                                        const selectedDays =
-                                            getInclusiveDateInputDayCount(
-                                                formValues.searchStartDate,
-                                                value,
-                                            );
-                                        if (
-                                            selectedDays >
-                                            MAX_SUGGESTION_SEARCH_DAYS
-                                        ) {
-                                            return `検索期間は最大${MAX_SUGGESTION_SEARCH_DAYS}日まで指定できます`;
-                                        }
+                                        return "終了日時は開始日時以降を指定してください";
                                     }
                                     return true;
                                 },
                             })}
                             className="event-form-input mt-1"
                         />
-                        {errors.searchEndDate && (
+                        {errors.manualEndDate && (
                             <p className="event-form-error">
-                                {errors.searchEndDate.message}
+                                {errors.manualEndDate.message}
                             </p>
                         )}
                     </div>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                    最大{MAX_SUGGESTION_SEARCH_DAYS}
-                    日間までの範囲で候補を探します。
-                </p>
-            </div>
-            <div>
-                <Label className="event-form-label">時間帯</Label>
-                <div className="mt-2 space-y-2">
-                    {timeOfDayInputItems.map((item) => (
-                        <div key={item.value} className="flex items-center">
-                            <Input
-                                type="checkbox"
-                                id={item.value}
-                                value={item.value}
-                                {...register("timeOfDayCandidate", {
-                                    required:
-                                        "時間帯を少なくとも1つ選択してください",
-                                })}
-                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <Label htmlFor={item.value} className="text-black">
-                                {item.label}
-                            </Label>
-                        </div>
-                    ))}
-                </div>
-                {errors.timeOfDayCandidate && (
-                    <p className="event-form-error">
-                        {errors.timeOfDayCandidate.message}
-                    </p>
-                )}
-            </div>
-            <div>
-                <Label htmlFor="userSearch" className="event-form-label">
-                    優先参加者を検索して追加
-                </Label>
-                <input
-                    id="userSearch"
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="メールアドレスで検索"
-                    className="event-form-input"
-                />
-                {results.length > 0 && (
-                    <div className="mt-2 space-y-1 max-h-48 overflow-auto border rounded p-2 bg-white">
-                        {results.map((u) => (
-                            <div
-                                key={u.id}
-                                className="flex items-center justify-between py-1"
-                            >
-                                <div>
-                                    <div className="text-sm font-medium">
-                                        {u.email}
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
-                                    onClick={() => {
-                                        setSelected((prev) =>
-                                            prev.find((p) => p.id === u.id)
-                                                ? prev
-                                                : [...prev, u],
-                                        );
-                                        setQuery("");
-                                    }}
-                                >
-                                    追加
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                {selected.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        {selected.map((s) => (
-                            <div
-                                key={s.id}
-                                className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm"
-                            >
-                                <span className="mr-2">{s.username}</span>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setSelected((prev) =>
-                                            prev.filter((p) => p.id !== s.id),
-                                        )
-                                    }
-                                    className="text-xs text-gray-600 hover:text-gray-800"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                <input type="hidden" {...register("priorityParticipants")} />
-                <p className="text-sm text-gray-500 mt-1">
-                    検索してユーザーを一人ずつ追加してください（任意）。
-                </p>
-            </div>
-            <div>
-                <Label htmlFor="details" className="event-form-label">
-                    イベントの詳細
-                </Label>
-                <Textarea
-                    id="details"
-                    rows={4}
-                    {...register("description", {
-                        required: "イベントの詳細は必須です",
-                    })}
-                    placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
-                    className="event-form-input"
-                />
-                {errors.description && (
-                    <p className="event-form-error">
-                        {errors.description.message}
-                    </p>
-                )}
-            </div>
+            )}
+
             {error && (
                 <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
                     {error}
@@ -379,7 +551,13 @@ export default function CreateEventForm({ groupId, users }: Props) {
                     disabled={isSubmitting}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isSubmitting ? "AI提案を取得中..." : "イベントを作成"}
+                    {isSubmitting
+                        ? mode === "ai"
+                            ? "AI提案を取得中..."
+                            : "登録中..."
+                        : mode === "ai"
+                          ? "イベントを作成"
+                          : "登録する"}
                 </Button>
             </div>
         </form>
