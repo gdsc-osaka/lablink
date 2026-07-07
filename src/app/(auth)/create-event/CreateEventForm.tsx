@@ -109,12 +109,17 @@ export default function CreateEventForm({ groupId, users }: Props) {
                 });
 
                 if (result.success) {
-                    router.push(`/group?groupId=${encodeURIComponent(groupId)}`);
+                    router.push(
+                        `/group?groupId=${encodeURIComponent(groupId)}`,
+                    );
                 } else {
                     setError(result.error);
                 }
             } else {
-                const result = await getScheduleSuggestionsAction(groupId, data);
+                const result = await getScheduleSuggestionsAction(
+                    groupId,
+                    data,
+                );
 
                 if (result.success) {
                     try {
@@ -142,7 +147,11 @@ export default function CreateEventForm({ groupId, users }: Props) {
             }
         } catch (err) {
             console.error("Error saving event:", err);
-            setError(mode === "manual" ? "イベントの登録中にエラーが発生しました" : "日程提案の取得中にエラーが発生しました");
+            setError(
+                mode === "manual"
+                    ? "イベントの登録中にエラーが発生しました"
+                    : "日程提案の取得中にエラーが発生しました",
+            );
         }
     };
 
@@ -204,7 +213,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                             type="text"
                             id="duration"
                             {...register("duration", {
-                                required: mode === "ai" ? "所要時間は必須です" : false,
+                                required:
+                                    mode === "ai"
+                                        ? "所要時間は必須です"
+                                        : false,
                             })}
                             placeholder="イベントの所要時間（例: 30分, 2時間）"
                             className="event-form-input"
@@ -233,7 +245,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                     }
                                     max={MAX_DATE_INPUT_VALUE}
                                     {...register("searchStartDate", {
-                                        required: mode === "ai" ? "検索開始日は必須です" : false,
+                                        required:
+                                            mode === "ai"
+                                                ? "検索開始日は必須です"
+                                                : false,
                                         validate: (value) => {
                                             if (mode !== "ai") return true;
                                             if (!value) {
@@ -272,7 +287,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                     }
                                     max={searchEndDateMax}
                                     {...register("searchEndDate", {
-                                        required: mode === "ai" ? "検索終了日は必須です" : false,
+                                        required:
+                                            mode === "ai"
+                                                ? "検索終了日は必須です"
+                                                : false,
                                         validate: (value, formValues) => {
                                             if (mode !== "ai") return true;
                                             if (!value) {
@@ -280,7 +298,8 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                             }
                                             if (
                                                 formValues.searchStartDate &&
-                                                value < formValues.searchStartDate
+                                                value <
+                                                    formValues.searchStartDate
                                             ) {
                                                 return "検索終了日は検索開始日以降の日付を指定してください";
                                             }
@@ -318,7 +337,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                         <Label className="event-form-label">時間帯</Label>
                         <div className="mt-2 space-y-2">
                             {timeOfDayInputItems.map((item) => (
-                                <div key={item.value} className="flex items-center">
+                                <div
+                                    key={item.value}
+                                    className="flex items-center"
+                                >
                                     <Input
                                         type="checkbox"
                                         id={item.value}
@@ -331,7 +353,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                         })}
                                         className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
-                                    <Label htmlFor={item.value} className="text-black">
+                                    <Label
+                                        htmlFor={item.value}
+                                        className="text-black"
+                                    >
                                         {item.label}
                                     </Label>
                                 </div>
@@ -344,7 +369,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                         )}
                     </div>
                     <div>
-                        <Label htmlFor="userSearch" className="event-form-label">
+                        <Label
+                            htmlFor="userSearch"
+                            className="event-form-label"
+                        >
                             優先参加者を検索して追加
                         </Label>
                         <input
@@ -372,7 +400,9 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                             className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
                                             onClick={() => {
                                                 setSelected((prev) =>
-                                                    prev.find((p) => p.id === u.id)
+                                                    prev.find(
+                                                        (p) => p.id === u.id,
+                                                    )
                                                         ? prev
                                                         : [...prev, u],
                                                 );
@@ -392,12 +422,16 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                         key={s.id}
                                         className="flex items-center bg-gray-200 px-3 py-1 rounded-full text-sm"
                                     >
-                                        <span className="mr-2">{s.username}</span>
+                                        <span className="mr-2">
+                                            {s.username}
+                                        </span>
                                         <button
                                             type="button"
                                             onClick={() =>
                                                 setSelected((prev) =>
-                                                    prev.filter((p) => p.id !== s.id),
+                                                    prev.filter(
+                                                        (p) => p.id !== s.id,
+                                                    ),
                                                 )
                                             }
                                             className="text-xs text-gray-600 hover:text-gray-800"
@@ -408,7 +442,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                                 ))}
                             </div>
                         )}
-                        <input type="hidden" {...register("priorityParticipants")} />
+                        <input
+                            type="hidden"
+                            {...register("priorityParticipants")}
+                        />
                         <p className="text-sm text-gray-500 mt-1">
                             検索してユーザーを一人ずつ追加してください（任意）。
                         </p>
@@ -421,7 +458,10 @@ export default function CreateEventForm({ groupId, users }: Props) {
                             id="details"
                             rows={4}
                             {...register("description", {
-                                required: mode === "ai" ? "イベントの詳細は必須です" : false,
+                                required:
+                                    mode === "ai"
+                                        ? "イベントの詳細は必須です"
+                                        : false,
                             })}
                             placeholder="新しく研究室配属された学部4年の学生の歓迎会としてたこ焼きパーティーをする外部進学した留学生のためにたこ焼きパーティーをする"
                             className="event-form-input"
@@ -439,14 +479,20 @@ export default function CreateEventForm({ groupId, users }: Props) {
             {mode === "manual" && (
                 <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                        <Label htmlFor="manualStartDate" className="event-form-label">
+                        <Label
+                            htmlFor="manualStartDate"
+                            className="event-form-label"
+                        >
                             開始日時
                         </Label>
                         <Input
                             type="datetime-local"
                             id="manualStartDate"
                             {...register("manualStartDate", {
-                                required: mode === "manual" ? "開始日時は必須です" : false,
+                                required:
+                                    mode === "manual"
+                                        ? "開始日時は必須です"
+                                        : false,
                             })}
                             className="event-form-input mt-1"
                         />
@@ -457,18 +503,27 @@ export default function CreateEventForm({ groupId, users }: Props) {
                         )}
                     </div>
                     <div>
-                        <Label htmlFor="manualEndDate" className="event-form-label">
+                        <Label
+                            htmlFor="manualEndDate"
+                            className="event-form-label"
+                        >
                             終了日時
                         </Label>
                         <Input
                             type="datetime-local"
                             id="manualEndDate"
                             {...register("manualEndDate", {
-                                required: mode === "manual" ? "終了日時は必須です" : false,
+                                required:
+                                    mode === "manual"
+                                        ? "終了日時は必須です"
+                                        : false,
                                 validate: (value, formValues) => {
                                     if (mode !== "manual") return true;
                                     if (!value) return "終了日時は必須です";
-                                    if (formValues.manualStartDate && value < formValues.manualStartDate) {
+                                    if (
+                                        formValues.manualStartDate &&
+                                        value < formValues.manualStartDate
+                                    ) {
                                         return "終了日時は開始日時以降を指定してください";
                                     }
                                     return true;
@@ -497,8 +552,12 @@ export default function CreateEventForm({ groupId, users }: Props) {
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isSubmitting
-                        ? (mode === "ai" ? "AI提案を取得中..." : "登録中...")
-                        : (mode === "ai" ? "イベントを作成" : "登録する")}
+                        ? mode === "ai"
+                            ? "AI提案を取得中..."
+                            : "登録中..."
+                        : mode === "ai"
+                          ? "イベントを作成"
+                          : "登録する"}
                 </Button>
             </div>
         </form>
