@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function PrivacyPolicy() {
     const APP_NAME = "lablink";
@@ -13,7 +13,8 @@ export default function PrivacyPolicy() {
                 </h1>
 
                 <p className="text-gray-600 mb-8 leading-relaxed">
-                    {APP_NAME}（以下、「当アプリ」といいます。）は、ユーザーの個人情報の保護を重要視し、以下の通りプライバシーポリシーを定めます。
+                    {APP_NAME}
+                    （以下、「当アプリ」といいます。）は、ユーザーの個人情報の保護を重要視し、以下の通りプライバシーポリシーを定めます。
                 </p>
 
                 <div className="space-y-8 text-gray-800">
@@ -28,12 +29,18 @@ export default function PrivacyPolicy() {
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-gray-700">
                             <li>
-                                <strong className="text-gray-900">Googleアカウントの基本情報（識別子、氏名、メールアドレス、プロフィール画像）</strong>
+                                <strong className="text-gray-900">
+                                    Googleアカウントの基本情報（識別子、氏名、メールアドレス、プロフィール画像）
+                                </strong>
                                 <br />
-                                <span className="text-sm text-gray-600">【利用目的】ユーザーの識別、認証、およびアカウント管理のため。</span>
+                                <span className="text-sm text-gray-600">
+                                    【利用目的】ユーザーの識別、認証、およびアカウント管理のため。
+                                </span>
                             </li>
                             <li>
-                                <strong className="text-gray-900">Googleカレンダーのデータ（予定の読み取り権限）</strong>
+                                <strong className="text-gray-900">
+                                    Googleカレンダーのデータ（予定の読み取り権限）
+                                </strong>
                                 <br />
                                 <span className="text-sm text-gray-600">
                                     【利用目的】当アプリ内でのスケジュール調整機能の提供のため。
@@ -49,14 +56,16 @@ export default function PrivacyPolicy() {
                             2. Googleユーザーデータの限定的利用について
                         </h2>
                         <p className="leading-relaxed">
-                            当アプリがGoogle APIから受け取った情報の使用および他のアプリへの転送は、
+                            当アプリがGoogle
+                            APIから受け取った情報の使用および他のアプリへの転送は、
                             <Link
                                 href="https://developers.google.com/terms/api-services-user-data-policy"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline inline-flex items-center"
                             >
-                                Google APIサービスのユーザーデータに関するポリシー
+                                Google
+                                APIサービスのユーザーデータに関するポリシー
                             </Link>
                             （限定的利用要件を含む）に準拠します。ユーザーの同意なく、カレンダーデータを第三者に提供したり、広告配信などの目的で利用することは一切ありません。
                         </p>
@@ -94,10 +103,20 @@ export default function PrivacyPolicy() {
                             本ポリシーに関するお問い合わせ、または個人情報の取り扱いに関するご質問は、以下の連絡先までご連絡ください。
                         </p>
                         <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-1">
-                            <p><span className="font-medium text-gray-900">担当者/組織名:</span> {DEVELOPER_NAME}</p>
                             <p>
-                                <span className="font-medium text-gray-900">連絡先メールアドレス:</span>{' '}
-                                <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
+                                <span className="font-medium text-gray-900">
+                                    担当者/組織名:
+                                </span>{" "}
+                                {DEVELOPER_NAME}
+                            </p>
+                            <p>
+                                <span className="font-medium text-gray-900">
+                                    連絡先メールアドレス:
+                                </span>{" "}
+                                <a
+                                    href={`mailto:${CONTACT_EMAIL}`}
+                                    className="text-blue-600 hover:underline"
+                                >
                                     {CONTACT_EMAIL}
                                 </a>
                             </p>

@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 export default function TermsOfService() {
     const APP_NAME = "lablink"; // TODO: GCPに登録したアプリ名
     const CONTACT_EMAIL = "sakura412629@gmail.com"; // TODO: GCPのサポートメール
@@ -13,7 +11,11 @@ export default function TermsOfService() {
                 </h1>
 
                 <p className="text-gray-600 mb-8 leading-relaxed">
-                    この利用規約（以下、「本規約」といいます。）は、{DEVELOPER_NAME}（以下、「当方」といいます。）が提供するアプリケーション「{APP_NAME}」（以下、「本サービス」といいます。）の利用条件を定めるものです。利用者の皆様（以下、「ユーザー」といいます。）には、本規約に従って本サービスをご利用いただきます。
+                    この利用規約（以下、「本規約」といいます。）は、
+                    {DEVELOPER_NAME}
+                    （以下、「当方」といいます。）が提供するアプリケーション「
+                    {APP_NAME}
+                    」（以下、「本サービス」といいます。）の利用条件を定めるものです。利用者の皆様（以下、「ユーザー」といいます。）には、本規約に従って本サービスをご利用いただきます。
                 </p>
 
                 <div className="space-y-8 text-gray-800">
@@ -46,7 +48,8 @@ export default function TermsOfService() {
                             第3条（Googleカレンダーデータの利用）
                         </h2>
                         <p className="leading-relaxed">
-                            本サービスは、ユーザーの同意のもと、Google Calendar APIを利用してカレンダーデータを読み取ります。ユーザーは、本サービスが提供するスケジュール自動調整等の機能の目的のためにのみ、当方が当該データにアクセスすることを許諾するものとします。
+                            本サービスは、ユーザーの同意のもと、Google Calendar
+                            APIを利用してカレンダーデータを読み取ります。ユーザーは、本サービスが提供するスケジュール自動調整等の機能の目的のためにのみ、当方が当該データにアクセスすることを許諾するものとします。
                         </p>
                     </section>
 
@@ -63,7 +66,9 @@ export default function TermsOfService() {
                             <li>法令または公序良俗に違反する行為</li>
                             <li>本サービスの運営を妨害するおそれのある行為</li>
                             <li>他のユーザーの認証情報を不正に使用する行為</li>
-                            <li>当方、または第三者のサーバーやネットワークの機能を破壊したり妨害したりする行為</li>
+                            <li>
+                                当方、または第三者のサーバーやネットワークの機能を破壊したり妨害したりする行為
+                            </li>
                             <li>その他、当方が不適切と判断する行為</li>
                         </ul>
                     </section>
@@ -75,8 +80,12 @@ export default function TermsOfService() {
                             第5条（免責事項）
                         </h2>
                         <ul className="list-disc pl-6 space-y-1.5 text-gray-700">
-                            <li>当方は、本サービスに事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。</li>
-                            <li>当方は、本サービスの利用によってユーザーに生じたあらゆる損害について、一切の責任を負いません。特に、Googleカレンダーのデータ同期エラー等に起因するスケジュールの不具合や損失について、当方は責任を負いかねます。</li>
+                            <li>
+                                当方は、本サービスに事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。
+                            </li>
+                            <li>
+                                当方は、本サービスの利用によってユーザーに生じたあらゆる損害について、一切の責任を負いません。特に、Googleカレンダーのデータ同期エラー等に起因するスケジュールの不具合や損失について、当方は責任を負いかねます。
+                            </li>
                         </ul>
                     </section>
 
@@ -101,10 +110,20 @@ export default function TermsOfService() {
                             本規約に関するお問い合わせは、以下の連絡先までご連絡ください。
                         </p>
                         <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-1">
-                            <p><span className="font-medium text-gray-900">担当者/組織名:</span> {DEVELOPER_NAME}</p>
                             <p>
-                                <span className="font-medium text-gray-900">連絡先メールアドレス:</span>{' '}
-                                <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
+                                <span className="font-medium text-gray-900">
+                                    担当者/組織名:
+                                </span>{" "}
+                                {DEVELOPER_NAME}
+                            </p>
+                            <p>
+                                <span className="font-medium text-gray-900">
+                                    連絡先メールアドレス:
+                                </span>{" "}
+                                <a
+                                    href={`mailto:${CONTACT_EMAIL}`}
+                                    className="text-blue-600 hover:underline"
+                                >
                                     {CONTACT_EMAIL}
                                 </a>
                             </p>
