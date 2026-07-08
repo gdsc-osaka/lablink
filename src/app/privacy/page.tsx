@@ -71,14 +71,16 @@ export default function PrivacyPolicy() {
                         </p>
                     </section>
 
-                    {/* 第3項 */}
+                    {/* 第3条 */}
                     <section>
                         <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
                             <span className="w-1.5 h-6 bg-blue-600 rounded-full mr-2.5 inline-block"></span>
                             3. データの保存とセキュリティ
                         </h2>
                         <p className="leading-relaxed">
-                            当アプリが取得したGoogleカレンダーのデータは、ユーザーのブラウザおよび端末内でのみ処理され、当アプリのサーバーには保存されません。
+                            当アプリの認証用トークンはサーバー側（Firestore）で安全に暗号化されて保存されます。スケジュール自動調整などの機能提供のため、サーバー側でGoogle
+                            Calendar
+                            APIを呼び出して空き時間情報を取得しますが、カレンダーの具体的な予定内容などのデータ自体はサーバー側に保存されることはなく、処理終了後に破棄されます。
                         </p>
                     </section>
 

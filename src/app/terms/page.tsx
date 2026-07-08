@@ -62,7 +62,7 @@ export default function TermsOfService() {
                         <p className="mb-2 leading-relaxed">
                             ユーザーは、本サービスの利用にあたり、以下の行為をしてはなりません。
                         </p>
-                        <ul className="list-disc pl-6 space-y-1.5 text-gray-700索">
+                        <ul className="list-disc pl-6 space-y-1.5 text-gray-700">
                             <li>法令または公序良俗に違反する行為</li>
                             <li>本サービスの運営を妨害するおそれのある行為</li>
                             <li>他のユーザーの認証情報を不正に使用する行為</li>
