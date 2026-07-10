@@ -90,6 +90,15 @@ const GroupMembersView: React.FC<GroupViewProps> = ({ group }) => {
                 >
                     招待
                 </Link>
+                <div className="mt-4 flex justify-center gap-4 text-xs text-gray-500">
+                    <Link href="/terms" className="hover:underline">
+                        利用規約
+                    </Link>
+                    <span>|</span>
+                    <Link href="/privacy" className="hover:underline">
+                        プライバシーポリシー
+                    </Link>
+                </div>
             </div>
 
             <LeaveMemberDialog
