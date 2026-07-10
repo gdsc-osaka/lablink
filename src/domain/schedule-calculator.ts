@@ -1,5 +1,6 @@
 import { TimeRange, UserTimeRanges } from "./calendar";
 import { User } from "./user";
+import * as z from "zod";
 
 /**
  * イベントの参加者情報
@@ -11,6 +12,76 @@ export interface EventMember extends User {
 
 export const MEMBER_REQUIRED_SCORE = 10;
 export const MEMBER_OPTIONAL_SCORE = 1;
+export const SCHEDULE_PREFERENCE_DAY_SCORE = 1;
+export const SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE = 2;
+const FALLBACK_CANDIDATE_MIN_START_HOUR = 8;
+const FALLBACK_CANDIDATE_MAX_START_HOUR = 22;
+const FALLBACK_CANDIDATE_MAX_END_HOUR = FALLBACK_CANDIDATE_MAX_START_HOUR + 1;
+const FALLBACK_CANDIDATE_HOUR_RANGE_PADDING = 3;
+
+export const SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+] as const;
+
+export const SchedulePreferenceDayOfWeekSchema = z.enum(
+    SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES,
+);
+
+export const SchedulePreferenceReasonSchema = z.string().min(1).max(160);
+
+export const SchedulePreferenceDaySchema = z.object({
+    dayOfWeek: SchedulePreferenceDayOfWeekSchema.describe(
+        "Preferred day of week for the event.",
+    ),
+    reason: SchedulePreferenceReasonSchema.describe(
+        "Why this day of week fits the event description.",
+    ),
+});
+
+export const SchedulePreferenceHourRangeSchema = z.object({
+    startHour: z.number().int().min(0).max(23).describe("Start hour in JST."),
+    durationHours: z
+        .number()
+        .int()
+        .min(1)
+        .max(24)
+        .describe(
+            "Duration of the preferred hour range in hours. The range may cross midnight.",
+        ),
+    reason: SchedulePreferenceReasonSchema.describe(
+        "Why this JST hour range fits the event description.",
+    ),
+});
+
+export const SchedulePreferenceSchema = z.object({
+    dayWeights: z.array(SchedulePreferenceDaySchema).min(0).max(7),
+    hourRangeWeights: z
+        .array(SchedulePreferenceHourRangeSchema)
+        .min(0)
+        .max(4)
+        .describe(
+            "Preferred JST hour ranges represented by startHour and durationHours. Keep this to the main candidate ranges.",
+        ),
+    summary: z.string().min(1).max(240),
+});
+
+export type SchedulePreferenceDayOfWeek = z.infer<
+    typeof SchedulePreferenceDayOfWeekSchema
+>;
+
+export type SchedulePreferenceDay = z.infer<typeof SchedulePreferenceDaySchema>;
+
+export type SchedulePreferenceHourRange = z.infer<
+    typeof SchedulePreferenceHourRangeSchema
+>;
+
+export type SchedulePreference = z.infer<typeof SchedulePreferenceSchema>;
 
 /**
  * 時間帯ごとの参加可能なユーザーとスコア
@@ -25,6 +96,11 @@ export interface TimeRangeScore {
     };
     /** スコア */
     score: number;
+}
+
+export interface PreferredFallbackScoreSections {
+    preferred: TimeRangeScore[];
+    fallback: TimeRangeScore[];
 }
 
 /**
@@ -84,11 +160,12 @@ export const createSlots = (
         // 時間帯フィルタ: 指定されている場合、開始時刻（JST）がいずれかの
         // 許可範囲に含まれるスロットのみ生成する
         if (allowedHourRanges) {
-            const hourJST = (currentStart.getUTCHours() + 9) % 24;
-            const isAllowed = allowedHourRanges.some(
-                (range) => hourJST >= range.start && hourJST < range.end,
-            );
-            if (!isAllowed) {
+            if (
+                !isTimeRangeStartInAllowedHourRanges(
+                    { start: currentStart, end: currentEnd },
+                    allowedHourRanges,
+                )
+            ) {
                 currentStart = new Date(
                     currentStart.getTime() + slotIntervalMs,
                 );
@@ -123,6 +200,7 @@ export const calculateTimeRangeScores = (
     members: EventMember[],
     slotIntervalMinutes: number = 30,
     allowedHourRanges?: { start: number; end: number }[],
+    schedulePreference?: SchedulePreference,
 ): TimeRangeScore[] => {
     const slots: TimeRangeScore[] = createSlots(
         timeRange,
@@ -168,5 +246,212 @@ export const calculateTimeRangeScores = (
         }
     }
 
+    if (schedulePreference) {
+        for (const slot of slots) {
+            slot.score += calculateSchedulePreferenceScore(
+                slot.timeRange,
+                schedulePreference,
+            );
+        }
+    }
+
     return slots;
+};
+
+export const calculateSchedulePreferenceScore = (
+    timeRange: TimeRange,
+    schedulePreference: SchedulePreference,
+): number => {
+    const start = timeRange.start;
+    const dayScore = matchesPreferredDay(start, schedulePreference)
+        ? SCHEDULE_PREFERENCE_DAY_SCORE
+        : 0;
+    const hourRangeScore = findMatchingPreferredHourRange(
+        timeRange,
+        schedulePreference,
+    )
+        ? SCHEDULE_PREFERENCE_HOUR_RANGE_SCORE
+        : 0;
+
+    return dayScore + hourRangeScore;
+};
+
+export const findMatchingPreferredHourRange = (
+    timeRange: TimeRange,
+    schedulePreference: SchedulePreference,
+): SchedulePreferenceHourRange | undefined =>
+    schedulePreference.hourRangeWeights.find((range) =>
+        containsWholeTimeRange(timeRange, range),
+    );
+
+export const selectDiverseTopN = (
+    scores: TimeRangeScore[],
+    n: number,
+): TimeRangeScore[] => {
+    if (n <= 0) return [];
+
+    const selected: TimeRangeScore[] = [];
+
+    for (const candidate of [...scores].sort((a, b) => b.score - a.score)) {
+        if (selected.length >= n) break;
+
+        const overlapsWithSelected = selected.some((selectedScore) =>
+            timeRangesOverlap(candidate.timeRange, selectedScore.timeRange),
+        );
+        if (!overlapsWithSelected) {
+            selected.push(candidate);
+        }
+    }
+
+    return selected;
+};
+
+export const selectPreferredAndFallbackScores = (
+    scores: TimeRangeScore[],
+    n: number,
+    allowedHourRanges: { start: number; end: number }[] | undefined,
+    requiredCount: number,
+): PreferredFallbackScoreSections => {
+    const hasHourRangeConstraint =
+        allowedHourRanges !== undefined && allowedHourRanges.length > 0;
+    const preferredCandidates = hasHourRangeConstraint
+        ? scores.filter((score) =>
+              isTimeRangeStartInAllowedHourRanges(
+                  score.timeRange,
+                  allowedHourRanges,
+              ),
+          )
+        : scores;
+    const preferred = selectDiverseTopN(preferredCandidates, n);
+
+    if (!hasHourRangeConstraint || requiredCount === 0) {
+        return { preferred, fallback: [] };
+    }
+
+    const maxPreferredRequiredCount =
+        preferred.length > 0
+            ? Math.max(
+                  ...preferred.map(
+                      (score) => score.availableMemberIds.required.length,
+                  ),
+              )
+            : 0;
+    const fallbackAllowedHourRanges =
+        createFallbackAllowedHourRanges(allowedHourRanges);
+    const fallbackCandidates = scores.filter(
+        (score) =>
+            !isTimeRangeStartInAllowedHourRanges(
+                score.timeRange,
+                allowedHourRanges,
+            ) &&
+            isTimeRangeStartInAllowedHourRanges(
+                score.timeRange,
+                fallbackAllowedHourRanges,
+            ) &&
+            score.availableMemberIds.required.length >
+                maxPreferredRequiredCount,
+    );
+
+    return {
+        preferred,
+        fallback: selectDiverseTopN(fallbackCandidates, n),
+    };
+};
+
+export const isTimeRangeStartInAllowedHourRanges = (
+    timeRange: TimeRange,
+    allowedHourRanges: { start: number; end: number }[] | undefined,
+): boolean => {
+    if (!allowedHourRanges || allowedHourRanges.length === 0) {
+        return true;
+    }
+
+    const hourJST = getJSTHour(timeRange.start);
+    return allowedHourRanges.some(
+        (range) => hourJST >= range.start && hourJST < range.end,
+    );
+};
+
+const createFallbackAllowedHourRanges = (
+    allowedHourRanges: { start: number; end: number }[],
+): { start: number; end: number }[] =>
+    mergeHourRanges(
+        allowedHourRanges.flatMap((range) => {
+            const start = Math.max(
+                FALLBACK_CANDIDATE_MIN_START_HOUR,
+                range.start - FALLBACK_CANDIDATE_HOUR_RANGE_PADDING,
+            );
+            const end = Math.min(
+                FALLBACK_CANDIDATE_MAX_END_HOUR,
+                range.end + FALLBACK_CANDIDATE_HOUR_RANGE_PADDING + 1,
+            );
+
+            return start < end ? [{ start, end }] : [];
+        }),
+    );
+
+const mergeHourRanges = (
+    ranges: { start: number; end: number }[],
+): { start: number; end: number }[] => {
+    const sortedRanges = [...ranges].sort((a, b) => a.start - b.start);
+    const mergedRanges: { start: number; end: number }[] = [];
+
+    for (const range of sortedRanges) {
+        const previous = mergedRanges.at(-1);
+        if (previous && range.start <= previous.end) {
+            previous.end = Math.max(previous.end, range.end);
+        } else {
+            mergedRanges.push({ ...range });
+        }
+    }
+
+    return mergedRanges;
+};
+
+const matchesPreferredDay = (
+    start: Date,
+    schedulePreference: SchedulePreference,
+): boolean => {
+    const dayOfWeek = SCHEDULE_PREFERENCE_DAY_OF_WEEK_VALUES[getJSTDay(start)];
+
+    return schedulePreference.dayWeights.some(
+        (day) => day.dayOfWeek === dayOfWeek,
+    );
+};
+
+const containsWholeTimeRange = (
+    timeRange: TimeRange,
+    range: SchedulePreferenceHourRange,
+): boolean => {
+    const slotDurationMinutes =
+        (timeRange.end.getTime() - timeRange.start.getTime()) / (60 * 1000);
+    const durationMinutes = range.durationHours * 60;
+    if (slotDurationMinutes <= 0 || slotDurationMinutes > durationMinutes) {
+        return false;
+    }
+
+    const startOffsetMinutes = getMinutesSinceJSTHour(
+        timeRange.start,
+        range.startHour,
+    );
+
+    return startOffsetMinutes + slotDurationMinutes <= durationMinutes;
+};
+
+const timeRangesOverlap = (a: TimeRange, b: TimeRange): boolean =>
+    a.start < b.end && a.end > b.start;
+
+const getJSTHour = (date: Date): number => (date.getUTCHours() + 9) % 24;
+
+const getJSTMinuteOfDay = (date: Date): number =>
+    getJSTHour(date) * 60 + date.getUTCMinutes();
+
+const getMinutesSinceJSTHour = (date: Date, startHour: number): number => {
+    const startMinuteOfDay = startHour * 60;
+    return (getJSTMinuteOfDay(date) - startMinuteOfDay + 24 * 60) % (24 * 60);
+};
+
+const getJSTDay = (date: Date): number => {
+    const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return jstDate.getUTCDay();
 };
