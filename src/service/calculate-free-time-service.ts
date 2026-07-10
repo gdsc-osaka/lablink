@@ -11,6 +11,7 @@ import { createCalendarService } from "./calendar-service";
 import {
     calculateTimeRangeScores,
     EventMember,
+    SchedulePreference,
     TimeRangeScore,
 } from "@/domain/schedule-calculator";
 
@@ -27,6 +28,7 @@ export interface CalculateFreeTimeService {
         eventDurationMinutes: number,
         members: EventMember[],
         allowedHourRanges?: { start: number; end: number }[],
+        schedulePreference?: SchedulePreference,
     ): ResultAsync<TimeRangeScore[], CalendarError>;
 }
 
@@ -45,6 +47,7 @@ export const createCalculateFreeTimeService = (
             eventDurationMinutes,
             members,
             allowedHourRanges,
+            schedulePreference,
         ) =>
             ResultAsync.combine(
                 members.map((user) =>
@@ -71,6 +74,7 @@ export const createCalculateFreeTimeService = (
                     //   → 当面は30分固定を維持し、別Issueで検討する
                     undefined,
                     allowedHourRanges,
+                    schedulePreference,
                 ),
             ),
     };

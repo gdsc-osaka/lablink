@@ -24,6 +24,8 @@ export interface EventDraft {
     title: string;
     duration: string;
     timeOfDayCandidate: EventTimeOfDay[];
+    searchStartDate?: string;
+    searchEndDate?: string;
     // 優先参加者をカンマ区切りで表す（例: "alice@example.com,bob@example.com"）
     priorityParticipants?: string;
     description: string;

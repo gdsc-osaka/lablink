@@ -12,6 +12,7 @@ const userConverter: FirestoreDataConverter<User> = {
         return {
             uid: user.uid,
             email: user.email,
+            name: user.name,
             created_at: toFirestoreTimestamp(user.created_at),
             updated_at: toFirestoreTimestamp(user.updated_at),
         };
@@ -25,6 +26,7 @@ const userConverter: FirestoreDataConverter<User> = {
         return {
             uid: snapshot.id,
             email: data.email ?? snapshot.id,
+            name: data.name ?? data.email ?? snapshot.id,
             created_at: data.created_at?.toDate() ?? new Date(),
             updated_at: data.updated_at?.toDate() ?? new Date(),
         };

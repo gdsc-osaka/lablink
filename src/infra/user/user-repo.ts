@@ -25,11 +25,13 @@ export const userRepo: UserRepository = {
                 if (snapshot.exists()) {
                     transaction.update(doc(db, "users", user.uid), {
                         email: user.email,
+                        name: user.name,
                         updated_at: serverTimestamp(),
                     });
                 } else {
                     transaction.set(doc(db, "users", user.uid), {
                         email: user.email,
+                        name: user.name,
                         created_at: serverTimestamp(),
                         updated_at: serverTimestamp(),
                     });

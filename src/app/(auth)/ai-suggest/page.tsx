@@ -5,11 +5,15 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatToJST } from "@/lib/date";
 import { createEventAction } from "@/app/(auth)/create-event/actions";
+import {
+    ScheduleSuggestion,
+    ScheduleSuggestionSection,
+} from "@/domain/schedule-suggestion";
 
 interface EventSession {
     groupId: string;
     draft: { title: string; description: string };
-    suggestions: { start: string; end: string; reason: string }[];
+    sections: ScheduleSuggestionSection[];
 }
 
 const SESSION_KEY = "lablink_event_session";
@@ -29,15 +33,12 @@ export default function AISuggestPage() {
                 return;
             }
             const parsed = JSON.parse(raw) as EventSession;
-            if (
-                !parsed.groupId ||
-                !parsed.draft ||
-                !Array.isArray(parsed.suggestions)
-            ) {
+            const sections = normalizeSuggestionSections(parsed);
+            if (!isValidSession(parsed) || !sections) {
                 router.replace("/group");
                 return;
             }
-            setSession(parsed);
+            setSession({ ...parsed, sections });
         } catch {
             router.replace("/group");
         }
@@ -51,7 +52,19 @@ export default function AISuggestPage() {
         );
     }
 
-    if (session.suggestions.length === 0) {
+    const suggestions = session.sections.flatMap(
+        (section) => section.suggestions,
+    );
+    const getSuggestionIndex = (
+        sectionIndex: number,
+        suggestionIndex: number,
+    ): number =>
+        session.sections
+            .slice(0, sectionIndex)
+            .reduce((sum, section) => sum + section.suggestions.length, 0) +
+        suggestionIndex;
+
+    if (suggestions.length === 0) {
         return (
             <div className="min-h-screen bg-white">
                 <div className="flex flex-col items-center justify-center min-h-screen">
@@ -82,7 +95,7 @@ export default function AISuggestPage() {
         setError(null);
         setIsConfirming(true);
         try {
-            const suggestion = session.suggestions[selectedIndex];
+            const suggestion = suggestions[selectedIndex];
             const result = await createEventAction(session.groupId, {
                 title: session.draft.title,
                 description: session.draft.description,
@@ -124,45 +137,93 @@ export default function AISuggestPage() {
 
             <div className="flex justify-center py-8">
                 <div className="w-4/5 max-w-5xl">
-                    <div className="space-y-9 mb-8">
-                        {session.suggestions.map((s, idx) => {
-                            const start = new Date(s.start);
-                            const end = new Date(s.end);
-                            const dateStr = formatToJST(start, "yyyy/MM/dd");
-                            const startTime = formatToJST(start, "HH:mm");
-                            const endTime = formatToJST(end, "HH:mm");
-
-                            return (
-                                <div
-                                    key={idx}
-                                    role="button"
-                                    tabIndex={0}
-                                    aria-pressed={selectedIndex === idx}
-                                    onClick={() => setSelectedIndex(idx)}
-                                    onKeyDown={(e) => {
-                                        if (
-                                            e.key === "Enter" ||
-                                            e.key === " "
-                                        ) {
-                                            e.preventDefault();
-                                            setSelectedIndex(idx);
-                                        }
-                                    }}
-                                    className={`p-6 rounded-lg cursor-pointer transition-colors ${
-                                        selectedIndex === idx
-                                            ? "bg-blue-100 border-2 border-blue-500"
-                                            : "bg-gray-100 hover:bg-gray-200"
-                                    }`}
-                                >
-                                    <p className="text-black font-bold text-center text-xl">
-                                        {dateStr} {startTime}～{endTime}
-                                    </p>
-                                    <p className="text-gray-600 text-sm text-center mt-2">
-                                        {s.reason}
+                    <div className="space-y-10 mb-8">
+                        {session.sections.map((section, sectionIndex) => (
+                            <section key={section.kind} className="space-y-4">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-black">
+                                        {section.title}
+                                    </h2>
+                                    <p className="text-gray-600 mt-1">
+                                        {section.description}
                                     </p>
                                 </div>
-                            );
-                        })}
+                                {section.suggestions.length === 0 ? (
+                                    <p className="text-gray-500">
+                                        この条件に合う候補はありません。
+                                    </p>
+                                ) : (
+                                    <div className="space-y-5">
+                                        {section.suggestions.map(
+                                            (s, suggestionIndex) => {
+                                                const idx = getSuggestionIndex(
+                                                    sectionIndex,
+                                                    suggestionIndex,
+                                                );
+                                                const start = new Date(s.start);
+                                                const end = new Date(s.end);
+                                                const dateStr = formatToJST(
+                                                    start,
+                                                    "yyyy/MM/dd",
+                                                );
+                                                const startTime = formatToJST(
+                                                    start,
+                                                    "HH:mm",
+                                                );
+                                                const endTime = formatToJST(
+                                                    end,
+                                                    "HH:mm",
+                                                );
+
+                                                return (
+                                                    <div
+                                                        key={`${s.start}-${s.end}`}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        aria-pressed={
+                                                            selectedIndex ===
+                                                            idx
+                                                        }
+                                                        onClick={() =>
+                                                            setSelectedIndex(
+                                                                idx,
+                                                            )
+                                                        }
+                                                        onKeyDown={(e) => {
+                                                            if (
+                                                                e.key ===
+                                                                    "Enter" ||
+                                                                e.key === " "
+                                                            ) {
+                                                                e.preventDefault();
+                                                                setSelectedIndex(
+                                                                    idx,
+                                                                );
+                                                            }
+                                                        }}
+                                                        className={`p-6 rounded-lg cursor-pointer transition-colors ${
+                                                            selectedIndex ===
+                                                            idx
+                                                                ? "bg-blue-100 border-2 border-blue-500"
+                                                                : "bg-gray-100 hover:bg-gray-200"
+                                                        }`}
+                                                    >
+                                                        <p className="text-black font-bold text-center text-xl">
+                                                            {dateStr}{" "}
+                                                            {startTime}～
+                                                            {endTime}
+                                                        </p>
+                                                        <p className="text-gray-600 text-sm text-center mt-2">
+                                                            {s.reason}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            },
+                                        )}
+                                    </div>
+                                )}
+                            </section>
+                        ))}
                     </div>
 
                     {error && (
@@ -188,4 +249,79 @@ export default function AISuggestPage() {
             </div>
         </div>
     );
+}
+
+function normalizeSuggestionSections(
+    value: unknown,
+): ScheduleSuggestionSection[] | null {
+    if (!isObject(value)) {
+        return null;
+    }
+
+    if (Array.isArray(value.sections) && value.sections.every(isSection)) {
+        return value.sections;
+    }
+
+    if (
+        Array.isArray(value.suggestions) &&
+        value.suggestions.every(isSuggestion)
+    ) {
+        return [
+            {
+                kind: "preferred",
+                title: "希望時間帯の候補",
+                description: "入力内容と選択した時間帯に沿った候補です。",
+                suggestions: value.suggestions,
+            },
+        ];
+    }
+
+    return null;
+}
+
+function isSection(value: unknown): value is ScheduleSuggestionSection {
+    return (
+        isObject(value) &&
+        (value.kind === "preferred" || value.kind === "fallback") &&
+        typeof value.title === "string" &&
+        typeof value.description === "string" &&
+        Array.isArray(value.suggestions) &&
+        value.suggestions.every(isSuggestion)
+    );
+}
+
+function isSuggestion(value: unknown): value is ScheduleSuggestion {
+    return (
+        isObject(value) &&
+        isParseableDateString(value.start) &&
+        isParseableDateString(value.end) &&
+        typeof value.reason === "string"
+    );
+}
+
+function isValidSession(value: unknown): value is EventSession {
+    return (
+        isObject(value) &&
+        typeof value.groupId === "string" &&
+        value.groupId.length > 0 &&
+        isDraft(value.draft)
+    );
+}
+
+function isDraft(
+    value: unknown,
+): value is { title: string; description: string } {
+    return (
+        isObject(value) &&
+        typeof value.title === "string" &&
+        typeof value.description === "string"
+    );
+}
+
+function isParseableDateString(value: unknown): value is string {
+    return typeof value === "string" && !Number.isNaN(Date.parse(value));
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }

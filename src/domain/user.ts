@@ -5,6 +5,7 @@ import { User as AuthUser } from "firebase/auth";
 export interface User {
     uid: string;
     email: string;
+    name: string;
     created_at: Date;
     updated_at: Date;
 }
@@ -19,6 +20,7 @@ export const createNewUser = (user: AuthUser): Result<User, never> => {
     return ok({
         uid: user.uid,
         email: user.email!,
+        name: user.displayName || user.email || "Unknown User",
         created_at: now,
         updated_at: now,
     });
