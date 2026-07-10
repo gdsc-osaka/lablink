@@ -1,10 +1,11 @@
 import Link from "next/link";
 
-export default function PrivacyPolicy() {
-    const APP_NAME = "lablink";
-    const CONTACT_EMAIL = "sakura412629@gmail.com";
-    const DEVELOPER_NAME = "gdgoc-osaka";
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "lablink";
+const CONTACT_EMAIL =
+    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "sakura412629@gmail.com";
+const DEVELOPER_NAME = process.env.NEXT_PUBLIC_DEVELOPER_NAME || "gdgoc-osaka";
 
+export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <main className="max-w-3xl mx-auto bg-white shadow-sm rounded-xl p-8 sm:p-12 border border-gray-100">
