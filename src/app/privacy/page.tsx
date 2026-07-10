@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "lablink";
 const CONTACT_EMAIL =
-    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "sakura412629@gmail.com";
+    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "gdsc.osaka@gmail.com";
 const DEVELOPER_NAME = process.env.NEXT_PUBLIC_DEVELOPER_NAME || "gdgoc-osaka";
 
 export default function PrivacyPolicy() {
