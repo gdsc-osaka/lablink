@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ja } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { formatToJST } from "@/lib/date";
 import { createEventAction } from "@/app/(auth)/create-event/actions";
@@ -166,6 +167,11 @@ export default function AISuggestPage() {
                                                     start,
                                                     "yyyy/MM/dd",
                                                 );
+                                                const dayOfWeek = formatToJST(
+                                                    start,
+                                                    "E",
+                                                    { locale: ja },
+                                                );
                                                 const startTime = formatToJST(
                                                     start,
                                                     "HH:mm",
@@ -209,9 +215,16 @@ export default function AISuggestPage() {
                                                         }`}
                                                     >
                                                         <p className="text-black font-bold text-center text-xl">
-                                                            {dateStr}{" "}
+                                                            {dateStr} (
+                                                            {dayOfWeek}){" "}
                                                             {startTime}～
                                                             {endTime}
+                                                        </p>
+                                                        <p className="text-gray-700 text-sm text-center mt-2">
+                                                            参加可能者:{" "}
+                                                            {formatAvailableMemberNames(
+                                                                s,
+                                                            )}
                                                         </p>
                                                         <p className="text-gray-600 text-sm text-center mt-2">
                                                             {s.reason}
@@ -259,7 +272,7 @@ function normalizeSuggestionSections(
     }
 
     if (Array.isArray(value.sections) && value.sections.every(isSection)) {
-        return value.sections;
+        return value.sections.map(normalizeSection);
     }
 
     if (
@@ -271,7 +284,7 @@ function normalizeSuggestionSections(
                 kind: "preferred",
                 title: "希望時間帯の候補",
                 description: "入力内容と選択した時間帯に沿った候補です。",
-                suggestions: value.suggestions,
+                suggestions: value.suggestions.map(normalizeSuggestion),
             },
         ];
     }
@@ -279,7 +292,21 @@ function normalizeSuggestionSections(
     return null;
 }
 
-function isSection(value: unknown): value is ScheduleSuggestionSection {
+type StoredScheduleSuggestion = Omit<
+    ScheduleSuggestion,
+    "availableMemberNames"
+> & {
+    availableMemberNames?: string[];
+};
+
+type StoredScheduleSuggestionSection = Omit<
+    ScheduleSuggestionSection,
+    "suggestions"
+> & {
+    suggestions: StoredScheduleSuggestion[];
+};
+
+function isSection(value: unknown): value is StoredScheduleSuggestionSection {
     return (
         isObject(value) &&
         (value.kind === "preferred" || value.kind === "fallback") &&
@@ -290,13 +317,42 @@ function isSection(value: unknown): value is ScheduleSuggestionSection {
     );
 }
 
-function isSuggestion(value: unknown): value is ScheduleSuggestion {
+function isSuggestion(value: unknown): value is StoredScheduleSuggestion {
     return (
         isObject(value) &&
         isParseableDateString(value.start) &&
         isParseableDateString(value.end) &&
-        typeof value.reason === "string"
+        typeof value.reason === "string" &&
+        (value.availableMemberNames === undefined ||
+            (Array.isArray(value.availableMemberNames) &&
+                value.availableMemberNames.every(
+                    (name): name is string => typeof name === "string",
+                )))
     );
+}
+
+function normalizeSection(
+    section: StoredScheduleSuggestionSection,
+): ScheduleSuggestionSection {
+    return {
+        ...section,
+        suggestions: section.suggestions.map(normalizeSuggestion),
+    };
+}
+
+function normalizeSuggestion(
+    suggestion: StoredScheduleSuggestion,
+): ScheduleSuggestion {
+    return {
+        ...suggestion,
+        availableMemberNames: suggestion.availableMemberNames ?? [],
+    };
+}
+
+function formatAvailableMemberNames(suggestion: ScheduleSuggestion): string {
+    return suggestion.availableMemberNames.length > 0
+        ? suggestion.availableMemberNames.join("、")
+        : "情報なし";
 }
 
 function isValidSession(value: unknown): value is EventSession {

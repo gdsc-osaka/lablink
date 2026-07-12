@@ -175,6 +175,7 @@ export async function getScheduleSuggestionsAction(
                 suggestionScores,
                 requiredCount,
                 schedulePreference,
+                members,
             ),
         };
     } catch (error) {
@@ -266,6 +267,7 @@ const createSuggestionSections = (
     },
     requiredCount: number,
     schedulePreference: SchedulePreference | undefined,
+    members: EventMember[],
 ): ScheduleSuggestionSection[] => {
     const sections: ScheduleSuggestionSection[] = [
         {
@@ -278,6 +280,7 @@ const createSuggestionSections = (
                     requiredCount,
                     schedulePreference,
                     "preferred",
+                    members,
                 ),
             ),
         },
@@ -295,6 +298,7 @@ const createSuggestionSections = (
                     requiredCount,
                     schedulePreference,
                     "fallback",
+                    members,
                 ),
             ),
         });
@@ -308,6 +312,7 @@ const createSuggestion = (
     requiredCount: number,
     schedulePreference: SchedulePreference | undefined,
     sectionKind: ScheduleSuggestionSectionKind,
+    members: EventMember[],
 ): ScheduleSuggestion => ({
     start: score.timeRange.start.toISOString(),
     end: score.timeRange.end.toISOString(),
@@ -317,7 +322,22 @@ const createSuggestion = (
         schedulePreference,
         sectionKind,
     ),
+    availableMemberNames: getAvailableMemberNames(score, members),
 });
+
+const getAvailableMemberNames = (
+    score: TimeRangeScore,
+    members: EventMember[],
+): string[] => {
+    const availableMemberIds = new Set([
+        ...score.availableMemberIds.required,
+        ...score.availableMemberIds.optional,
+    ]);
+
+    return members
+        .filter((member) => availableMemberIds.has(member.uid))
+        .map((member) => member.name);
+};
 
 export async function createEventAction(
     groupId: string,
