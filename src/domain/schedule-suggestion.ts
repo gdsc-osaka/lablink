@@ -4,6 +4,7 @@ export interface ScheduleSuggestion {
     start: string;
     end: string;
     reason: string;
+    availableMemberNames: string[];
 }
 
 export interface ScheduleSuggestionSection {
